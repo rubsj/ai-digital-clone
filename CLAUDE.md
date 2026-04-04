@@ -179,9 +179,7 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - Day 2: ChatStyleAgent — feature extractor (15 features), style profile builder, incremental learning
 
 ### Blockers
-- LKML mbox files not yet downloaded (Ruby downloads manually via browser before Phase 2 validation)
-  - Needed for: scripts/validate_emails.py + Phase 2 email count validation
-  - Files expected at: data/emails/torvalds.mbox, data/emails/kroah_hartman.mbox
+- None
 
 ### Key Decisions Made This Session
 - Used Python 3.13 (not 3.12) — 3.12 not installed locally, 3.13 compatible and avoids download
@@ -199,11 +197,11 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] Pydantic schemas: EmailMessage, StyleFeatures, StyleProfile, KnowledgeChunk, RetrievalResult, EvaluationResult, FallbackResponse, StyledResponse, LeaderComparison, Citation, CloneState
 - [x] Email parser: Python `mailbox.mbox()` → parse From/To/Subject/Body/Date/Message-ID
 - [x] Email cleaner: strip quoted text (`>`), patches, signatures, footers, min 20 words
-- [ ] Download LKML mbox for Torvalds and Kroah-Hartman (Ruby downloads manually — blocked)
-- [ ] Validate: ≥200 clean emails per leader (pending mbox download)
+- [x] Download LKML mbox for Torvalds and Kroah-Hartman
+- [x] Validate: ≥200 clean emails per leader
 - [x] Tests for schemas + email parser (95% total coverage — exceeds 90% target)
 - [x] **ADR-001: CrewAI Flow vs Sequential vs Hierarchical** written and committed
-- [ ] **Checkpoint:** Email parser works. 200+ emails per leader extracted and cleaned. (pending mbox)
+- [x] **Checkpoint:** Email parser works. 200+ emails per leader extracted and cleaned. PASSED.
 
 ### Day 2 — ChatStyleAgent
 - [ ] Feature extractor: 15 features (11 base + 4 LKML-specific)
