@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P6 Concepts Primer — Torvalds Digital Clone (Multi-Agent System)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161922;
+    --bg3: #1c2030;
+    --surface: #222639;
+    --border: #2d3354;
+    --text1: #e8eaf0;
+    --text2: #a0a8c4;
+    --text3: #6b7394;
+    --accent: #7c6aef;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(124,106,239,0.15);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.12);
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+    --yellow: #fbbf24;
+    --yellow-dim: rgba(251,191,36,0.12);
+    --pink: #f472b6;
+    --pink-dim: rgba(244,114,182,0.12);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34,211,238,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text1);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .header .tag {
+    display: inline-block;
+    background: var(--accent-glow);
+    color: var(--accent2);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.35rem 1rem;
+    border-radius: 100px;
+    border: 1px solid rgba(124,106,239,0.25);
+    margin-bottom: 1.2rem;
+  }
+  .header h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(135deg, var(--text1) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .subtitle {
+    color: var(--text2);
+    font-size: 1.1rem;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 3.5rem;
+  }
+  .toc h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 1rem;
+  }
+  .toc ol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 2rem;
+    list-style-position: inside;
+    color: var(--text2);
+    font-size: 0.92rem;
+  }
+  .toc a { color: var(--accent2); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Sections */
+  .section { margin-bottom: 2.5rem; }
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .section h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    color: var(--text1);
+  }
+  .section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.8rem;
+    color: var(--text1);
+  }
+  .section p {
+    color: var(--text2);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Concept cards */
+  .concept-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 1.8rem;
+    margin: 1.5rem 0;
+  }
+  .concept-card.highlight {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--accent-glow), var(--bg2));
+  }
+  .concept-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+    color: var(--text1);
+  }
+  .concept-card p {
+    font-size: 0.92rem;
+    color: var(--text2);
+    margin-bottom: 0.6rem;
+  }
+  .concept-card p:last-child { margin-bottom: 0; }
+
+  /* Java/TS Parallel */
+  .java-parallel {
+    background: var(--blue-dim);
+    border: 1px solid rgba(96,165,250,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .java-parallel .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .java-parallel p { color: var(--text2); margin-bottom: 0; font-size: 0.92rem; }
+
+  /* First Principles box */
+  .first-principles {
+    background: var(--accent-glow);
+    border: 1px solid rgba(124,106,239,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  .first-principles .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .first-principles p { color: var(--text2); margin-bottom: 0; }
+
+  /* Key Insight */
+  .insight {
+    background: var(--green-dim);
+    border: 1px solid rgba(52,211,153,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .insight .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .insight p { color: var(--text2); margin-bottom: 0; font-size: 0.92rem; }
+
+  /* Warning */
+  .warning {
+    background: var(--orange-dim);
+    border: 1px solid rgba(251,146,60,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .warning .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .warning p { color: var(--text2); margin-bottom: 0; font-size: 0.92rem; }
+
+  /* Code blocks */
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    margin: 1rem 0;
+    color: var(--text2);
+  }
+  .kw { color: var(--accent2); }
+  .fn { color: var(--blue); }
+  .str { color: var(--green); }
+  .cmt { color: var(--text3); font-style: italic; }
+  .num { color: var(--orange); }
+  .var { color: var(--cyan); }
+  .dec { color: var(--pink); }
+
+  /* Inline code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    color: var(--cyan);
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Comparison table */
+  .comparison {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+  }
+  .comparison th {
+    text-align: left;
+    padding: 0.8rem 1rem;
+    background: var(--bg3);
+    color: var(--text2);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .comparison td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+  }
+  .comparison tr:last-child td { border-bottom: none; }
+
+  /* Flow */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .flow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+
+  /* Analogy box */
+  .analogy {
+    background: var(--pink-dim);
+    border: 1px solid rgba(244,114,182,0.2);
+    border-radius: 12px;
+    padding: 1.5rem 1.8rem;
+    margin: 2rem 0;
+  }
+  .analogy .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+  }
+  .analogy p { color: var(--text2); margin-bottom: 0.6rem; font-size: 0.95rem; }
+  .analogy p:last-child { margin-bottom: 0; }
+
+  /* Interview signal */
+  .interview {
+    background: var(--yellow-dim);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .interview .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .interview p { color: var(--text2); margin-bottom: 0; font-size: 0.92rem; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .container { padding: 2rem 1.2rem 4rem; }
+    .header h1 { font-size: 1.8rem; }
+    .toc ol { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { text-align: center; transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="tag">P6 — Concepts Primer</div>
+  <h1>Torvalds Digital Clone</h1>
+  <p class="subtitle">Everything you need to understand before building a multi-agent system with CrewAI Flows, LiteLLM provider routing, style feature extraction, and incremental learning</p>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#s1">CrewAI: Crews vs Flows vs Hierarchical</a></li>
+    <li><a href="#s2">CrewAI Flows Deep Dive</a></li>
+    <li><a href="#s3">CrewAI Agents, Tasks & Crews</a></li>
+    <li><a href="#s4">LiteLLM: Provider-Agnostic LLM Routing</a></li>
+    <li><a href="#s5">Python mailbox: Parsing Email Archives</a></li>
+    <li><a href="#s6">Style Feature Engineering</a></li>
+    <li><a href="#s7">Incremental Learning with Weighted Averaging</a></li>
+    <li><a href="#s8">Multi-Agent Topologies</a></li>
+    <li><a href="#s9">P6 Architecture: How It All Connects</a></li>
+    <li><a href="#s10">Day 1 Readiness Checklist</a></li>
+  </ol>
+</nav>
+
+<!-- Section 1: CrewAI Overview -->
+<div class="section" id="s1">
+  <div class="section-number">01</div>
+  <h2>CrewAI: Crews vs Flows vs Hierarchical</h2>
+
+  <p>CrewAI is a Python framework for building multi-agent systems. It provides three orchestration patterns, and understanding <strong>which pattern to use when</strong> is the single most important CrewAI concept for P6.</p>
+
+  <div class="first-principles">
+    <div class="label">First Principle</div>
+    <p>Every multi-agent system faces the same fundamental question: <strong>who decides what happens next?</strong> In a sequential Crew, the task list decides. In a hierarchical Crew, a manager agent decides (using an LLM). In a Flow, your code decides (using decorators and conditionals). The more deterministic your workflow, the more you want code-driven control (Flows). The more exploratory, the more you want agent-driven control (Crews).</p>
+  </div>
+
+  <table class="comparison">
+    <tr><th>Pattern</th><th>Who Decides</th><th>Branching</th><th>State</th><th>Best For</th></tr>
+    <tr>
+      <td><strong>Sequential Crew</strong></td>
+      <td>The task list order</td>
+      <td>None — linear only</td>
+      <td>Output of task N feeds task N+1</td>
+      <td>Simple pipelines: research → write → edit</td>
+    </tr>
+    <tr>
+      <td><strong>Hierarchical Crew</strong></td>
+      <td>A manager LLM agent</td>
+      <td>Manager "chooses" (unreliably)</td>
+      <td>Manager mediates</td>
+      <td>Exploratory tasks (in theory — broken in practice)</td>
+    </tr>
+    <tr>
+      <td><strong>Flow</strong></td>
+      <td>Your Python code via decorators</td>
+      <td>Native: <code>@router()</code></td>
+      <td>Typed Pydantic <code>FlowState</code></td>
+      <td>Production systems with conditional logic, loops, shared state</td>
+    </tr>
+  </table>
+
+  <div class="warning">
+    <div class="label">Warning — Hierarchical is Broken</div>
+    <p>The hierarchical process is documented as non-functional in production (Towards Data Science, November 2025). The manager doesn't properly delegate — it runs tasks sequentially anyway but with extra LLM calls, causing loops, wrong agent invocation, and inflated costs. <strong>Do not use hierarchical for P6.</strong></p>
+  </div>
+
+  <div class="java-parallel">
+    <div class="label">Java/Spring Parallel</div>
+    <p>A <strong>Crew</strong> is like a Spring <code>@Service</code> with multiple <code>@Async</code> methods — each agent does its job, and Spring manages execution. A <strong>Flow</strong> is like a Spring <code>@EventListener</code> chain — events fire sequentially, you control branching with <code>if/else</code>, and state is passed via typed event objects. The Flow gives you the control that <code>@Async</code> doesn't.</p>
+  </div>
+
+  <div class="insight">
+    <div class="label">P6 Decision</div>
+    <p>P6 uses a <strong>Flow</strong> as the orchestration backbone (deterministic routing, typed state, conditional branching) with a <strong>single-agent Crew</strong> inside one Flow step for style-matched text generation (where LLM agency genuinely helps). This is CrewAI's own recommended production pattern.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 2: CrewAI Flows Deep Dive -->
+<div class="section" id="s2">
+  <div class="section-number">02</div>
+  <h2>CrewAI Flows Deep Dive</h2>
+
+  <p>A Flow is a Python class that inherits from <code>Flow[StateType]</code>. Methods decorated with <code>@start()</code>, <code>@listen()</code>, and <code>@router()</code> define the execution graph. State is a Pydantic model that's automatically passed between steps.</p>
+
+  <h3>The Three Decorators</h3>
+
+  <div class="concept-card">
+    <h4><code>@start()</code> — The Entry Point</h4>
+    <p>Marks the first method to run when <code>flow.kickoff()</code> is called. Every Flow must have exactly one <code>@start()</code> method. It initializes the state.</p>
+<pre><code><span class="dec">@start()</span>
+<span class="kw">def</span> <span class="fn">begin</span>(self):
+    <span class="cmt"># This runs first. Set up initial state.</span>
+    self.state.query = <span class="str">"What is TCP/IP?"</span>
+    self.state.leader = <span class="str">"torvalds"</span>
+</code></pre>
+  </div>
+
+  <div class="concept-card">
+    <h4><code>@listen(method_or_string)</code> — "Run After This"</h4>
+    <p>Marks a method to run after another method completes. You pass either a method reference (for chaining after a specific step) or a string (for routing from a <code>@router</code>).</p>
+<pre><code><span class="dec">@listen</span>(begin)  <span class="cmt"># Runs after the 'begin' method</span>
+<span class="kw">def</span> <span class="fn">retrieve_knowledge</span>(self):
+    self.state.chunks = rag_search(self.state.query)
+
+<span class="dec">@listen</span>(retrieve_knowledge)  <span class="cmt"># Chains: begin → retrieve → this</span>
+<span class="kw">def</span> <span class="fn">apply_style</span>(self):
+    self.state.response = generate_styled(self.state.chunks, self.state.leader)
+</code></pre>
+  </div>
+
+  <div class="concept-card highlight">
+    <h4><code>@router()</code> — Conditional Branching (The Key P6 Pattern)</h4>
+    <p>A method decorated with both <code>@listen()</code> and <code>@router()</code> returns a <strong>string</strong> that routes to matching <code>@listen("string")</code> methods. This is how P6 implements deliver-vs-fallback.</p>
+<pre><code><span class="dec">@listen</span>(apply_style)
+<span class="dec">@router()</span>
+<span class="kw">def</span> <span class="fn">evaluate</span>(self) -> <span class="var">str</span>:
+    score = compute_score(self.state.response)
+    self.state.score = score
+    <span class="kw">if</span> score >= <span class="num">0.75</span>:
+        <span class="kw">return</span> <span class="str">"deliver"</span>    <span class="cmt"># Routes to @listen("deliver")</span>
+    <span class="kw">return</span> <span class="str">"fallback"</span>     <span class="cmt"># Routes to @listen("fallback")</span>
+
+<span class="dec">@listen</span>(<span class="str">"deliver"</span>)  <span class="cmt"># Only runs if router returned "deliver"</span>
+<span class="kw">def</span> <span class="fn">deliver_response</span>(self):
+    self.state.output = self.state.response
+
+<span class="dec">@listen</span>(<span class="str">"fallback"</span>)  <span class="cmt"># Only runs if router returned "fallback"</span>
+<span class="kw">def</span> <span class="fn">handle_fallback</span>(self):
+    self.state.output = create_fallback(self.state)
+</code></pre>
+  </div>
+
+  <h3>FlowState — Typed Shared State</h3>
+
+  <p>State is a Pydantic BaseModel. Every step reads from and writes to <code>self.state</code>. This is how data flows between steps without function arguments.</p>
+
+<pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="fn">CloneState</span>(BaseModel):
+    <span class="cmt"># Every step can read/write these fields</span>
+    query: <span class="var">str</span> = <span class="str">""</span>
+    leader: <span class="var">str</span> = <span class="str">""</span>
+    retrieved_chunks: <span class="var">list</span> = []
+    styled_response: <span class="var">str</span> = <span class="str">""</span>
+    evaluation: <span class="var">dict</span> = {}
+    final_output: <span class="var">dict</span> = {}
+
+<span class="kw">class</span> <span class="fn">DigitalCloneFlow</span>(Flow[CloneState]):
+    <span class="cmt"># State is automatically created and managed</span>
+    <span class="cmt"># Access via self.state.query, self.state.leader, etc.</span>
+    ...
+</code></pre>
+
+  <div class="java-parallel">
+    <div class="label">Java Parallel</div>
+    <p><code>FlowState</code> is like a typed <code>Context</code> object passed through a chain-of-responsibility pattern. In Spring, imagine a <code>HandlerChain</code> where each handler reads from and writes to a shared <code>RequestContext</code> DTO. The Pydantic model gives you compile-time-like validation (at runtime) that a plain <code>dict</code> wouldn't.</p>
+  </div>
+
+  <h3>Running a Flow</h3>
+
+<pre><code><span class="cmt"># Create and run</span>
+flow = DigitalCloneFlow()
+result = flow.kickoff()  <span class="cmt"># Returns the output of the last step</span>
+
+<span class="cmt"># Access final state</span>
+<span class="kw">print</span>(flow.state.final_output)  <span class="cmt"># The full state is available after completion</span>
+</code></pre>
+
+  <div class="warning">
+    <div class="label">Common Mistakes</div>
+    <p><strong>1.</strong> The <code>@router()</code> method must return a <strong>string</strong>, not a boolean. <code>return True</code> won't route — use <code>return "deliver"</code>.</p>
+    <p><strong>2.</strong> <code>@listen("deliver")</code> matches the exact string returned by the router. Typos silently fail — the step just never runs.</p>
+    <p><strong>3.</strong> Don't modify <code>self.state</code> from outside the Flow. All state changes happen inside decorated methods.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 3: Agents, Tasks, Crews -->
+<div class="section" id="s3">
+  <div class="section-number">03</div>
+  <h2>CrewAI Agents, Tasks & Crews</h2>
+
+  <p>Even though P6 uses a Flow for orchestration, you still need a <strong>single-agent Crew</strong> for the style generation step. Here's how the building blocks work.</p>
+
+  <h3>Agent — The Worker</h3>
+  <p>An Agent has a <code>role</code>, <code>goal</code>, and <code>backstory</code>. These get injected into the LLM system prompt, guiding how the agent "thinks." For P6, the style agent's backstory includes the leader's communication patterns.</p>
+
+<pre><code><span class="kw">from</span> crewai <span class="kw">import</span> Agent
+
+style_agent = Agent(
+    role=<span class="str">"Communication style specialist for Linus Torvalds"</span>,
+    goal=<span class="str">"Generate responses matching Torvalds' writing style"</span>,
+    backstory=<span class="str">"You studied Torvalds' LKML emails. He uses short direct "</span>
+              <span class="str">"sentences, heavy dashes (--), starts with 'The point is', "</span>
+              <span class="str">"signs off with just 'Linus'. Formality: 0.45. Technical "</span>
+              <span class="str">"depth: 0.42."</span>,
+    llm=<span class="str">"gpt-4o-mini"</span>,
+    verbose=<span class="kw">True</span>
+)
+</code></pre>
+
+  <h3>Task — The Job</h3>
+  <p>A Task defines what an Agent should do. The <code>description</code> is the prompt, <code>expected_output</code> guides the format, and the task is assigned to a specific agent.</p>
+
+<pre><code><span class="kw">from</span> crewai <span class="kw">import</span> Task
+
+style_task = Task(
+    description=<span class="str">"Given these chunks: {chunks}\n"</span>
+                <span class="str">"Answer this query in Torvalds' style: {query}"</span>,
+    expected_output=<span class="str">"A response in Torvalds' communication style "</span>
+                    <span class="str">"with [N] citations"</span>,
+    agent=style_agent
+)
+</code></pre>
+
+  <h3>Crew — The Team</h3>
+  <p>A Crew groups agents and tasks. In P6, the style Crew has exactly one agent and one task. <code>kickoff(inputs={})</code> runs it, replacing <code>{variable}</code> placeholders in the task description.</p>
+
+<pre><code><span class="kw">from</span> crewai <span class="kw">import</span> Crew
+
+style_crew = Crew(
+    agents=[style_agent],
+    tasks=[style_task]
+)
+
+<span class="cmt"># Run with variable injection</span>
+result = style_crew.kickoff(inputs={
+    <span class="str">"chunks"</span>: <span class="str">"[chunk text here]"</span>,
+    <span class="str">"query"</span>: <span class="str">"What is TCP/IP?"</span>
+})
+
+<span class="cmt"># Get the output</span>
+response_text = result.raw  <span class="cmt"># The raw string output</span>
+</code></pre>
+
+  <div class="insight">
+    <div class="label">Why Only Style Uses a Crew</div>
+    <p>The RAGAgent step is deterministic (embed → FAISS search → rerank). No LLM "thinking" needed. The EvaluatorAgent is mostly math (cosine similarity + weighted formula). Only the ChatStyleAgent needs an LLM to <em>generate</em> text in a specific style, which benefits from CrewAI's role/goal/backstory prompt engineering. Using a Crew for deterministic steps adds overhead (extra LLM calls, slower execution) without benefit.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 4: LiteLLM -->
+<div class="section" id="s4">
+  <div class="section-number">04</div>
+  <h2>LiteLLM: Provider-Agnostic LLM Routing</h2>
+
+  <p>LiteLLM wraps 100+ LLM providers (OpenAI, Anthropic, Cohere, Ollama, etc.) behind a single API. You call <code>litellm.completion()</code> and it routes to the right provider based on the model string. P5 already uses it — P6 continues the pattern.</p>
+
+  <div class="first-principles">
+    <div class="label">First Principle</div>
+    <p>In production, you never want to be locked to one LLM provider. Pricing changes, rate limits hit, new models launch. LiteLLM is the adapter pattern: one interface, many implementations. If OpenAI raises prices tomorrow, you change one string (<code>"gpt-4o-mini"</code> → <code>"claude-sonnet-4-20250514"</code>) and everything still works. This is the same principle as Java's JDBC — you code to the interface, not the driver.</p>
+  </div>
+
+  <h3>Chat Completion (Text Generation)</h3>
+
+<pre><code><span class="kw">from</span> litellm <span class="kw">import</span> completion
+
+<span class="cmt"># OpenAI</span>
+response = completion(
+    model=<span class="str">"gpt-4o-mini"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Explain TCP/IP"</span>}]
+)
+text = response.choices[<span class="num">0</span>].message.content
+
+<span class="cmt"># Switch to Anthropic — SAME interface, different model string</span>
+response = completion(
+    model=<span class="str">"claude-sonnet-4-20250514"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Explain TCP/IP"</span>}]
+)
+</code></pre>
+
+  <h3>Embeddings</h3>
+
+<pre><code><span class="kw">from</span> litellm <span class="kw">import</span> embedding
+
+<span class="cmt"># OpenAI embeddings</span>
+response = embedding(
+    model=<span class="str">"text-embedding-3-small"</span>,
+    input=[<span class="str">"What is TCP/IP?"</span>]
+)
+vector = response.data[<span class="num">0</span>][<span class="str">"embedding"</span>]  <span class="cmt"># list of 1536 floats</span>
+</code></pre>
+
+  <h3>Integration with Instructor</h3>
+  <p>LiteLLM + Instructor gives you <strong>validated Pydantic output from any LLM provider</strong>. This is your portfolio standard since P1.</p>
+
+<pre><code><span class="kw">import</span> instructor
+<span class="kw">from</span> litellm <span class="kw">import</span> completion
+
+client = instructor.from_litellm(completion)
+
+<span class="kw">class</span> <span class="fn">StyleExplanation</span>(BaseModel):
+    explanation: <span class="var">str</span>
+    confidence: <span class="var">float</span>
+
+result = client.chat.completions.create(
+    model=<span class="str">"gpt-4o-mini"</span>,
+    response_model=StyleExplanation,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Why is this response low confidence?"</span>}]
+)
+<span class="cmt"># result is a validated StyleExplanation instance, not raw JSON</span>
+</code></pre>
+
+  <div class="warning">
+    <div class="label">Common Gotchas</div>
+    <p><strong>Model strings:</strong> <code>"gpt-4o-mini"</code> not <code>"openai/gpt-4o-mini"</code> (unless you're explicit-routing). For embeddings: <code>"text-embedding-3-small"</code> not <code>"openai/text-embedding-3-small"</code>.</p>
+    <p><strong>API keys:</strong> LiteLLM reads <code>OPENAI_API_KEY</code> from environment automatically. Set in <code>.env</code> file, loaded with <code>python-dotenv</code>.</p>
+    <p><strong>Embedding response shape:</strong> <code>response.data[0]["embedding"]</code> — it's a list of dicts, each with an <code>"embedding"</code> key. Not <code>response.embeddings</code>.</p>
+  </div>
+
+  <div class="java-parallel">
+    <div class="label">Java Parallel</div>
+    <p>LiteLLM is like a <code>RestTemplate</code> that auto-configures based on the URL scheme. You call <code>restTemplate.getForObject("openai://gpt-4o-mini", ...)</code> vs <code>restTemplate.getForObject("anthropic://claude-3", ...)</code> — same method, different backends. Instructor is like Jackson's <code>ObjectMapper.readValue()</code> — it deserializes the LLM's text response into a typed Java object, with retries if the response doesn't match the schema.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 5: Python mailbox -->
+<div class="section" id="s5">
+  <div class="section-number">05</div>
+  <h2>Python mailbox: Parsing Email Archives</h2>
+
+  <p>The <code>mailbox</code> module is part of Python's standard library. It reads mbox files — the format used by LKML archives on lore.kernel.org. Each message in the mbox is a Python <code>email.message.Message</code> object with headers and body.</p>
+
+<pre><code><span class="kw">import</span> mailbox
+
+<span class="cmt"># Open an mbox file</span>
+mbox = mailbox.mbox(<span class="str">"data/emails/lkml.mbox"</span>)
+
+<span class="kw">for</span> msg <span class="kw">in</span> mbox:
+    sender = msg[<span class="str">"From"</span>]         <span class="cmt"># "Linus Torvalds &lt;torvalds@linux-foundation.org&gt;"</span>
+    subject = msg[<span class="str">"Subject"</span>]      <span class="cmt"># "Re: [PATCH] Fix null pointer dereference"</span>
+    date = msg[<span class="str">"Date"</span>]            <span class="cmt"># "Thu, 15 Sep 2022 08:23:45 -0700"</span>
+    message_id = msg[<span class="str">"Message-ID"</span>]
+
+    <span class="cmt"># Get body text — handle multipart messages</span>
+    <span class="kw">if</span> msg.is_multipart():
+        body = <span class="str">""</span>
+        <span class="kw">for</span> part <span class="kw">in</span> msg.walk():
+            <span class="kw">if</span> part.get_content_type() == <span class="str">"text/plain"</span>:
+                payload = part.get_payload(decode=<span class="kw">True</span>)
+                body = payload.decode(<span class="str">"utf-8"</span>, errors=<span class="str">"replace"</span>)
+                <span class="kw">break</span>
+    <span class="kw">else</span>:
+        payload = msg.get_payload(decode=<span class="kw">True</span>)
+        body = payload.decode(<span class="str">"utf-8"</span>, errors=<span class="str">"replace"</span>) <span class="kw">if</span> payload <span class="kw">else</span> <span class="str">""</span>
+
+    <span class="cmt"># Filter: only Torvalds' emails</span>
+    <span class="kw">if</span> <span class="str">"torvalds@"</span> <span class="kw">in</span> (sender <span class="kw">or</span> <span class="str">""</span>).lower():
+        <span class="kw">print</span>(f<span class="str">"Subject: {subject}, Words: {len(body.split())}"</span>)
+</code></pre>
+
+  <div class="warning">
+    <div class="label">LKML-Specific Issues</div>
+    <p><strong>Encoding:</strong> LKML archives span decades. Expect ASCII, UTF-8, Latin-1, and broken encodings. Always use <code>errors="replace"</code> to avoid crashes.</p>
+    <p><strong>Quoted text:</strong> LKML replies heavily quote previous messages with <code>></code> prefixes. You MUST strip these or your style features will be contaminated by other people's writing.</p>
+    <p><strong>Patches:</strong> Many Torvalds emails contain code patches (lines starting with <code>+</code>, <code>-</code>, <code>@@</code>). Strip these — they're not communication style, they're code.</p>
+  </div>
+
+  <div class="java-parallel">
+    <div class="label">Java Parallel</div>
+    <p><code>mailbox.mbox()</code> is like <code>javax.mail.internet.MimeMessage</code> parsing, but simpler. In Java you'd use JavaMail with a <code>Session</code> and <code>Store</code>. Python's version is stateless — just open the file and iterate. <code>msg["From"]</code> is like <code>mimeMessage.getFrom()[0].toString()</code>.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 6: Style Feature Engineering -->
+<div class="section" id="s6">
+  <div class="section-number">06</div>
+  <h2>Style Feature Engineering</h2>
+
+  <p>Style matching in P6 uses <strong>numerical features</strong>, not LLM embeddings. Each feature measures a quantifiable aspect of someone's writing. The 15 features form a vector in [0,1] space, and cosine similarity measures how closely a generated response matches the learned profile.</p>
+
+  <div class="first-principles">
+    <div class="label">First Principle — Why Features, Not Embeddings</div>
+    <p>LLM embeddings capture <strong>semantic meaning</strong> — two texts about TCP/IP would have similar embeddings regardless of who wrote them. But style is about <strong>how</strong> you say things, not <strong>what</strong> you say. Torvalds and Kroah-Hartman might both explain TCP/IP correctly, but with completely different sentence lengths, punctuation patterns, and formality levels. Numerical features capture these surface-level patterns that embeddings deliberately ignore.</p>
+  </div>
+
+  <h3>The 15 Features</h3>
+
+  <table class="comparison">
+    <tr><th>Feature</th><th>How to Compute</th><th>Normalization</th></tr>
+    <tr><td>Average message length</td><td><code>sum(word_counts) / len(emails)</code></td><td>Divide by max observed (e.g., 500 words)</td></tr>
+    <tr><td>Greeting patterns</td><td>Count frequency of "Hi", "Dear", no greeting</td><td>Already proportions [0,1]</td></tr>
+    <tr><td>Punctuation patterns</td><td>Count <code>...</code>, <code>!!</code>, <code>--</code> per email</td><td>Divide by max observed</td></tr>
+    <tr><td>Capitalization ratio</td><td><code>uppercase_chars / total_chars</code></td><td>Already [0,1]</td></tr>
+    <tr><td>Question frequency</td><td><code>count("?") / len(emails)</code></td><td>Divide by max observed</td></tr>
+    <tr><td>Vocabulary richness</td><td><code>len(set(words)) / len(words)</code></td><td>Already [0,1]</td></tr>
+    <tr><td>Common phrases</td><td>TF of top-10 phrases → encode as frequency vector</td><td>Already proportions</td></tr>
+    <tr><td>Reasoning patterns</td><td>Frequency of "because", "therefore", "however"</td><td>Divide by total words</td></tr>
+    <tr><td>Sentiment distribution</td><td>Use TextBlob or similar → pos/neu/neg ratios</td><td>Already [0,1]</td></tr>
+    <tr><td>Formality level</td><td>Formal word count / total word count</td><td>Already [0,1]</td></tr>
+    <tr><td>Technical terminology</td><td>Domain term frequency (kernel, memory, syscall, etc.)</td><td>Divide by total words</td></tr>
+    <tr><td><strong>Code snippet freq</strong></td><td>Emails containing <code>`backtick`</code> or indented blocks</td><td>Count / total emails</td></tr>
+    <tr><td><strong>Quote-reply ratio</strong></td><td>Lines starting with <code>></code> / total lines (before stripping)</td><td>Already [0,1]</td></tr>
+    <tr><td><strong>Patch language</strong></td><td>Frequency of "Applied", "NAK", "Acked-by"</td><td>Count / total emails</td></tr>
+    <tr><td><strong>Technical depth</strong></td><td>Technical terms / general vocabulary</td><td>Already [0,1]</td></tr>
+  </table>
+
+  <div class="concept-card">
+    <h4>Cosine Similarity on Feature Vectors</h4>
+    <p>Once you have a 15-dimensional vector for the leader's profile and another for the generated response, cosine similarity measures alignment:</p>
+<pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">def</span> <span class="fn">style_score</span>(profile_vec, response_vec):
+    <span class="cmt"># Both are np.array of shape (15,), values in [0,1]</span>
+    dot = np.dot(profile_vec, response_vec)
+    norms = np.linalg.norm(profile_vec) * np.linalg.norm(response_vec)
+    <span class="kw">return</span> dot / norms <span class="kw">if</span> norms > <span class="num">0</span> <span class="kw">else</span> <span class="num">0.0</span>
+</code></pre>
+    <p>Target: <strong>> 0.90</strong>. If two profiles are identical, score = 1.0. If completely opposite, score = 0.0.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 7: Incremental Learning -->
+<div class="section" id="s7">
+  <div class="section-number">07</div>
+  <h2>Incremental Learning with Weighted Averaging</h2>
+
+  <p>Instead of recomputing the style profile from all 200+ emails every time a new batch arrives, you update incrementally using an exponential moving average (EMA).</p>
+
+<pre><code><span class="cmt"># alpha = 0.3 means 30% weight on new data, 70% on existing profile</span>
+<span class="kw">def</span> <span class="fn">update_profile</span>(current: np.ndarray, new_batch: np.ndarray, alpha: <span class="var">float</span> = <span class="num">0.3</span>):
+    <span class="kw">return</span> (<span class="num">1</span> - alpha) * current + alpha * new_batch
+</code></pre>
+
+  <p>Why this matters: in production, emails arrive continuously. You can't re-process 10,000 emails every time 5 new ones come in. The alpha parameter controls how quickly the profile adapts — high alpha (0.7) = rapid adaptation, low alpha (0.1) = very stable profile.</p>
+
+  <div class="java-parallel">
+    <div class="label">Java Parallel</div>
+    <p>This is the same pattern as a <code>MovingAverage</code> in a trading system or a <code>ExponentiallyDecayingReservoir</code> in Dropwizard Metrics. Each new data point contributes proportionally, and old data gradually fades. The alpha parameter is the "decay factor."</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 8: Multi-Agent Topologies -->
+<div class="section" id="s8">
+  <div class="section-number">08</div>
+  <h2>Multi-Agent Topologies</h2>
+
+  <p>Multi-agent systems arrange agents in different patterns depending on the problem structure. Understanding these patterns is an interview differentiator — it shows you think about system design, not just code.</p>
+
+  <table class="comparison">
+    <tr><th>Topology</th><th>How It Works</th><th>When to Use</th><th>P6 Relevance</th></tr>
+    <tr>
+      <td><strong>Sequential (Pipeline)</strong></td>
+      <td>A → B → C. Output of each feeds the next.</td>
+      <td>Well-defined stages. ETL, document processing.</td>
+      <td>P6's main flow: RAG → Style → Evaluate</td>
+    </tr>
+    <tr>
+      <td><strong>Parallel (Fan-out/Fan-in)</strong></td>
+      <td>A → [B, C] → D. Multiple agents work simultaneously, results merged.</td>
+      <td>Independent subtasks. Parallel search, multi-model comparison.</td>
+      <td>Dual-leader mode: same RAG → [Torvalds style, GKH style] → Compare</td>
+    </tr>
+    <tr>
+      <td><strong>Hierarchical (Manager-Worker)</strong></td>
+      <td>Manager delegates to workers based on task type.</td>
+      <td>Dynamic routing. Customer support triage.</td>
+      <td>Not used — P6's routing is deterministic, not LLM-decided.</td>
+    </tr>
+    <tr>
+      <td><strong>Reflexive (Self-Critique)</strong></td>
+      <td>Agent evaluates its own output and iterates.</td>
+      <td>Quality improvement loops. Code review agents.</td>
+      <td>EvaluatorAgent critiques StyleAgent's output (one-shot, not iterative).</td>
+    </tr>
+  </table>
+
+  <div class="interview">
+    <div class="label">Interview Signal</div>
+    <p>"P6 uses a sequential pipeline with a conditional branch and a parallel fan-out for dual-leader comparison. I chose sequential because the workflow is deterministic — RAG always runs before style, style always runs before evaluation. The only non-deterministic decision is deliver-vs-fallback, which is handled by a Flow @router, not by giving an LLM the choice. For dual-leader mode, I fan out after shared RAG retrieval, run two parallel style+evaluate pipelines, and fan in for the comparison view."</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 9: How It All Connects -->
+<div class="section" id="s9">
+  <div class="section-number">09</div>
+  <h2>P6 Architecture: How It All Connects</h2>
+
+  <div class="concept-card highlight">
+    <h4>The Full Stack</h4>
+    <p><strong>CrewAI Flow</strong> (Section 2) orchestrates the pipeline. Inside one Flow step, a <strong>CrewAI Crew</strong> (Section 3) runs the style generation. <strong>LiteLLM</strong> (Section 4) routes all LLM calls. Style profiles built from <strong>mailbox-parsed emails</strong> (Section 5) using <strong>numerical features</strong> (Section 6) that update via <strong>incremental learning</strong> (Section 7). The whole thing follows a <strong>sequential-with-branching topology</strong> (Section 8).</p>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step">LKML mbox</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">mailbox parser</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">15 features</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">StyleProfile</div>
+  </div>
+  <div class="flow">
+    <div class="flow-step">open-phi/textbooks</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">chunk + embed (LiteLLM)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">FAISS index</div>
+  </div>
+  <div class="flow">
+    <div class="flow-step">User Query</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Flow @start</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">RAG step</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Style Crew</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">@router</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">deliver / fallback</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 10: Day 1 Readiness -->
+<div class="section" id="s10">
+  <div class="section-number">10</div>
+  <h2>Day 1 Readiness Checklist</h2>
+
+  <div class="concept-card">
+    <h4>Before Writing Any Code</h4>
+    <p><strong>Read the CrewAI Flows docs:</strong> <a href="https://docs.crewai.com/en/concepts/flows" style="color: var(--accent2)">docs.crewai.com/en/concepts/flows</a></p>
+    <p><strong>Study the Lead Score Flow example:</strong> It uses <code>@router()</code> for conditional branching — the closest pattern to P6's deliver/fallback decision.</p>
+    <p><strong>Read the LiteLLM docs:</strong> <a href="https://docs.litellm.ai/" style="color: var(--accent2)">docs.litellm.ai</a> — focus on <code>completion()</code> and <code>embedding()</code></p>
+    <p><strong>Install dependencies:</strong> <code>uv add crewai litellm instructor faiss-cpu sentence-transformers</code></p>
+    <p><strong>Set up .env:</strong> <code>OPENAI_API_KEY</code> and <code>COHERE_API_KEY</code></p>
+    <p><strong>Download test mbox:</strong> Try parsing 10 emails before building the full pipeline.</p>
+  </div>
+
+  <div class="interview">
+    <div class="label">The P6 Interview Story</div>
+    <p>"I built a multi-agent system using CrewAI Flows — their event-driven orchestration layer — not the simpler sequential Crews. I evaluated all three CrewAI patterns and chose Flows because my workflow needed conditional branching (deliver vs fallback based on a quality threshold) and typed shared state (Pydantic FlowState). The style generation step uses a single-agent CrewAI Crew where LLM agency adds value; all other steps are direct function calls for deterministic operations. This is CrewAI's own recommended production architecture."</p>
+  </div>
+</div>
+
+</div><!-- end container -->
+</body>
+</html>
