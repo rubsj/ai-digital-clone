@@ -1,0 +1,43 @@
+embedding:
+  primary_model: "text-embedding-3-small"
+  baseline_model: "all-MiniLM-L6-v2"
+  dimension: 1536  # text-embedding-3-small output size
+
+chunking:
+  chunk_size: 500
+  chunk_overlap: 50
+
+reranker:
+  provider: "cohere"
+  model: "rerank-english-v3.0"
+  top_n_initial: 20
+  top_n_final: 5
+
+scoring:
+  style_weight: 0.4
+  groundedness_weight: 0.4
+  confidence_weight: 0.2
+  fallback_threshold: 0.75
+
+llm:
+  model: "gpt-4o-mini"
+  max_retries: 3
+
+leaders:
+  torvalds:
+    name: "Linus Torvalds"
+    email_filter: "torvalds@"
+    mbox_path: "data/emails/torvalds.mbox"
+    profile_path: "data/models/torvalds_profile.json"
+  kroah_hartman:
+    name: "Greg Kroah-Hartman"
+    email_filter: "gregkh@"
+    mbox_path: "data/emails/kroah_hartman.mbox"
+    profile_path: "data/models/kroah_hartman_profile.json"
+
+style:
+  alpha: 0.3  # incremental learning weight (EMA: updated = (1-alpha)*current + alpha*new)
+  min_email_words: 20
+  date_range:
+    start: "2015-01-01"
+    end: "2023-12-31"
