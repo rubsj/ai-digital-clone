@@ -105,3 +105,25 @@ One entry per phase. Pushed to Notion at end of each day.
 - `score_style` is stateless and cheap — no LLM call. This is intentional: it runs inside EvaluatorAgent on every generated response, so it must be fast. Keep it that way on Day 5 when EvaluatorAgent is wired up.
 
 **Test count at end of phase:** 207 passing (168 + 39 new)
+
+---
+
+### Phase 4: Build Script, Radar Chart, ADR-003 (2026-04-12)
+
+**What I built:**
+- `scripts/build_profiles.py` — end-to-end pipeline: parse mbox → filter `is_patch=False` → extract features → build profile → save JSON → per-feature variance Rich table → 20-email self-similarity check → cross-leader cosine similarity → radar chart
+- Per-feature variance table highlights rows with `std < 0.05` in yellow — low-variance features are the first thing to check if self-similarity falls below 0.90
+- `plot_style_radar(profiles, output_path)` in `src/visualization.py` — matplotlib polar projection, 15 axes, two overlaid polygons (blue Torvalds, orange Kroah-Hartman), `alpha=0.25` fill, `dpi=150`, Agg backend for headless execution
+- `docs/adr/ADR-003-feature-vectors-vs-llm-embeddings.md` — first-person ADR following ADR-001 template
+
+**What surprised me:**
+- `all-MiniLM-L6-v2` embeddings produced a cross-leader separation of only 0.04 (self = 0.78, cross = 0.74) on the test sample. The model can't distinguish "writes like Torvalds" from "writes about kernels" — everything in the LKML corpus looks technically similar to a general-purpose encoder. Hand-crafted features produced 0.11 separation (self = 0.92, cross = 0.81) and cleared the 0.90 threshold the embedding approach missed.
+- The two most discriminative features — `capitalization_ratio` (0.18 vs 0.04) and `formality_level` (0.28 vs 0.45) — correspond directly to named axes on the radar chart. Interpretability was free: once the features are designed to be understandable, the diagnostic output is automatically understandable. An embedding vector gives you no equivalent.
+- Matplotlib's polar projection closes the polygon by repeating the first angle. If you don't append `angles[:1]` to both the angles list and the values list before calling `ax.plot`, the last axis doesn't connect back to the first and you get an open polygon that looks like a bug in the chart.
+
+**Watch in later phases:**
+- The self-similarity check samples 20 emails randomly. On a small corpus (< 50 emails) this sampling variance can swing the mean by ±0.03. For a production check, fix the random seed or use the full corpus; for a diagnostic it's fine.
+- `build_profiles.py` skips emails that raise exceptions during feature extraction (try/except in the extraction loop). A large skip count is a signal that `parse_mbox` is returning emails that pass the word-count filter but have malformed structure. Watch the "skipped" line in the script output.
+- The ADR-003 validation numbers (0.78 self-similarity for embeddings, 0.92 for features) came from a 50-email test sample run during development. They should be re-validated on the full corpus after `build_profiles.py` runs on real data. If the full-corpus numbers diverge significantly from these, the ADR rationale needs an update.
+
+**Test count at end of phase:** 207 passing (no new tests — Phase 4 is a script + chart + ADR, not a library module)
