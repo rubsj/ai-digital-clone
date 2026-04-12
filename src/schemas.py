@@ -29,6 +29,7 @@ class EmailMessage(BaseModel):
     timestamp: datetime
     message_id: str
     is_patch: bool = False
+    quote_ratio: float = Field(default=0.0, ge=0.0, le=1.0)  # quoted lines / total lines, computed pre-cleaning
 
 
 # ---------------------------------------------------------------------------
