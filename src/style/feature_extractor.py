@@ -165,10 +165,16 @@ def _avg_message_length(body: str) -> float:
 
 
 def _greeting_patterns(body: str) -> dict[str, float]:
-    """Idx 1: binary presence of greeting types in the first non-empty line.
+    """Idx 1: greeting type present in the first non-empty line, if any.
 
-    Keys: hi, hello, hey, dear, none (no greeting detected).
-    Values: 0.0 or 1.0 — only one key is 1.0 per email.
+    Only the greeting type found is included (value 1.0). Empty dict means no
+    greeting detected. to_vector() takes dict_mean, so:
+      no greeting  → {} → 0.0
+      has greeting → {"hi": 1.0} → 1.0
+
+    This makes the vector entry the per-email greeting-presence signal rather
+    than an invariant one-hot mean (which was always 0.2 regardless of which
+    greeting appeared).
     """
     first_line = ""
     for line in body.splitlines():
@@ -177,14 +183,14 @@ def _greeting_patterns(body: str) -> dict[str, float]:
             break
 
     if _GREET_HI.match(first_line):
-        return {"hi": 1.0, "hello": 0.0, "hey": 0.0, "dear": 0.0, "none": 0.0}
+        return {"hi": 1.0}
     if _GREET_HELLO.match(first_line):
-        return {"hi": 0.0, "hello": 1.0, "hey": 0.0, "dear": 0.0, "none": 0.0}
+        return {"hello": 1.0}
     if _GREET_HEY.match(first_line):
-        return {"hi": 0.0, "hello": 0.0, "hey": 1.0, "dear": 0.0, "none": 0.0}
+        return {"hey": 1.0}
     if _GREET_DEAR.match(first_line):
-        return {"hi": 0.0, "hello": 0.0, "hey": 0.0, "dear": 1.0, "none": 0.0}
-    return {"hi": 0.0, "hello": 0.0, "hey": 0.0, "dear": 0.0, "none": 1.0}
+        return {"dear": 1.0}
+    return {}
 
 
 def _punctuation_patterns(body: str) -> dict[str, float]:
@@ -283,35 +289,42 @@ def _reasoning_patterns(body: str) -> dict[str, float]:
 
 
 def _sentiment_distribution(body: str) -> dict[str, float]:
-    """Idx 8: LKML-adapted positive/negative/neutral fractions.
+    """Idx 8: LKML-adapted sentiment word rates per total word count.
+
+    Returns only the keys with non-zero values. Empty dict means no emotional
+    content detected. to_vector() takes dict_mean, so:
+      no emotional content   → {} → 0.0
+      only positive content  → {"positive": rate} → rate
+      mixed content          → {"positive": pr, "negative": nr} → mean(pr, nr)
+
+    Uses word-rate normalization (hits / total_words * 10, capped at 1.0)
+    rather than fractions-of-emotional-total. The fraction approach produced
+    a distribution that always summed to 1.0 with 3 keys, making dict_mean
+    invariant at 0.333 — no discriminative power.
 
     Skips words in the neutral-technical list to avoid LKML domain noise.
     Multi-word positive phrases ("looks good") checked before tokenization.
     """
     body_lower = body.lower()
 
-    # Check multi-word positive phrases first
+    # Multi-word positive phrases
     pos_phrase_hits = sum(1 for p in _POSITIVE_PHRASES if p in body_lower)
 
     tokens = [w.lower() for w in _WORDS.findall(body)]
-    # Filter out neutral-technical tokens
+    total_words = max(len(tokens), 1)
+
+    # Filter neutral-technical tokens before word-level counting
     filtered = [t for t in tokens if t not in _NEUTRAL_TECH]
 
     pos_hits = pos_phrase_hits + sum(1 for t in filtered if t in _POSITIVE_WORDS)
     neg_hits = sum(1 for t in filtered if t in _NEGATIVE_WORDS)
-    total = pos_hits + neg_hits
 
-    if total == 0:
-        return {"positive": 0.0, "negative": 0.0, "neutral": 1.0}
-
-    positive_frac = pos_hits / total
-    negative_frac = neg_hits / total
-    neutral_frac = max(1.0 - positive_frac - negative_frac, 0.0)
-    return {
-        "positive": positive_frac,
-        "negative": negative_frac,
-        "neutral": neutral_frac,
-    }
+    result: dict[str, float] = {}
+    if pos_hits > 0:
+        result["positive"] = min(pos_hits / total_words * 10, 1.0)
+    if neg_hits > 0:
+        result["negative"] = min(neg_hits / total_words * 10, 1.0)
+    return result
 
 
 def _formality_level(body: str) -> float:

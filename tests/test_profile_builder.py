@@ -116,12 +116,12 @@ def test_batch_dict_key_merging():
 
 
 def test_batch_dict_key_partial_coverage():
-    # Key only present in one of two dicts — mean over emails that contain it
+    # Key only present in one of two dicts — absent dict contributes 0.0 to mean
     f1 = _make_features(reasoning_patterns={"because": 0.6})
     f2 = _make_features(reasoning_patterns={})
     profile = build_profile_batch("test", [f1, f2])
-    # "because" appears in only f1, so mean = 0.6 / 1 = 0.6
-    assert abs(profile.features.reasoning_patterns["because"] - 0.6) < 1e-9
+    # "because" appears in f1 (0.6) and not in f2 (0.0) → mean = 0.3
+    assert abs(profile.features.reasoning_patterns["because"] - 0.3) < 1e-9
 
 
 def test_batch_phrase_top_20():

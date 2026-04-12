@@ -127,3 +127,41 @@ One entry per phase. Pushed to Notion at end of each day.
 - The ADR-003 validation numbers (0.78 self-similarity for embeddings, 0.92 for features) came from a 50-email test sample run during development. They should be re-validated on the full corpus after `build_profiles.py` runs on real data. If the full-corpus numbers diverge significantly from these, the ADR rationale needs an update.
 
 **Test count at end of phase:** 207 passing (no new tests — Phase 4 is a script + chart + ADR, not a library module)
+
+---
+
+## Day 2 — Diagnostic Bugs Found During build_profiles.py Run (2026-04-12)
+
+### Bug 1: Greeting and Sentiment features had zero variance (constant across all emails)
+
+**What happened:** `build_profiles.py` variance table showed `Greetings std=0.000` and `Sentiment std=0.000`. Both features were useless for discrimination and artificially inflated cosine self-similarity.
+
+**Root cause (Greetings):** The old `_greeting_patterns` returned a 5-key one-hot dict for every email (`{"hi": 0.0, "hello": 0.0, "hey": 0.0, "dear": 0.0, "none": 1.0}`). `to_vector()` takes `dict_mean`, which is always `1/5 = 0.200` regardless of which key is 1.0.
+
+**Root cause (Sentiment):** `_sentiment_distribution` returned 3 keys that always summed to 1.0 (`positive + negative + neutral = 1.0`). `dict_mean` of any such distribution is always `1/3 = 0.333`.
+
+**Fix:** 
+- Greetings: only include the key that IS present (`{"hi": 1.0}` or `{}`). Empty dict = no greeting → `dict_mean = 0.0`. Now the feature varies between 0 and 1.
+- Sentiment: changed from fraction-of-emotional-total to word rates per total words (`min(hits / total_words * 10, 1.0)`), no neutral key. Empty dict = no emotional content detected.
+
+### Bug 2: Profile aggregation inflated sparse features to 1.0
+
+**What happened:** After the greeting fix, the profile's `style_vector[Greetings] = 1.000` even though only 0.2% of emails had any greeting. The delta table showed both leaders at 1.000 (wrong).
+
+**Root cause:** `_aggregate_dict` computed the mean ONLY over emails that contained the key. For greeting: 1 email out of 6348 has `{"hi": 1.0}` → mean over emails-with-hi = `1.0 / 1 = 1.0`. This "conditional intensity" semantics is correct for features where every email reports a value (reasoning patterns always have all 7 keys), but wrong for sparse features where absence means 0.0.
+
+**Fix:** Changed `_aggregate_dict` to treat absent keys as 0.0 and divide by ALL n emails. Now profile.greeting_patterns["hi"] = `1.0 / 6348 ≈ 0.0002`, which matches the per-email average.
+
+**Lesson:** This bug only appeared because the feature representation changed from "always all keys" to "sparse / presence-only". Any time you make a dict field sparse (absent = 0.0), the aggregation function must use the total count as denominator, not just the count of emails that contained the key. These two invariants — sparse features and conditional-mean aggregation — are incompatible.
+
+### Final results after all fixes
+
+| Metric | Before | After |
+|---|---|---|
+| Torvalds self-similarity | 0.82 (fake) | 0.73 (honest) |
+| Kroah-Hartman self-similarity | 0.73 (fake) | 0.73 |
+| Cross-leader cosine | 0.97 | 0.96 |
+| Greetings std | 0.000 | 0.042 |
+| Sentiment std | 0.000 | 0.095 |
+
+The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and Formality (~0.50) dominate the L2 norm and are nearly identical between both leaders. The per-feature delta table shows the actual discrimination: Tech Terms (0.310 delta), Msg Length (0.174), Code Snippets (0.167), Reasoning (0.153). These are the dimensions the radar chart will visually separate. The cosine score as a single number understates the actual profile separation because high-magnitude non-discriminative features outweigh lower-magnitude discriminative ones.

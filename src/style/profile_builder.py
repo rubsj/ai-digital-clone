@@ -159,15 +159,25 @@ def _aggregate_features(features_list: list[StyleFeatures]) -> StyleFeatures:
 
 
 def _aggregate_dict(dicts: list[dict[str, float]]) -> dict[str, float]:
-    """Union all keys; value = mean over dicts that contain the key."""
+    """Union all keys; value = mean over ALL dicts (absent key contributes 0.0).
+
+    Treating absent keys as 0.0 produces the correct frequency semantics for
+    sparse features like greeting_patterns (most emails return {}) and
+    sentiment_distribution (emails with no emotional content return {}).
+    The old "mean over emails that contain the key" behaviour inflated values
+    for sparse features: a key appearing in 1 of 6000 emails would still get
+    value 1.0 in the profile, matching no individual email at cosine time.
+    """
     all_keys: set[str] = set()
     for d in dicts:
         all_keys.update(d.keys())
 
     result: dict[str, float] = {}
+    n = len(dicts)
     for key in all_keys:
-        values = [d[key] for d in dicts if key in d]
-        result[key] = statistics.mean(values)
+        # Include 0.0 for every dict that doesn't contain the key
+        total = sum(d.get(key, 0.0) for d in dicts)
+        result[key] = total / n
     return result
 
 

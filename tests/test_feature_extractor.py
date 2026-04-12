@@ -96,38 +96,42 @@ def test_avg_message_length_250_words():
 def test_greeting_hi():
     result = _greeting_patterns("Hi Linus,\nThe patch looks good.")
     assert result["hi"] == 1.0
-    assert result["none"] == 0.0
+    assert len(result) == 1
 
 
 def test_greeting_hello():
     result = _greeting_patterns("Hello everyone,\nThis is broken.")
     assert result["hello"] == 1.0
+    assert len(result) == 1
 
 
 def test_greeting_hey():
     result = _greeting_patterns("Hey,\nStop doing that.")
     assert result["hey"] == 1.0
+    assert len(result) == 1
 
 
 def test_greeting_dear():
     result = _greeting_patterns("Dear maintainer,\nRegarding this patch...")
     assert result["dear"] == 1.0
+    assert len(result) == 1
 
 
 def test_greeting_none():
+    # No greeting → empty dict so dict_mean = 0.0 (discriminative)
     result = _greeting_patterns("The scheduler is broken.\nFix it now.")
-    assert result["none"] == 1.0
-    assert result["hi"] == 0.0
+    assert result == {}
 
 
-def test_greeting_returns_all_keys():
+def test_greeting_returns_only_found_key():
     result = _greeting_patterns("Hi there,\nSomething.")
-    assert set(result.keys()) == {"hi", "hello", "hey", "dear", "none"}
+    assert set(result.keys()) == {"hi"}
 
 
 def test_greeting_empty_body():
+    # Empty body → no greeting → empty dict
     result = _greeting_patterns("")
-    assert result["none"] == 1.0
+    assert result == {}
 
 
 # ---------------------------------------------------------------------------
@@ -316,38 +320,40 @@ def test_reasoning_all_in_range():
 # ---------------------------------------------------------------------------
 
 
-def test_sentiment_positive_dominant():
+def test_sentiment_positive_present():
     result = _sentiment_distribution("This looks great! The code is clean and correct. Perfect work.")
-    assert result["positive"] > result["negative"]
+    assert "positive" in result
+    assert result["positive"] > 0.0
 
 
-def test_sentiment_negative_dominant():
+def test_sentiment_negative_present():
     result = _sentiment_distribution("This is broken and wrong. Horrible buggy garbage code.")
-    assert result["negative"] > result["positive"]
+    assert "negative" in result
+    assert result["negative"] > 0.0
 
 
 def test_sentiment_neutral_only():
-    # Only LKML neutral-technical words
+    # Only LKML neutral-technical words → no emotional content → empty dict
     result = _sentiment_distribution("The kernel patch commit module driver config.")
-    assert result["positive"] == 0.0
-    assert result["negative"] == 0.0
-    assert result["neutral"] == 1.0
+    assert result == {}
 
 
 def test_sentiment_looks_good_phrase():
     result = _sentiment_distribution("This looks good to me. I'll apply it.")
-    assert result["positive"] > 0.0
+    assert result.get("positive", 0.0) > 0.0
 
 
-def test_sentiment_all_keys_present():
+def test_sentiment_no_emotional_content_empty_dict():
+    # "test" has no positive or negative words
     result = _sentiment_distribution("test")
-    assert set(result.keys()) == {"positive", "negative", "neutral"}
+    assert result == {}
 
 
-def test_sentiment_fracs_sum_to_one():
-    result = _sentiment_distribution(_REALISTIC_BODY)
-    total = result["positive"] + result["negative"] + result["neutral"]
-    assert abs(total - 1.0) < 1e-9
+def test_sentiment_word_rates_vary():
+    # High positive density → rate closer to 1.0
+    positive_body = ("good " * 10) + "word " * 10  # 50% positive → rate = min(10/20*10, 1.0)
+    result = _sentiment_distribution(positive_body)
+    assert result.get("positive", 0.0) > 0.0
 
 
 def test_sentiment_all_in_range():
@@ -578,10 +584,11 @@ def test_extract_features_empty_body():
 def test_extract_features_all_15_populated():
     email = _make_email(_REALISTIC_BODY, quote_ratio=0.25)
     result = extract_features(email)
-    # All dict fields have keys
-    assert len(result.greeting_patterns) > 0
+    # Greeting may be absent (empty dict is valid — most emails have no greeting)
+    assert isinstance(result.greeting_patterns, dict)
     assert len(result.punctuation_patterns) > 0
     assert len(result.reasoning_patterns) > 0
+    # REALISTIC_BODY has "clueless" → negative sentiment present
     assert len(result.sentiment_distribution) > 0
     assert len(result.patch_language) > 0
     # quote_reply_ratio wired through
