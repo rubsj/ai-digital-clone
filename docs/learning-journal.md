@@ -67,3 +67,41 @@ One entry per phase. Pushed to Notion at end of each day.
 - `common_phrases` uses bigrams + trigrams appearing ≥ 2 times, top 20. Short emails (50-100 words) may return empty lists, pulling phrase diversity to 0.0 in the vector. Not wrong, but watch if it causes vector clustering.
 
 **Test count at end of phase:** 168 passing (88 from Day 1 + Phase 0, 80 new)
+
+---
+
+### Phase 2: Profile Builder (2026-04-12)
+
+**What I built:**
+- `build_profile_batch(leader_name, features_list, alpha)` — element-wise mean across all emails: scalar fields via `statistics.mean`, dict fields via key union + per-key mean over emails that contain the key, `common_phrases` via `Counter` → top-20 by frequency
+- `update_profile_incremental(profile, new_features)` — EMA update returning a NEW `StyleProfile`. Vector: `(1-alpha) * current + alpha * new`, clipped to [0,1]. Dict fields: present-in-both gets EMA, absent-in-new decays at `(1-alpha) * old`, new-key initializes at `alpha * new_value`
+- `save_profile` / `load_profile` — JSON roundtrip via existing `field_serializer`/`field_validator`, parent dir creation
+- 25 tests, 100% coverage
+
+**What surprised me:**
+- The dict EMA has three distinct cases (both present / absent in new / new key) and each needs its own formula. Easy to miss the "new key" case — if you only handle "both present" and skip the others, new vocabulary introduced by later emails silently disappears from the profile.
+- `statistics.mean` raises `StatisticsError` on empty sequences — but since `build_profile_batch` validates non-empty input first, this is never reached in practice. Worth knowing the failure mode.
+- The `common_phrases` aggregation strategy (flatten + Counter → top-20) naturally surfaces cross-email recurring phrases, which is the right semantics for a style profile. A simple per-email union would overweight one-off phrases from large emails.
+
+**Watch in later phases:**
+- The `alpha=0.3` default means new emails have significant influence (30% weight). For a leader with 300 emails, a single outlier email shifts the profile visibly. Phase 4 should verify profile stability across a sample of incremental updates.
+- `update_profile_incremental` updates `StyleFeatures` fields individually for JSON introspection, but the stored `style_vector` is computed from the EMA'd vector directly — it will diverge slightly from `updated_features.to_vector()` over time as the dict averaging and scalar EMA accumulate floating-point differences. This is acceptable but worth noting if someone compares the two.
+
+---
+
+### Phase 3: Style Scorer (2026-04-12)
+
+**What I built:**
+- `cosine_similarity(a, b)` — zero-norm guard returns 0.0, result clamped to [0,1]
+- `score_style(profile, response_features)` — single line wrapping cosine_similarity on profile.style_vector vs response_features.to_vector()
+- 14 tests, 100% coverage
+
+**What surprised me:**
+- With non-negative feature vectors, cosine similarity is naturally in [0,1] — no clamping needed in practice. The `np.clip` is just a safety net for floating-point edge cases (e.g., values marginally above 1.0 due to precision). This is a nice property of having all features in [0,1]: the geometry is well-behaved.
+- True orthogonality (cosine = 0.0) requires one vector to be zero when all values are non-negative. Real "different style" profiles won't produce 0.0 — they'll land in the 0.6-0.8 range. The 0.90 self-similarity target is meaningful precisely because the background level between any two non-trivial profiles is already fairly high.
+
+**Watch in later phases:**
+- The 0.90 self-similarity threshold assumes discriminative features are spread across the [0,1] range. If capitalization_ratio and formality_level cluster near the same value for both leaders (low variance), the cosine scores will be inflated and the threshold becomes meaningless. Phase 4 variance diagnostics are the check.
+- `score_style` is stateless and cheap — no LLM call. This is intentional: it runs inside EvaluatorAgent on every generated response, so it must be fast. Keep it that way on Day 5 when EvaluatorAgent is wired up.
+
+**Test count at end of phase:** 207 passing (168 + 39 new)
