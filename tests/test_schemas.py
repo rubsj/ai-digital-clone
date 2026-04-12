@@ -161,6 +161,26 @@ def test_email_message_is_patch_true():
     assert email.is_patch is True
 
 
+def test_email_message_quote_ratio_default():
+    email = _make_email()
+    assert email.quote_ratio == 0.0
+
+
+def test_email_message_quote_ratio_valid():
+    email = _make_email(quote_ratio=0.35)
+    assert email.quote_ratio == 0.35
+
+
+def test_email_message_quote_ratio_below_zero_raises():
+    with pytest.raises(ValidationError):
+        _make_email(quote_ratio=-0.1)
+
+
+def test_email_message_quote_ratio_above_one_raises():
+    with pytest.raises(ValidationError):
+        _make_email(quote_ratio=1.1)
+
+
 # ---------------------------------------------------------------------------
 # StyleFeatures
 # ---------------------------------------------------------------------------

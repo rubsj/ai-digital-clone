@@ -15,6 +15,7 @@ import pytest
 
 from src.style.email_parser import (
     _clean_body,
+    _compute_quote_ratio,
     _detect_patch,
     _extract_body,
     _parse_timestamp,
@@ -427,3 +428,60 @@ def test_parse_timestamp_naive_gets_utc():
     ts = _parse_timestamp(msg)
     if ts is not None:
         assert ts.tzinfo is not None  # must always be tz-aware after normalization
+
+
+# ---------------------------------------------------------------------------
+# _compute_quote_ratio — pre-cleaning quote measurement
+# ---------------------------------------------------------------------------
+
+
+def test_compute_quote_ratio_no_quotes():
+    body = "This is a plain message.\nNo quoted lines here.\nJust original content."
+    assert _compute_quote_ratio(body) == 0.0
+
+
+def test_compute_quote_ratio_all_quotes():
+    body = "> first quoted line\n> second quoted line\n> third quoted line"
+    assert _compute_quote_ratio(body) == 1.0
+
+
+def test_compute_quote_ratio_mixed():
+    # 3 quoted lines, 7 original — ratio = 3/10 = 0.3
+    lines = ["> quoted one", "> quoted two", "> quoted three"] + [
+        f"original line {i}" for i in range(7)
+    ]
+    body = "\n".join(lines)
+    ratio = _compute_quote_ratio(body)
+    assert abs(ratio - 0.3) < 1e-9
+
+
+def test_compute_quote_ratio_empty_body():
+    assert _compute_quote_ratio("") == 0.0
+
+
+def test_compute_quote_ratio_blank_lines_ignored():
+    # Blank lines don't count toward denominator
+    body = "> quoted\n\n   \noriginal line with enough words here"
+    # 1 quoted, 1 original non-blank = 2 non-empty lines → ratio = 0.5
+    ratio = _compute_quote_ratio(body)
+    assert abs(ratio - 0.5) < 1e-9
+
+
+def test_parse_mbox_populates_quote_ratio(tmp_path):
+    """Emails with quoted replies must have quote_ratio > 0 on the parsed EmailMessage."""
+    body_with_quotes = textwrap.dedent("""\
+        > On Mon, Jan 01 2020, someone wrote:
+        > This is a quoted line from the previous message.
+        > And another quoted line here.
+        I disagree with this approach entirely.
+        The implementation is wrong and needs to be fixed.
+        We should never do it this way in the kernel.
+        This is a longer response to make sure we pass the word count filter.
+    """)
+    mbox_path = _make_mbox(
+        [{"from_": "torvalds@linux-foundation.org", "body": body_with_quotes}],
+        tmp_path,
+    )
+    emails = parse_mbox(mbox_path, "torvalds@")
+    assert len(emails) == 1
+    assert emails[0].quote_ratio > 0.0

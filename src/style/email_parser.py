@@ -45,6 +45,15 @@ _CONTIGUOUS_PATCH = re.compile(
 )
 
 
+def _compute_quote_ratio(raw_body: str) -> float:
+    """Fraction of non-empty lines starting with '>' in the raw (pre-cleaned) body."""
+    lines = [line for line in raw_body.splitlines() if line.strip()]
+    if not lines:
+        return 0.0
+    quoted = sum(1 for line in lines if line.lstrip().startswith(">"))
+    return quoted / len(lines)
+
+
 def parse_mbox(mbox_path: Path | str, sender_filter: str) -> list[EmailMessage]:
     """Parse an mbox file and return cleaned EmailMessage objects for one sender.
 
@@ -84,6 +93,9 @@ def parse_mbox(mbox_path: Path | str, sender_filter: str) -> list[EmailMessage]:
                     skipped_encoding += 1
                     continue
 
+                # Compute quote ratio BEFORE cleaning strips the quoted lines
+                quote_ratio = _compute_quote_ratio(body)
+
                 cleaned = _clean_body(body)
                 if _word_count(cleaned) < 20:
                     skipped_short += 1
@@ -108,6 +120,7 @@ def parse_mbox(mbox_path: Path | str, sender_filter: str) -> list[EmailMessage]:
                         timestamp=timestamp,
                         message_id=message_id,
                         is_patch=_detect_patch(subject, body),
+                        quote_ratio=quote_ratio,
                     )
                 )
 
