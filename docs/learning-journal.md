@@ -165,3 +165,96 @@ One entry per phase. Pushed to Notion at end of each day.
 | Sentiment std | 0.000 | 0.095 |
 
 The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and Formality (~0.50) dominate the L2 norm and are nearly identical between both leaders. The per-feature delta table shows the actual discrimination: Tech Terms (0.310 delta), Msg Length (0.174), Code Snippets (0.167), Reasoning (0.153). These are the dimensions the radar chart will visually separate. The cosine score as a single number understates the actual profile separation because high-magnitude non-discriminative features outweigh lower-magnitude discriminative ones.
+
+---
+
+## Day 3 — RAG Pipeline (2026-04-13)
+
+### Phase 1: Corpus Loader + Chunker
+
+**What I built:**
+- `RawDocument` dataclass (internal, not Pydantic): `text`, `topic`, `field`, `subfield` — internal pipeline type that never leaves the RAG layer
+- `load_corpus()` with Rich progress bar: filters `open-phi/textbooks` HuggingFace dataset to 1,511 CS docs, uses `topic` column directly, falls back to `_extract_topic(outline)` then `subfield.replace("_", " ")`
+- `_extract_topic(outline)`: regex finds first `^#+\s+(.+)$` heading, falls back to first non-empty line
+- `chunk_baseline()`: `RecursiveCharacterTextSplitter`, global sequential `chunk_index` across all docs, skips whitespace-only docs
+- `chunk_semantic()`: `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter`. Extracts `source_topic` from H1/H2/H3 metadata. Falls back to size-splitting if no headers found
+- `chunk_documents()`: dispatches to either strategy using `config.chunking.chunk_size/overlap`
+- 32 tests (13 corpus, 19 chunker), all HuggingFace calls mocked
+
+**What surprised me:**
+- The plan assumed `topic` had to be parsed from the `outline` column. Pre-flight verification revealed the dataset has a direct `topic` column already populated. The plan was updated before writing any code — the pre-flight step paid off immediately.
+- `MarkdownHeaderTextSplitter` with `strip_headers=False` passes the header text into `page_content`, not just metadata. This means the section topic is available two ways: from `section.metadata["H1"]` (clean name) and embedded at the top of `section.page_content` (with the `#` prefix). Using metadata is the right choice.
+- An empty stub file (`src/rag/corpus_loader.py`) still counts as "read" — the Write tool requires an explicit Read call even on 0-line stubs. This is a tooling invariant worth knowing for future stub-filling work.
+
+**Watch in later phases:**
+- `chunk_index` is globally sequential and assigned at chunk creation time. If chunks from two different chunking strategies are ever interleaved in the same FAISS index, the indices will collide. The index must always be built from one strategy's output.
+- `RawDocument` is intentionally not Pydantic — it's an internal pipeline type that doesn't survive serialization. If it ever needs to be cached to disk, it needs a schema. For now it's fine.
+
+**Test count at end of phase:** 239 passing (207 existing + 32 new)
+
+---
+
+### Phase 2: Embedder + Indexer
+
+**What I built:**
+- `embed_openai()`: LiteLLM `text-embedding-3-small`, MD5-keyed JSON cache, batches of 100, L2-normalized before caching. Cache stored at `data/cache/embeddings_openai.json`
+- `embed_minilm()`: `SentenceTransformer("all-MiniLM-L6-v2")` with `normalize_embeddings=True`, same MD5 cache pattern. Model loaded once at module level via `_get_minilm()`
+- `embed_chunks()`: immutable — uses `model_copy(update={"embedding": vec})` (Pydantic v2 pattern). Original chunks unchanged
+- `embed_query()`: thin wrapper returning a single normalized vector
+- `build_index()`: extracts `np.float32` embeddings, calls `faiss.normalize_L2()` before `index.add()`, validates all norms ≈ 1.0 via `_validate_norms()`, returns `(IndexFlatIP, metadata_list)` with embedding excluded from metadata
+- `save_index()` / `load_index()`: `faiss.write_index()` + `metadata.json` sidecar
+- 36 tests, all LiteLLM and SentenceTransformers calls mocked
+
+**What surprised me:**
+- `faiss.normalize_L2()` mutates the array in-place — it doesn't return a new array. If you pass `embeddings` and then use that array for anything else afterward, it's already normalized. This is easy to miss if you're used to NumPy's functional style.
+- The embed cache must store normalized vectors. If you cache the raw API response and normalize on load, you'd get correct results — but if you normalize before caching (as implemented), the cache is source-of-truth and the normalization cost is paid exactly once. The order matters for correctness guarantees.
+- `model_copy(update={"embedding": vec})` is the Pydantic v2 way to produce an updated model without mutating the original. The equivalent v1 pattern (`copy(update=...)`) still works but is deprecated. Using the v2 API keeps the codebase forward-compatible.
+
+**Watch in later phases:**
+- `_validate_norms()` raises `ValueError` if any vector norm deviates from 1.0 by more than `tol=1e-5`. After `faiss.normalize_L2()`, norms should be exactly 1.0 in float32 precision — but if embeddings come from a corrupted cache or a different provider with different precision, this check will catch it.
+- The JSON cache grows unboundedly. For 20-doc dev runs it's negligible. For the full 1,511-doc corpus (~755K chunks at 1536 floats), the OpenAI cache would be ~4.6GB. This is a known limitation documented in ADR-002.
+
+**Test count at end of phase:** 275 passing (239 + 36 new)
+
+---
+
+### Phase 3: Retriever + Reranker + Citation Extractor
+
+**What I built:**
+- `retrieve()`: `embed_query()` → reshape to `(1, dim)` float32 → `faiss.normalize_L2()` → `index.search(query_2d, effective_k)` → filter `-1` padding → reconstruct `KnowledgeChunk` from metadata → return `list[RetrievalResult]`
+- `rerank()`: `cohere.ClientV2`, `client.rerank(model, query, documents, top_n)` → map `item.index` back to original results → reassign `rank=0..top_n-1`. Full `try/except Exception` fallback returns `results[:top_n]` with `rank` re-assigned and a warning log
+- `extract_citations()`: `re.findall(r"\[(\d+)\]", text)` → 1-based index → `retrieved[n-1]` → deduplicates via `seen: set[int]` → clamps `relevance_score` to `[0.0, 1.0]` for Pydantic `Field(ge=0.0, le=1.0)` constraint
+- 30 tests (9 retriever, 8 reranker, 13 citation extractor), all Cohere calls mocked
+
+**What surprised me:**
+- FAISS `index.search()` returns `-1` as a padding index when `k > index.ntotal`. This is documented but easy to forget — without the `-1` filter, you'd index into `metadata[-1]` (Python's last element) and silently return a wrong result instead of raising an error.
+- `cohere.ClientV2` is the current API class (not the older `cohere.Client`). The difference matters: `ClientV2.rerank()` returns `response.results` (a list of objects with `.index` and `.relevance_score`), while the v1 client has a different response shape. Worth checking the installed version before assuming.
+- `[0]` in a citation (e.g., from a template like "[0] placeholder") should be skipped — it's not a valid 1-based reference. The `idx = n - 1; if idx < 0` check handles this correctly, but it's not an obvious edge case until you see it in real LLM outputs.
+
+**Watch in later phases:**
+- The fallback in `rerank()` preserves the original FAISS ranking (by score). This is correct — FAISS `IndexFlatIP` returns results sorted by descending dot-product. But if the index was built with un-normalized vectors, the FAISS scores wouldn't be cosine similarities and the fallback ranking would be unreliable. The `_validate_norms()` check in the indexer is the guard here.
+- `extract_citations()` deduplicates by source index (first occurrence wins). If a generated response cites `[1]` three times for emphasis, only one `Citation` is emitted. This is correct behavior for a citations list but means the citation count doesn't reflect how many times a source was referenced in the text.
+
+**Test count at end of phase:** 305 passing (275 + 30 new)
+
+---
+
+### Phase 4: RAGAgent Facade + E2E Script + ADR-002
+
+**What I built:**
+- `RAGAgent`: `__init__` tries to load a pre-built index from disk (silent skip if missing), `build(chunks)` embeds + indexes + saves, `retrieve(query)` calls FAISS top-20 → Cohere rerank top-5. Raises `RuntimeError` if `retrieve()` called before `build()`
+- `src/rag/__init__.py`: re-exports all public functions (`load_corpus`, `chunk_baseline`, `chunk_semantic`, `chunk_documents`, `embed_chunks`, `embed_query`, `build_index`, `save_index`, `load_index`, `retrieve`, `rerank`, `extract_citations`)
+- `scripts/test_rag_pipeline.py`: 7-step end-to-end validation with Rich tables — loads 20 docs, chunks, embeds (or loads cached index), retrieves, reranks, prints results table, extracts citations from sample text
+- `docs/adr/ADR-002`: documents all three config decisions (embedding model, chunking params, reranking) with P2 evaluation grid numbers: OpenAI 26% better Recall@5 than MiniLM, Cohere adds 42% Precision@5 lift, cost analysis for full corpus (~$1.89 one-time for embeddings)
+
+**What surprised me:**
+- `RAGAgent.__init__` silently swallows index load failures with a warning log. This is the right behavior — a missing index is expected the first time (before `build()` is called), so raising on init would prevent creating the agent before the index exists. The `RuntimeError` is deferred to `retrieve()` time, where the caller has a clear action to take.
+- The `src/rag/__init__.py` stub existed as a 0-line file from Day 1 scaffolding. Writing re-exports to it without reading it first caused a Write tool error. The pattern for stub files: always Read before Write, even on files you know are empty.
+- ADR-002's cost analysis was the most concrete part of the document. Pinning the numbers to a specific evaluation grid (10 queries, 20 docs, Recall@5/Precision@5) makes the rationale falsifiable — if the full-corpus numbers diverge significantly, the ADR needs an update. ADRs without quantified validation are just opinions.
+
+**Watch in later phases:**
+- `RAGAgent.build()` hardcodes `provider="openai"`. If you want to build a MiniLM index, you need to call `embed_chunks(chunks, provider="minilm")` directly and pass the result to `build_index()`. A future improvement could accept `provider` as a `build()` parameter.
+- The e2e script checks `(INDEX_DIR / "index.faiss").exists()` and skips embedding if the index is cached. This means running the script twice with different `MAX_DOCS` will silently use the old index. For correctness in experiments, always delete the index dir before a fresh run with different parameters.
+
+**Final test count for Day 3:** 305 passing (207 baseline + 98 new across all 4 phases)
+**RAG module coverage:** 94% (target was ≥90%)
