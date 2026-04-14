@@ -151,12 +151,12 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 
 > **Update this section at the end of EVERY session.**
 
-### Last Updated: 2026-04-03
+### Last Updated: 2026-04-13
 
-**Current Day:** Day 1 complete
-**Branch:** feat/day1-foundation
-**Tests:** 78 passing
-**Coverage:** 95% total (schemas.py 100%, config.py 100%, email_parser.py 88% / 92% excl. __main__ block)
+**Current Day:** Day 3 complete
+**Branch:** main (feat/day3-rag-pipeline merged via PR #3)
+**Tests:** 305 passing
+**Coverage:** 94% on src/rag (target ≥90% met)
 
 ### What's Done
 - [x] Customized requirements page created in Notion
@@ -174,17 +174,44 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] scripts/validate_emails.py — validates mbox files once downloaded
 - [x] docs/adr/ADR-001-crewai-flow-pattern.md — P1-P5 template, first-person voice
 - [x] tests/test_schemas.py (34 tests), tests/test_email_parser.py (33 tests), tests/test_config.py (11 tests)
+- [x] src/style/feature_extractor.py — 15 features (11 base + 4 LKML-specific), all [0,1]
+- [x] src/style/profile_builder.py — batch aggregation + incremental EMA update (alpha=0.3)
+- [x] src/style/scorer.py — cosine similarity on feature vectors
+- [x] scripts/build_profiles.py — end-to-end pipeline + variance table + radar chart
+- [x] src/visualization.py — matplotlib polar radar chart (15 axes, dual-leader)
+- [x] docs/adr/ADR-003-feature-vectors-vs-llm-embeddings.md
+- [x] src/rag/corpus_loader.py — HuggingFace open-phi/textbooks, 1,511 CS docs, Rich progress
+- [x] src/rag/chunker.py — chunk_baseline (RecursiveCharacter) + chunk_semantic (MarkdownHeader)
+- [x] src/rag/embedder.py — OpenAI text-embedding-3-small (LiteLLM) + MiniLM, MD5 JSON cache
+- [x] src/rag/indexer.py — FAISS IndexFlatIP build/save/load, _validate_norms
+- [x] src/rag/retriever.py — embed query → FAISS top-20 → RetrievalResult list
+- [x] src/rag/reranker.py — Cohere ClientV2 rerank top-5 with try/except fallback
+- [x] src/rag/citation_extractor.py — [N] parsing, 1-based, dedup, score clamp
+- [x] src/rag/__init__.py — re-exports all 13 public functions
+- [x] src/agents/rag_agent.py — RAGAgent facade (build + retrieve)
+- [x] scripts/test_rag_pipeline.py — 7-step e2e validation with Rich tables
+- [x] docs/adr/ADR-002-rag-config-embeddings-reranking-chunking.md
+- [x] 7 new test files (305 total passing)
 
 ### What's Next
-- Day 2: ChatStyleAgent — feature extractor (15 features), style profile builder, incremental learning
+- Day 4: EvaluatorAgent + FallbackAgent
+  - Style scorer (cosine sim on feature vectors — already implemented in src/style/scorer.py)
+  - Groundedness scorer (semantic similarity heuristic, calibrated by 5-sample LLM judge)
+  - Confidence scorer (retrieval relevance + completeness + uncertainty penalty + explanation string)
+  - Evaluator: weighted formula 0.4 style + 0.4 groundedness + 0.2 confidence
+  - Decision logic: ≥0.75 deliver, <0.75 fallback
+  - FallbackAgent: trigger detection, context summarizer, calendar mock, unstyled responder
+  - ADR-004: Groundedness Scoring — Semantic Similarity vs LLM Judge
 
 ### Blockers
 - None
 
-### Key Decisions Made This Session
-- Used Python 3.13 (not 3.12) — 3.12 not installed locally, 3.13 compatible and avoids download
-- `_extract_body` needed string-payload fallback for mbox messages without Content-Transfer-Encoding header
-- email_parser.py line 156 is dead code (Latin-1 decodes all bytes, `errors='replace'` unreachable)
+### Key Decisions Made (Day 3)
+- FAISS -1 padding: `index.search()` returns -1 when k > ntotal. Filter in retriever or metadata[-1] silently returns wrong result.
+- `faiss.normalize_L2()` mutates in-place — not functional style. Called before `index.add()` AND before `index.search()`.
+- `cohere.ClientV2` (not deprecated `cohere.Client`) — response shape differs between versions.
+- Pydantic v2: `model_copy(update={"embedding": vec})` for immutable chunk update (not in-place mutation).
+- Dataset has direct `topic` column — plan assumed it needed parsing from `outline`.
 
 ---
 
@@ -218,16 +245,16 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [ ] **Checkpoint:** Two distinct style profiles. Style score > 0.90 on training emails.
 
 ### Day 3 — RAGAgent
-- [ ] Corpus loader: HuggingFace `open-phi/textbooks`, filter field="computer science"
-- [ ] Chunker: 500 chars / 50 overlap (baseline) + semantic markdown header split (experiment)
-- [ ] Embedder: OpenAI text-embedding-3-small via LiteLLM (primary) + MiniLM (baseline)
-- [ ] FAISS indexer: build + save/load. L2-normalize before add().
-- [ ] Retriever: embed query → FAISS search top-20 → Cohere rerank → top-5
-- [ ] Citation extractor: parse [N] references from generated text
-- [ ] Validate: ≥900 chunks indexed, retrieval < 1s, citations working
-- [ ] Tests for chunker, embedder, indexer, retriever
-- [ ] **ADR-002: RAG Config — Embeddings, Reranking, Chunking (P2 Evidence)** written and committed
-- [ ] **Checkpoint:** RAG pipeline end-to-end. Query → relevant cited chunks.
+- [x] Corpus loader: HuggingFace `open-phi/textbooks`, filter field="computer science"
+- [x] Chunker: 500 chars / 50 overlap (baseline) + semantic markdown header split (experiment)
+- [x] Embedder: OpenAI text-embedding-3-small via LiteLLM (primary) + MiniLM (baseline)
+- [x] FAISS indexer: build + save/load. L2-normalize before add().
+- [x] Retriever: embed query → FAISS search top-20 → Cohere rerank → top-5
+- [x] Citation extractor: parse [N] references from generated text
+- [x] Validate: ≥900 chunks indexed, retrieval < 1s, citations working
+- [x] Tests for chunker, embedder, indexer, retriever (305 total, 94% RAG coverage)
+- [x] **ADR-002: RAG Config — Embeddings, Reranking, Chunking (P2 Evidence)** written and committed
+- [x] **Checkpoint:** RAG pipeline end-to-end. Query → relevant cited chunks. PASSED.
 
 ### Day 4 — EvaluatorAgent + FallbackAgent
 - [ ] Style scorer: cosine similarity between leader profile and response features
