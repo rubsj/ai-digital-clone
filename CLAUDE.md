@@ -151,12 +151,12 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 
 > **Update this section at the end of EVERY session.**
 
-### Last Updated: 2026-04-13
+### Last Updated: 2026-04-14
 
-**Current Day:** Day 3 complete
-**Branch:** main (feat/day3-rag-pipeline merged via PR #3)
-**Tests:** 305 passing
-**Coverage:** 94% on src/rag (target ≥90% met)
+**Current Day:** Day 4 complete
+**Branch:** main (feat/day4-evaluator-fallback pending PR)
+**Tests:** 382 passing
+**Coverage:** 99% on src/evaluation + src/fallback (target ≥90% met)
 
 ### What's Done
 - [x] Customized requirements page created in Notion
@@ -192,19 +192,39 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] scripts/test_rag_pipeline.py — 7-step e2e validation with Rich tables
 - [x] docs/adr/ADR-002-rag-config-embeddings-reranking-chunking.md
 - [x] 7 new test files (305 total passing)
+- [x] src/evaluation/groundedness_scorer.py — sentence-level max cosine sim, batch embed, chunk.embedding reuse
+- [x] src/evaluation/confidence_scorer.py — 3-signal heuristic (retrieval relevance + completeness + uncertainty penalty)
+- [x] src/evaluation/evaluator.py — weighted formula 0.4/0.4/0.2, single Instructor call, EvaluationResult
+- [x] src/evaluation/__init__.py — re-exports
+- [x] src/fallback/calendar_mock.py — pure Python datetime, seeded RNG, business-day skipping
+- [x] src/fallback/context_summarizer.py — deterministic topic string, dedup, query truncation
+- [x] src/fallback/unstyled_responder.py — Instructor + LiteLLM, plain-factual system prompt
+- [x] src/fallback/__init__.py — re-exports
+- [x] src/agents/evaluator_steps.py — EvaluatorAgent thin facade
+- [x] src/agents/fallback_steps.py — build_fallback_response() composing all fallback modules
+- [x] 6 new test files (382 total, 99% coverage on new modules)
+- [x] docs/adr/ADR-004-groundedness-scoring-approach.md
+- [x] docs/learning-journal.md Day 4 entry
 
 ### What's Next
-- Day 4: EvaluatorAgent + FallbackAgent
-  - Style scorer (cosine sim on feature vectors — already implemented in src/style/scorer.py)
-  - Groundedness scorer (semantic similarity heuristic, calibrated by 5-sample LLM judge)
-  - Confidence scorer (retrieval relevance + completeness + uncertainty penalty + explanation string)
-  - Evaluator: weighted formula 0.4 style + 0.4 groundedness + 0.2 confidence
-  - Decision logic: ≥0.75 deliver, <0.75 fallback
-  - FallbackAgent: trigger detection, context summarizer, calendar mock, unstyled responder
-  - ADR-004: Groundedness Scoring — Semantic Similarity vs LLM Judge
+- Day 5: Flow Orchestration + Integration
+  - `src/flow.py`: DigitalCloneFlow with @start, @listen, @router
+  - `src/agents/style_crew.py`: Single-agent CrewAI Crew for style generation
+  - Wire: retrieve_knowledge → apply_style → evaluate_response → deliver/fallback
+  - @router: return "deliver" or "fallback" based on EvaluationResult.decision
+  - Dual-leader comparison: run Flow twice, share retrieved_chunks via CloneState
+  - End-to-end test: query → scored response (single leader)
+  - ADR-005: Shared RAG for Dual-Leader Mode
 
 ### Blockers
 - None
+
+### Key Decisions Made (Day 4)
+- Batch embedding over per-sentence calls: `embed_openai(sentences)` once for all response sentences, then one more call for any chunks missing `.embedding`. Avoids N API calls for N sentences.
+- `EvaluationResult @model_validator` enforces weighted formula — round `final` to 6 decimal places before passing to avoid IEEE 754 drift failures.
+- Equal 1/3 weights for confidence sub-signals are a placeholder; Day 6 weight sensitivity sweep will calibrate.
+- `random.Random(seed)` (isolated instance) rather than `random.seed()` (module-level global) for seeded calendar slots — required for test isolation.
+- `evaluator_steps.py` (not `evaluator_agent.py`) — matched the on-disk stub name for consistency with the `_steps` suffix pattern in the agents directory.
 
 ### Key Decisions Made (Day 3)
 - FAISS -1 padding: `index.search()` returns -1 when k > ntotal. Filter in retriever or metadata[-1] silently returns wrong result.
@@ -257,15 +277,15 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] **Checkpoint:** RAG pipeline end-to-end. Query → relevant cited chunks. PASSED.
 
 ### Day 4 — EvaluatorAgent + FallbackAgent
-- [ ] Style scorer: cosine similarity between leader profile and response features
-- [ ] Groundedness scorer: semantic similarity between response sentences and retrieved chunks
-- [ ] Confidence scorer: retrieval relevance + response completeness + uncertainty penalty + explanation string
-- [ ] Evaluator: weighted formula (0.4 style + 0.4 groundedness + 0.2 confidence)
-- [ ] Decision logic: ≥0.75 deliver, <0.75 fallback
-- [ ] FallbackAgent: trigger detection, context summarizer, calendar mock, unstyled responder
-- [ ] Tests for all scoring components + fallback triggers
-- [ ] **ADR-004: Groundedness Scoring — Semantic Similarity vs LLM Judge** written and committed
-- [ ] **Checkpoint:** Evaluation pipeline scores responses. Fallback triggers correctly.
+- [x] Style scorer: cosine similarity between leader profile and response features
+- [x] Groundedness scorer: semantic similarity between response sentences and retrieved chunks
+- [x] Confidence scorer: retrieval relevance + response completeness + uncertainty penalty + explanation string
+- [x] Evaluator: weighted formula (0.4 style + 0.4 groundedness + 0.2 confidence)
+- [x] Decision logic: ≥0.75 deliver, <0.75 fallback
+- [x] FallbackAgent: trigger detection, context summarizer, calendar mock, unstyled responder
+- [x] Tests for all scoring components + fallback triggers
+- [x] **ADR-004: Groundedness Scoring — Semantic Similarity vs LLM Judge** written and committed
+- [x] **Checkpoint:** Evaluation pipeline scores responses. Fallback triggers correctly.
 
 ### Day 5 — Flow Orchestration + Integration
 - [ ] `src/flow.py`: DigitalCloneFlow with @start, @listen, @router

@@ -258,3 +258,59 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 
 **Final test count for Day 3:** 305 passing (207 baseline + 98 new across all 4 phases)
 **RAG module coverage:** 94% (target was ≥90%)
+
+---
+
+## Day 4 — EvaluatorAgent + FallbackAgent (2026-04-14)
+
+### Phase 1: Evaluation Modules
+
+**What I built:**
+- `src/evaluation/groundedness_scorer.py` — sentence-level max cosine similarity. Splits response via regex look-behind, batch-embeds all sentences in one `embed_openai()` call, reuses `chunk.embedding` from the RAG pipeline for the chunk side (single batch call for any missing embeddings), then averages per-sentence maxima.
+- `src/evaluation/confidence_scorer.py` — three equal-weight (1/3 each) heuristic signals: `retrieval_relevance` (mean reranker score from top-5 results), `completeness` (fraction of query keywords appearing in response, stopwords stripped), `uncertainty_penalty` (`1 - min(1, hedge_count/5)` for nine hedge phrases).
+- `src/evaluation/evaluator.py` — `evaluate()` calls all three scorers, computes `final = 0.4×style + 0.4×groundedness + 0.2×confidence`, makes the deliver/fallback decision, then generates one Instructor explanation string via LiteLLM. Returns `EvaluationResult`, which has a `@model_validator` in `schemas.py` that re-checks the weighted formula within ±0.02.
+- `src/evaluation/__init__.py` — re-exports following the `src/rag/__init__.py` pattern established on Day 3.
+
+**What surprised me:**
+- The `EvaluationResult @model_validator` enforces the weighted formula. This means floating-point drift matters: `0.4 * 0.9 + 0.4 * 0.8 + 0.2 * 0.7 = 0.76` in Python gives `0.7600000000000001` due to IEEE 754 rounding. Passing that value directly to the model failed the ±0.02 check in edge cases. Fixed by rounding `final` to 6 decimal places before returning, which normalizes the representation. A lesson in where Python's float arithmetic can silently bite you.
+- `embed_openai()` takes a list of strings and returns a list of numpy arrays in the same order. The batch embedding pattern — accumulate all inputs, one API call, index back into results — is the standard approach, but the `missing_indices` bookkeeping in `groundedness_scorer.py` requires careful pairing. Easy to accidentally misalign the `missing_indices` list and the `embedded_missing` list if you modify the loop.
+- The confidence scorer's uncertainty hedge patterns (`"I think"`, `"maybe"`, `"not sure"`, `"I believe"`, `"might"`, `"could be"`, `"possibly"`, `"perhaps"`, `"I'm not certain"`) are regex patterns on the full response string. Multi-word phrases like `"not sure"` need word-boundary anchors to avoid matching "certainly" or "unsure." The implementation uses `re.findall(r'\b{phrase}\b', ..., re.IGNORECASE)` for each phrase separately rather than trying to build one combined regex. Simpler and correct.
+
+**Watch in later phases:**
+- The 1/3 equal weights for confidence sub-signals are a placeholder. Day 6 will run a weight sensitivity sweep on three configurations (equal / retrieval-heavy / completeness-heavy). If one signal consistently moves in the opposite direction of human judgement, downweighting it will improve calibration.
+- The `evaluator.py` Instructor call runs synchronously inside `evaluate()`. On Day 5 when this is wired into the CrewAI Flow, the explanation call adds ~500ms to the hot path. If that pushes total latency over 3s, the explanation generation could be deferred to a background step that doesn't block delivery.
+
+---
+
+### Phase 2: Fallback Modules
+
+**What I built:**
+- `src/fallback/calendar_mock.py` — `_next_business_days(start, n)` skips weekends by incrementing until `weekday() < 5`. `generate_available_slots(n, seed, _today)` picks random hour (9–16) and minute (0 or 30) using a seeded `random.Random(seed)`, formats as `"Tuesday, April 16, 2026 at 10:30 AM PT"`. `_today` parameter exists purely for test injection — production callers omit it and get `date.today()`.
+- `src/fallback/context_summarizer.py` — deterministic. Extracts unique `source_topic` values (preserving first-occurrence order), truncates the query to 6 words + `"…"` if longer, and templates a sentence like `"Your question about {query_topic} touches on {topics_joined}. I'd like to discuss this in more depth."` No LLM call, no randomness.
+- `src/fallback/unstyled_responder.py` — `UnstyledAnswer(answer: str)` Pydantic model, single Instructor + LiteLLM call. System prompt explicitly prohibits style: "Do not add rhetorical style, personality cues, metaphors, or opinionated framing." The `_build_user_prompt()` helper numbers the retrieval excerpts `[1]`, `[2]`, etc. matching citation format.
+- `src/agents/fallback_steps.py` — `build_fallback_response()` composes the three modules: slots + summarizer + unstyled response. `calendar_link` is hardcoded as `"https://cal.com/placeholder"` per PRD Section 5b (mock, no real API).
+
+**What surprised me:**
+- `random.Random(seed)` creates an isolated RNG instance. Using the module-level `random.seed()` would affect every other call to `random` in the process, which breaks test isolation. The seeded instance approach is the right pattern for deterministic tests on randomized functions — any function that needs reproducibility should accept a seed parameter and construct its own `Random` instance.
+- The context summarizer deduplication preserves first-occurrence order, which requires a different pattern than `set()`. Used `dict.fromkeys(topics)` to deduplicate while preserving insertion order — a Python 3.7+ idiom that's cleaner than the `seen: set` + `if not in seen` pattern. Worth knowing.
+- Truncating at 6 words requires splitting on whitespace, not characters. The chosen format — join the first 6 tokens, append `"…"` — produces readable truncation for any query structure. The "…" (single Unicode ellipsis character U+2026) rather than three periods `"..."` avoids sentence-splitter false positives in any downstream processing.
+
+**Watch in later phases:**
+- `build_fallback_response()` generates the unstyled response from the same chunks used by the main pipeline. If the evaluation pipeline already scored these chunks as low-groundedness (which triggered the fallback), the unstyled response from the same chunks may also be low-quality. The fallback is a graceful degradation, not a quality recovery — the user should always see the calendar slots alongside the unstyled content.
+- `generate_available_slots()` uses `date.today()` internally when `_today=None`. If the system runs near midnight, the "today" reference could change between the time chunks are retrieved and the time slots are generated. For the current mock scope this is fine, but for a real Cal.com integration this would need a request-scoped timestamp.
+
+---
+
+### Phase 3: Test Coverage
+
+**What I built:**
+- 6 test files covering all new modules: `test_groundedness_scorer.py` (16 tests), `test_confidence_scorer.py` (15 tests), `test_evaluator.py` (10 tests), `test_calendar_mock.py` (12 tests), `test_context_summarizer.py` (11 tests), `test_unstyled_responder.py` (9 tests). 73 net new tests.
+- Final count: 382 passing, 99% coverage on new modules (one uncovered line: a zero-chunkvec guard in groundedness_scorer.py that's only reachable if `chunk.embedding` is an empty ndarray, not None — a defensive branch that can't be triggered through the public API).
+
+**What surprised me:**
+- The `@model_validator` on `EvaluationResult` runs during test construction too. Tests that directly construct `EvaluationResult(style_score=0.9, groundedness_score=0.8, confidence_score=0.7, final_score=0.82, ...)` fail because `0.82 ≠ 0.4×0.9 + 0.4×0.8 + 0.2×0.7 = 0.76`. The test helper `_run_evaluate()` patches the three scorers and calls `evaluate()` rather than constructing `EvaluationResult` directly, which avoids this entirely.
+- Mocking `instructor.from_litellm.return_value` requires returning a MagicMock whose `.chat.completions.create.return_value` is a mock result object with the appropriate attribute (`.answer` for `UnstyledAnswer`, `.explanation` for `_ExplanationModel`). Getting the attribute name wrong produces an `AttributeError` at mock access time — easy to misdiagnose as an Instructor configuration problem.
+- The calendar format test uses a compiled `re.compile` pattern as the assertion mechanism rather than individual string checks. This is more robust: if the format changes (e.g., adding seconds, changing timezone abbreviation), one pattern update covers all 3+ slots instead of multiple individual assertions.
+
+**Test count at end of Day 4:** 382 passing (305 baseline + 77 new)
+**New module coverage:** 99% (groundedness_scorer 98%, all others 100%)
