@@ -67,7 +67,7 @@
 | matplotlib/seaborn charts | P1–P5 | 7 visualizations + style evolution chart |
 | Click CLI | P2/P5 | 5 commands: learn, index, query, compare, evaluate |
 | Rich progress bars | P2/P5 | Email parsing, chunk indexing progress display |
-| ADR template (8 required sections) | P1–P5 | 5-6 ADRs distributed across Days 1-6 |
+| ADR template (5 sections — see Writing Rules below) | P1–P5 | 5-6 ADRs distributed across Days 1-6 |
 | `yaml.safe_load()` exclusively | P5 | Config loading. NEVER `yaml.load()`. |
 
 ### New for P6 (Learn These)
@@ -98,6 +98,29 @@
 - Docstrings: one sentence what + one sentence non-obvious how/why — no parameter narration
 - Inline comments for short context, block comments only for genuinely non-obvious decisions
 - Comment like you're explaining to a teammate at 11pm — direct, no filler
+
+### ADR Format (STRICT — follow ADR-001/002/003 exactly)
+
+Every ADR has exactly **5 sections** in this order: Context, Decision, Alternatives Considered, Quantified Validation, Consequences. No more, no fewer.
+
+**Banned sections** — never add these regardless of plan instructions:
+- "Interview Signal" — embed any interview-relevant insight as prose inside Consequences
+- "Java/TS Parallel" or any named analogy section — one parenthetical sentence at the END of Consequences only, not a dedicated section
+- "Cross-References" — inline mentions in the relevant section only
+
+**Alternatives Considered format:**
+- Each alternative is a `**bold name** — prose paragraph` entry
+- Never use a markdown table with "Why Not" columns
+- Explain why you didn't pick it in the paragraph, not in a separate column
+
+**Quantified Validation:**
+- A table or numbered list of actual measurements — agreement rates, latency numbers, cost calculations, Recall@5 scores
+- Numbers that were inputs to the decision, not post-hoc justification
+
+**Consequences:**
+- Single flowing section, no sub-headers
+- Cover the actual operational tradeoffs: what gets easier, what gets harder, what you'd have to redo to port it
+- End with the Java/TS/domain parallel as one parenthetical sentence inline — not a header, not a bullet
 
 ---
 
