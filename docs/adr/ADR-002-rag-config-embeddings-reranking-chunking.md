@@ -1,4 +1,4 @@
-# ADR-002: RAG Configuration — Embeddings, Reranking, and Chunking
+# ADR-002: RAG Configuration: Embeddings, Reranking, and Chunking
 
 **Project:** P6: Torvalds Digital Clone
 **Category:** RAG Pipeline
@@ -9,25 +9,17 @@
 
 ## Context
 
-The RAG pipeline (Day 3) needs three configuration decisions before implementation:
+The RAG pipeline (Day 3) retrieves chunks from FAISS and feeds them to the response agents. Before building any of that, I need to lock down the embedding model, chunk sizes, and whether a reranker sits between FAISS and the final results.
 
-1. **Embedding model:** What produces the chunk and query vectors stored in FAISS? The choice determines retrieval quality, latency, index size, and API cost.
-2. **Chunking strategy:** How do we split textbook documents into KnowledgeChunks? Size and overlap affect retrieval granularity and context completeness.
-3. **Reranking:** Should there be a second-stage reranker after FAISS retrieval? It adds latency and an API dependency but significantly improves precision.
-
-The `open-phi/textbooks` dataset provides 1,511 computer science documents averaging ~129K characters each. A 500-char chunk size produces thousands of chunks from a 20-doc sample — enough to validate retrieval quality without loading the full corpus during development.
+The `open-phi/textbooks` dataset has 1,511 computer science documents averaging ~129K characters each. A 500-char chunk size produces thousands of chunks from a 20-doc sample, enough to validate retrieval quality without loading the full corpus during development.
 
 ---
 
 ## Decision
 
-**Embedding:** OpenAI `text-embedding-3-small` (1536 dimensions) via LiteLLM, with `all-MiniLM-L6-v2` (384d) as a local baseline for offline development. All vectors L2-normalized before FAISS `IndexFlatIP` storage — dot product equals cosine similarity for unit vectors.
+OpenAI `text-embedding-3-small` (1536 dimensions) via LiteLLM for embeddings, with `all-MiniLM-L6-v2` (384d) as a local baseline for offline development and CI runs where OpenAI credentials aren't available. All vectors are L2-normalized before FAISS `IndexFlatIP` storage, so dot product equals cosine similarity for unit vectors.
 
-**Chunking:** `chunk_size=500`, `chunk_overlap=50` as the baseline (RecursiveCharacterTextSplitter). A semantic experiment using MarkdownHeaderTextSplitter → RecursiveCharacterTextSplitter runs alongside for comparison. Both share the same config values.
-
-**Reranking:** Cohere `rerank-english-v3.0`, top-20 FAISS candidates → top-5 final results. Graceful fallback: if the Cohere API fails, return original top-5 with a warning log.
-
-**Cache:** MD5-keyed JSON files at `data/cache/embeddings_openai.json` and `data/cache/embeddings_minilm.json`. Normalized vectors cached before return — re-normalization on load is not needed.
+Chunking uses `chunk_size=500`, `chunk_overlap=50` with RecursiveCharacterTextSplitter as the baseline. A semantic experiment using MarkdownHeaderTextSplitter into RecursiveCharacterTextSplitter runs alongside for comparison, sharing the same config values. Cohere `rerank-english-v3.0` then reranks the top-20 FAISS candidates down to top-5 final results, with a graceful fallback if the API fails (`try/except Exception` in `reranker.py` returns the original FAISS top-5 with a warning log).
 
 ```yaml
 # configs/default.yaml
@@ -51,39 +43,35 @@ reranker:
 
 ## Alternatives Considered
 
-**MiniLM as primary embedding model:** `all-MiniLM-L6-v2` runs locally with no API cost and produces 384-d vectors. In the P2 evaluation grid (10 queries, 20 docs, Recall@5 metric), MiniLM achieved 0.61 vs OpenAI's 0.87 — a 26% gap. The gap is largest on technical kernel terminology ("memory-mapped I/O", "scheduler preemption") where OpenAI's training corpus gives better coverage. MiniLM remains useful for offline/CI development where OpenAI is unavailable.
+**MiniLM as primary embedding model** - `all-MiniLM-L6-v2` runs locally with no API cost and produces 384-d vectors. In the P2 evaluation grid, MiniLM hit Recall@5 of 0.61 vs OpenAI's 0.87. The gap is largest on technical kernel terminology ("memory-mapped I/O", "scheduler preemption") where OpenAI's training corpus has better coverage.
 
-**Larger chunks (1000/100):** 1000-char chunks produce fewer chunks with more context per chunk. In P2 grid search, larger chunks improved groundedness scores (less fragmentation) but reduced Recall@5 by ~12% because oversized chunks score lower against short technical queries. The 500/50 baseline was the better trade-off for the query distribution in LKML topics.
+**Larger chunks (1000/100)** - More context per chunk, fewer total chunks. In the P2 grid search, larger chunks improved groundedness scores (less fragmentation) but dropped Recall@5 by ~12% because oversized chunks score lower against short technical queries. 500/50 was the better fit for LKML-style query distribution.
 
-**No reranking (FAISS top-5 directly):** Skipping Cohere adds no latency and removes an API dependency. In P2 evaluation, FAISS-only top-5 Precision@5 was 0.52; with Cohere reranking it was 0.74 — a 42% improvement. The reranker adds ~150ms on average (Cohere's median latency for 20 documents). Given that the FAISS retrieval step is <10ms, the reranking latency is the dominant cost, but the precision gain justifies it for a production system. The graceful fallback means one outage doesn't break the pipeline.
+**No reranking (FAISS top-5 directly)** - Removes ~150ms latency and an API dependency. FAISS-only Precision@5 was 0.52; with Cohere reranking it hit 0.74. The 42% improvement at 150ms cost (vs <10ms for FAISS retrieval itself) was a clear win, and the graceful fallback means a Cohere outage degrades precision without crashing.
 
-**Cohere rerank-multilingual-v3.0:** Marginally better for non-English content. LKML is English-only, so the English model is appropriate and costs the same.
+**Cohere rerank-multilingual-v3.0** - LKML is English-only, so no benefit over the English model at the same price.
 
 ---
 
 ## Quantified Validation
 
-From P2 evaluation grid (10 representative LKML-style queries, 20-doc corpus sample):
+From the P2 evaluation grid:
 
 | Configuration | Recall@5 | Precision@5 | Notes |
 |---|---|---|---|
 | MiniLM + no rerank | 0.61 | 0.44 | Local, free |
 | OpenAI + no rerank | 0.87 | 0.52 | API cost only |
-| OpenAI + Cohere rerank | 0.87 | 0.74 | **Selected** |
+| OpenAI + Cohere rerank | 0.87 | 0.74 | Selected |
 | OpenAI + larger chunks | 0.76 | 0.61 | Fewer, bigger chunks |
 
-API cost estimate for full corpus (1,511 docs, ~500 chunks/doc ≈ 755,500 chunks):
-- OpenAI text-embedding-3-small: $0.020/1M tokens, avg 125 tokens/chunk → ~$1.89 total, cached after first run
-- Cohere rerank: free tier 1,000 calls/month, paid at $2/1K after that
-
-The embedding cache eliminates repeat costs. A full index build from scratch costs ~$2 once; thereafter all retrieval is free (FAISS is local).
+Full corpus embedding (1,511 docs, ~755K chunks) costs ~$1.89 one-time with OpenAI text-embedding-3-small, cached after the first run. Cohere rerank is free up to 1,000 calls/month, $2/1K after that. After the initial index build, all retrieval is free since FAISS runs locally.
 
 ---
 
 ## Consequences
 
-The two-stage pipeline (FAISS → Cohere) adds a hard dependency on the Cohere API at query time. The graceful fallback in `reranker.py` (`try/except Exception → return results[:top_n]`) means a Cohere outage degrades to FAISS-only precision (0.52 vs 0.74) without crashing the system. This is an acceptable trade-off given the 42% precision improvement during normal operation.
+The Cohere dependency at query time is the main operational risk. A Cohere outage degrades to FAISS-only precision (0.52 vs 0.74) via the `results[:top_n]` fallback in `reranker.py`, but doesn't crash. For the 42% precision lift, that's a risk I'll carry.
 
-The JSON embedding cache grows unboundedly. For the 755K-chunk full corpus at 1536 floats per chunk, the cache file would be ~4.6GB. For production, the cache should be replaced with a key-value store (Redis or a SQLite blob store). For the Day 3 scope (20-doc dev samples), JSON is sufficient.
+Embedding vectors are cached as MD5-keyed JSON files at `data/cache/embeddings_openai.json` and `data/cache/embeddings_minilm.json`. The cache grows unboundedly. For the 755K-chunk full corpus at 1536 floats per vector, that's ~4.6GB. At Day 3 scope (20-doc dev samples) JSON is fine. A key-value store like Redis or SQLite blobs would be the next step if I index the full corpus.
 
-The `all-MiniLM-L6-v2` baseline remains in the codebase as `provider="minilm"` in `embed_chunks()` and `embed_query()`. This supports offline development, CI test runs without OpenAI credentials, and future A/B experiments.
+The MiniLM baseline stays as `provider="minilm"` in `embed_chunks()` and `embed_query()` for offline development and A/B experiments down the line.
