@@ -264,3 +264,4 @@ class CloneState(BaseModel):
     styled_response: str = ""
     evaluation: Optional[EvaluationResult] = None
     final_output: Optional[Union[StyledResponse, FallbackResponse]] = None
+    trigger_reason: str = ""

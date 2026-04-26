@@ -382,3 +382,29 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - The `@start()` decorator takes parentheses (decorator factory pattern). `@listen(method_ref)` takes the method reference directly, not a string. Getting either wrong produces a silent no-op step, not an error. The smoke script — which verifies state is actually populated — is the only reliable check that wiring is correct.
 
 **Test count after Phase 2:** 415 passing (403 baseline + 12 new)
+
+---
+
+### Phase 3: Router + Fallback Branch + Error Recovery
+
+**What I built:**
+- Converted `evaluate_response` from `@listen(style_response)` to `@router(style_response)` — returns the string `"deliver"` or `"fallback"` based on `state.evaluation.decision`
+- Added `handle_fallback` step (`@listen("fallback")`): builds trigger string from `state.trigger_reason` or `evaluation.final_score`, calls `build_fallback_response()`, writes `FallbackResponse` to `state.final_output`
+- Renamed the deliver-path step from `deliver` to `finalize` (`@listen("deliver")`) — see surprise below
+- Added `trigger_reason: str = ""` to `CloneState` as a cross-step error signal: any step that catches an exception sets this field, and subsequent steps early-exit (`if self.state.trigger_reason: return`) to propagate the failure gracefully to `handle_fallback`
+- `try/except` around each step body: catches `Exception` broadly, but re-raises `pydantic.ValidationError` and `AssertionError` (those are bugs, not transient failures)
+- 11 new tests: 2 boundary tests (0.7499 → `FallbackResponse`, 0.7500 → `StyledResponse`), 3 error-injection tests (retrieve/style/evaluate failure each → `FallbackResponse`), 6 never-None invariant tests, 1 trigger-reason content test
+- Coverage: `src/flow.py` at exactly 90% (missing lines are the `raise` re-raise paths and the double-failure safety net inside `handle_fallback` — not reachable via mocked tests)
+
+**What surprised me:**
+- **Method name = route string → infinite recursion.** When `@router` returns `"deliver"` and there is a method named `deliver` decorated with `@listen("deliver")`, CrewAI 1.13.0 treats the string as a match for both the route label and the method name. When the method completes, it triggers itself again through the listener registry — infinite recursion until Python hits the stack limit. The fix: rename the branch methods to names that cannot collide with the route strings. Used `finalize` (for route `"deliver"`) and `handle_fallback` (for route `"fallback"`). This is a silent footgun — no warning, just a stack overflow.
+- **`trigger_reason` needed a schema field.** The error-propagation design (step sets `trigger_reason`, subsequent steps check it) requires a field on `CloneState`. There was no `trigger_reason` field in the Phase 2 schema. Adding it was the right move — the state is the API — but it shows that error-path design decisions bleed into the state schema. In retrospect, Phase 2 could have added `trigger_reason: str = ""` speculatively since Phase 3 was already planned.
+- **Router return value is not validated.** If `evaluate_response` returns a string that doesn't match any `@listen("...")` step, the flow silently terminates without setting `final_output`. The `None`-check tests (`assert flow.state.final_output is not None`) are the only protection against a typo in the route string. CrewAI does not raise on unmatched routes.
+- **`@router` replaces `@listen` entirely.** The correct decorator for a routing step is `@router(upstream_method)` — not `@listen(upstream_method)` plus `@router()`. Using both would register the step as both a listener and a router, triggering it twice. The single `@router(style_response)` is the complete wiring.
+
+**Watch in later phases:**
+- The `trigger_reason` field is a cross-step signal, not audit data — it gets set on the first error and never cleared. If a Phase 4 dual-leader wrapper runs two Flow instances with a shared `CloneState`, the first run's `trigger_reason` would pre-poison the second run's error check. The wrapper must use separate `CloneState` instances per leader.
+- The `handle_fallback` inner `try/except` (the safety net that writes a minimal `FallbackResponse` if `build_fallback_response` itself fails) is not covered by tests — it would require injecting a failure into `build_fallback_response` *and* `FallbackResponse` construction simultaneously. Acceptable uncovered branch, but worth noting if coverage requirements tighten.
+- Phase 4 testing must verify that the retrieve early-exit guard still works correctly now that `evaluate_response` is a `@router` step. The routing chain is: `retrieve → style_response → evaluate_response(router) → finalize | handle_fallback`. A pre-populated `retrieved_chunks` in inputs skips the first step; the rest of the chain is unchanged.
+
+**Test count after Phase 3:** 426 passing (415 baseline + 11 new)

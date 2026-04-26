@@ -23,6 +23,14 @@ from src.schemas import (
     StyleProfile,
 )
 
+_MOCK_FALLBACK = FallbackResponse(
+    trigger_reason="low score",
+    context_summary="kernel memory",
+    calendar_link="https://cal.com/placeholder",
+    available_slots=["2024-02-01 10:00", "2024-02-02 14:00", "2024-02-03 09:00"],
+    unstyled_response="Here is an unstyled answer.",
+)
+
 
 # ---------------------------------------------------------------------------
 # Builders
@@ -219,3 +227,153 @@ def test_retrieve_skipped_when_chunks_pre_populated():
 def test_happy_path_kroah_hartman():
     flow = _run_happy_path(leader="Greg Kroah-Hartman")
     assert flow.state.final_output.leader == "Greg Kroah-Hartman"
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — Router boundary tests
+# ---------------------------------------------------------------------------
+
+
+def _run_with_score(final_score: float) -> DigitalCloneFlow:
+    """Run the flow with a manually constructed EvaluationResult at a given score."""
+    style_score = final_score
+    groundedness_score = final_score
+    confidence_score = final_score
+    decision = "deliver" if final_score >= 0.75 else "fallback"
+    mock_eval = EvaluationResult(
+        style_score=style_score,
+        groundedness_score=groundedness_score,
+        confidence_score=confidence_score,
+        final_score=final_score,
+        explanation="boundary test",
+        decision=decision,
+    )
+    mock_profile = _make_profile()
+
+    with (
+        patch("src.flow.load_config", return_value=_make_mock_config()),
+        patch("src.flow.RAGAgent.__init__", return_value=None),
+        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
+        patch("src.flow.load_profile", return_value=mock_profile),
+        patch("src.flow.generate_styled_response", return_value="styled text"),
+        patch("src.flow.EvaluatorAgent.evaluate", return_value=mock_eval),
+        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
+    ):
+        flow = DigitalCloneFlow()
+        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
+
+    return flow
+
+
+def test_router_below_threshold_routes_to_fallback():
+    """Score 0.7499 must produce a FallbackResponse."""
+    flow = _run_with_score(0.7499)
+    assert isinstance(flow.state.final_output, FallbackResponse)
+
+
+def test_router_at_threshold_routes_to_deliver():
+    """Score 0.7500 must produce a StyledResponse."""
+    flow = _run_with_score(0.7500)
+    assert isinstance(flow.state.final_output, StyledResponse)
+
+
+def test_router_fallback_output_never_none():
+    flow = _run_with_score(0.7499)
+    assert flow.state.final_output is not None
+
+
+def test_router_deliver_output_never_none():
+    flow = _run_with_score(0.7500)
+    assert flow.state.final_output is not None
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — Error-injection tests
+# ---------------------------------------------------------------------------
+
+
+def _run_with_retrieve_error() -> DigitalCloneFlow:
+    mock_profile = _make_profile()
+    with (
+        patch("src.flow.load_config", return_value=_make_mock_config()),
+        patch("src.flow.RAGAgent.__init__", return_value=None),
+        patch("src.flow.RAGAgent.retrieve", side_effect=RuntimeError("FAISS index missing")),
+        patch("src.flow.load_profile", return_value=mock_profile),
+        patch("src.flow.generate_styled_response", return_value="styled text"),
+        patch("src.flow.EvaluatorAgent.evaluate", return_value=_make_evaluation()),
+        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
+    ):
+        flow = DigitalCloneFlow()
+        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
+    return flow
+
+
+def _run_with_style_error() -> DigitalCloneFlow:
+    mock_profile = _make_profile()
+    with (
+        patch("src.flow.load_config", return_value=_make_mock_config()),
+        patch("src.flow.RAGAgent.__init__", return_value=None),
+        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
+        patch("src.flow.load_profile", return_value=mock_profile),
+        patch("src.flow.generate_styled_response", side_effect=RuntimeError("LLM timeout")),
+        patch("src.flow.EvaluatorAgent.evaluate", return_value=_make_evaluation()),
+        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
+    ):
+        flow = DigitalCloneFlow()
+        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
+    return flow
+
+
+def _run_with_evaluate_error() -> DigitalCloneFlow:
+    mock_profile = _make_profile()
+    with (
+        patch("src.flow.load_config", return_value=_make_mock_config()),
+        patch("src.flow.RAGAgent.__init__", return_value=None),
+        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
+        patch("src.flow.load_profile", return_value=mock_profile),
+        patch("src.flow.generate_styled_response", return_value="styled text"),
+        patch("src.flow.EvaluatorAgent.evaluate", side_effect=RuntimeError("Instructor parse error")),
+        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
+    ):
+        flow = DigitalCloneFlow()
+        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
+    return flow
+
+
+def test_retrieve_error_routes_to_fallback():
+    """RAGAgent.retrieve failure → FallbackResponse in final_output."""
+    flow = _run_with_retrieve_error()
+    assert isinstance(flow.state.final_output, FallbackResponse)
+
+
+def test_style_error_routes_to_fallback():
+    """generate_styled_response failure → FallbackResponse in final_output."""
+    flow = _run_with_style_error()
+    assert isinstance(flow.state.final_output, FallbackResponse)
+
+
+def test_evaluate_error_routes_to_fallback():
+    """EvaluatorAgent.evaluate failure → FallbackResponse in final_output."""
+    flow = _run_with_evaluate_error()
+    assert isinstance(flow.state.final_output, FallbackResponse)
+
+
+def test_retrieve_error_final_output_never_none():
+    flow = _run_with_retrieve_error()
+    assert flow.state.final_output is not None
+
+
+def test_style_error_final_output_never_none():
+    flow = _run_with_style_error()
+    assert flow.state.final_output is not None
+
+
+def test_evaluate_error_final_output_never_none():
+    flow = _run_with_evaluate_error()
+    assert flow.state.final_output is not None
+
+
+def test_retrieve_error_trigger_reason_mentions_step():
+    """trigger_reason on retrieve failure must mention 'retrieve'."""
+    flow = _run_with_retrieve_error()
+    assert "retrieve" in flow.state.trigger_reason.lower()
