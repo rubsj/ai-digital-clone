@@ -314,3 +314,46 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 
 **Test count at end of Day 4:** 382 passing (305 baseline + 77 new)
 **New module coverage:** 99% (groundedness_scorer 98%, all others 100%)
+
+---
+
+## Day 5 — Flow Orchestration + Integration (2026-04-26)
+
+### Phase 0: Branch + Scaffolding
+
+**What I built:**
+- Cut `feat/day5-flow-orchestration` branch from current main
+- Deleted `src/agents/rag_steps.py` — an empty 0-byte stub left from Day 4 scaffolding
+- Confirmed 382-test baseline still passes after the deletion
+
+**What surprised me:**
+- The deletion of `rag_steps.py` is a deliberate design signal, not just cleanup. The stub existed because the plan originally anticipated a RAG façade agent (parallel to `evaluator_steps.py`). The Day 5 design chose directness instead: the Flow's retrieve step calls `RAGAgent.retrieve()` with no wrapper. Deleting the stub documents that decision — leaving an empty stub would imply the wrapper is coming; removing it says it was considered and rejected.
+- git rm is the correct command here rather than a plain file delete — it stages the deletion for commit in one step. A plain `rm` would leave the deletion unstaged and visible only in `git status` as an untracked deletion.
+
+**Watch in later phases:**
+- The 382 baseline is the locked Day 4 count per CLAUDE.md. Any deviation before Phase 1 code lands is a regression signal. If the count ever drifts, check for stale `.pyc` files or conftest fixtures that conditionally skip tests based on environment.
+
+---
+
+### Phase 1: `src/agents/style_crew.py` — Single-Agent Crew
+
+**What I built:**
+- `_build_role(profile)` — names the leader and anchors to LKML context
+- `_build_goal(profile)` — injects four concrete numerical features from `StyleFeatures`: `avg_message_length`, `formality_level`, `technical_depth`, `vocabulary_richness`, plus the leader's top-3 characteristic phrases. All values formatted to 3 decimal places so they're stable across floating-point representations.
+- `_build_backstory(profile)` — injects `code_snippet_freq`, `question_frequency`, and a tone label derived from `formality_level` threshold (< 0.55 → "direct and blunt", ≥ 0.55 → "clear and structured")
+- `build_style_crew(profile, chunks, query) -> Crew` — assembles a one-Agent, one-Task Crew. Task description contains the query and up to 5 chunk excerpts labeled by `source_topic`. LLM is `crewai.LLM(model="gpt-4o-mini")`, which routes through litellm internally.
+- `generate_styled_response(profile, chunks, query) -> str` — builds and kicks off the Crew, returns `result.raw`
+- 21 tests, all passing
+
+**What surprised me:**
+- `crewai.LLM(model="gpt-4o-mini")` validates at construction time — it tries to resolve the provider and fails if `OPENAI_API_KEY` is missing, even though no actual API call is made yet. Tests need `monkeypatch.setenv("OPENAI_API_KEY", "dummy")` in an autouse fixture, or they fail at import time. This is a CrewAI design choice (eager provider validation) that differs from litellm's lazy approach.
+- `Agent(llm=...)` validates the `llm` argument strictly against `str | BaseLLM` via Pydantic. Passing a `MagicMock` raises a `ValidationError` immediately. The consequence: you can't mock `LLM` at the class level and pass the mock into `Agent`. The cleaner test strategy is to set a dummy API key (so `LLM(model=...)` instantiates successfully), then patch `Crew.kickoff` at the method level for tests that exercise response generation. Helper functions (`_build_goal`, `_build_role`, `_build_backstory`) can be tested directly with no framework involvement.
+- `CrewOutput.raw` is the string field to use. `str(crew_output)` also returns the raw string (CrewAI's `__str__` delegates to `.raw`), but using `.raw` explicitly is more readable and less surprising to future maintainers who haven't traced the `__str__` implementation.
+- The differentiation test (Torvalds `avg_message_length=0.340` vs KH `avg_message_length=0.166`) must use per-leader numerical schema field values, not string-contains on the leader name. A prompt that just says "write like Torvalds" would pass a name-contains test but injects zero quantitative style information. The test contract is: the *specific numerical value* from the loaded profile appears in that leader's prompt, and the other leader's value does not.
+
+**Watch in later phases:**
+- The `formality_level < 0.55` threshold for "direct and blunt" is chosen to match real profile values (Torvalds at 0.500, KH at 0.533 — both near the boundary). If profiles are re-built with updated LKML data and both leaders land above 0.55, both will get "clear and structured" backstories. The threshold may need recalibration against actual profile data. Consider making it configurable rather than hardcoded.
+- `generate_styled_response` is the only function that makes a real LLM call in this module. In the Day 5 flow, this runs inside a try/except block in the style step — see Phase 3. Any exception from `Crew.kickoff` (network error, token limit, parse failure) must be caught at the flow level, not here. `style_crew.py` is intentionally exception-transparent.
+- The LLM model name `"gpt-4o-mini"` is hardcoded in `_LLM_MODEL`. If the config system adds a `style_model` key (analogous to how `evaluator.py` reads `_LLM_MODEL = "gpt-4o-mini"` from a module constant), this should be the first place to wire it.
+
+**Test count after Phase 1:** 403 passing (382 baseline + 21 new)
