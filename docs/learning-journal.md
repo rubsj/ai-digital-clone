@@ -314,3 +314,155 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 
 **Test count at end of Day 4:** 382 passing (305 baseline + 77 new)
 **New module coverage:** 99% (groundedness_scorer 98%, all others 100%)
+
+---
+
+## Day 5 — Flow Orchestration + Integration (2026-04-26)
+
+### Phase 0: Branch + Scaffolding
+
+**What I built:**
+- Cut `feat/day5-flow-orchestration` branch from current main
+- Deleted `src/agents/rag_steps.py` — an empty 0-byte stub left from Day 4 scaffolding
+- Confirmed 382-test baseline still passes after the deletion
+
+**What surprised me:**
+- The deletion of `rag_steps.py` is a deliberate design signal, not just cleanup. The stub existed because the plan originally anticipated a RAG façade agent (parallel to `evaluator_steps.py`). The Day 5 design chose directness instead: the Flow's retrieve step calls `RAGAgent.retrieve()` with no wrapper. Deleting the stub documents that decision — leaving an empty stub would imply the wrapper is coming; removing it says it was considered and rejected.
+- git rm is the correct command here rather than a plain file delete — it stages the deletion for commit in one step. A plain `rm` would leave the deletion unstaged and visible only in `git status` as an untracked deletion.
+
+**Watch in later phases:**
+- The 382 baseline is the locked Day 4 count per CLAUDE.md. Any deviation before Phase 1 code lands is a regression signal. If the count ever drifts, check for stale `.pyc` files or conftest fixtures that conditionally skip tests based on environment.
+
+---
+
+### Phase 1: `src/agents/style_crew.py` — Single-Agent Crew
+
+**What I built:**
+- `_build_role(profile)` — names the leader and anchors to LKML context
+- `_build_goal(profile)` — injects four concrete numerical features from `StyleFeatures`: `avg_message_length`, `formality_level`, `technical_depth`, `vocabulary_richness`, plus the leader's top-3 characteristic phrases. All values formatted to 3 decimal places so they're stable across floating-point representations.
+- `_build_backstory(profile)` — injects `code_snippet_freq`, `question_frequency`, and a tone label derived from `formality_level` threshold (< 0.55 → "direct and blunt", ≥ 0.55 → "clear and structured")
+- `build_style_crew(profile, chunks, query) -> Crew` — assembles a one-Agent, one-Task Crew. Task description contains the query and up to 5 chunk excerpts labeled by `source_topic`. LLM is `crewai.LLM(model="gpt-4o-mini")`, which routes through litellm internally.
+- `generate_styled_response(profile, chunks, query) -> str` — builds and kicks off the Crew, returns `result.raw`
+- 21 tests, all passing
+
+**What surprised me:**
+- `crewai.LLM(model="gpt-4o-mini")` validates at construction time — it tries to resolve the provider and fails if `OPENAI_API_KEY` is missing, even though no actual API call is made yet. Tests need `monkeypatch.setenv("OPENAI_API_KEY", "dummy")` in an autouse fixture, or they fail at import time. This is a CrewAI design choice (eager provider validation) that differs from litellm's lazy approach.
+- `Agent(llm=...)` validates the `llm` argument strictly against `str | BaseLLM` via Pydantic. Passing a `MagicMock` raises a `ValidationError` immediately. The consequence: you can't mock `LLM` at the class level and pass the mock into `Agent`. The cleaner test strategy is to set a dummy API key (so `LLM(model=...)` instantiates successfully), then patch `Crew.kickoff` at the method level for tests that exercise response generation. Helper functions (`_build_goal`, `_build_role`, `_build_backstory`) can be tested directly with no framework involvement.
+- `CrewOutput.raw` is the string field to use. `str(crew_output)` also returns the raw string (CrewAI's `__str__` delegates to `.raw`), but using `.raw` explicitly is more readable and less surprising to future maintainers who haven't traced the `__str__` implementation.
+- The differentiation test (Torvalds `avg_message_length=0.340` vs KH `avg_message_length=0.166`) must use per-leader numerical schema field values, not string-contains on the leader name. A prompt that just says "write like Torvalds" would pass a name-contains test but injects zero quantitative style information. The test contract is: the *specific numerical value* from the loaded profile appears in that leader's prompt, and the other leader's value does not.
+
+**Watch in later phases:**
+- The `formality_level < 0.55` threshold for "direct and blunt" is chosen to match real profile values (Torvalds at 0.500, KH at 0.533 — both near the boundary). If profiles are re-built with updated LKML data and both leaders land above 0.55, both will get "clear and structured" backstories. The threshold may need recalibration against actual profile data. Consider making it configurable rather than hardcoded.
+- `generate_styled_response` is the only function that makes a real LLM call in this module. In the Day 5 flow, this runs inside a try/except block in the style step — see Phase 3. Any exception from `Crew.kickoff` (network error, token limit, parse failure) must be caught at the flow level, not here. `style_crew.py` is intentionally exception-transparent.
+- The LLM model name `"gpt-4o-mini"` is hardcoded in `_LLM_MODEL`. If the config system adds a `style_model` key (analogous to how `evaluator.py` reads `_LLM_MODEL = "gpt-4o-mini"` from a module constant), this should be the first place to wire it.
+
+**Test count after Phase 1:** 403 passing (382 baseline + 21 new)
+
+---
+
+### Phase 2: `src/flow.py` — Happy Path Flow
+
+**What I built:**
+- `DigitalCloneFlow(Flow[CloneState])` with 4 sequential steps: `retrieve → style_response → evaluate_response → deliver`
+- `retrieve` step (`@start()`): early-exit guard (`if self.state.retrieved_chunks: return`) for the Phase 4 retrieve-once optimization; otherwise calls `RAGAgent.retrieve(self.state.query)` and stores results on state
+- `style_response` step (`@listen(retrieve)`): resolves leader config key via `_LEADER_KEY_MAP`, loads `StyleProfile` from disk, calls `generate_styled_response()`, writes the string to `state.styled_response`
+- `evaluate_response` step (`@listen(style_response)`): constructs a synthetic `EmailMessage` wrapping the styled response text, runs `extract_features()` on it to produce `response_features`, calls `EvaluatorAgent.evaluate()`, writes `EvaluationResult` to `state.evaluation`
+- `deliver` step (`@listen(evaluate_response)`): assembles `StyledResponse(query, leader, response, evaluation)` and writes to `state.final_output`
+- 12 tests in `tests/test_flow.py` — cover state population per field, early-exit guard (`assert_not_called`), KH leader path, and `final_output` never-None invariant
+
+**What surprised me:**
+- `kickoff(inputs={"query": ..., "leader": ...})` pre-populates `CloneState` fields before the first step fires. This is how the `retrieved_chunks` early-exit guard also works for the dual-leader case — pass a pre-populated `retrieved_chunks` list in `inputs` and the retrieve step skips immediately. The state is the API.
+- `self.state` inside a Flow step is a `StateProxy` wrapping `StateWithId`, not the raw `CloneState`. It has an auto-generated `id` field and behaves like `CloneState` for attribute access, but `isinstance(self.state, CloneState)` is `False`. This matters if you ever want to serialize or compare states directly outside the Flow.
+- Patching `RAGAgent.__init__` with `return_value=None` suppresses the FAISS index-load attempt in tests. Then `RAGAgent.retrieve` is patched separately at method level. The two patches are independent — `__init__` controls construction, `retrieve` controls the call. This is cleaner than mocking the whole class.
+- `extract_features()` takes an `EmailMessage`, not a plain string. The synthetic email has `quote_reply_ratio=0.0` (the `EmailMessage` default) because there are no quote markers in a generated response. This is correct — generated text has no quoted lines — but it means `response_features.quote_reply_ratio` will always be 0.0 for any generated response evaluated through this flow.
+
+**Watch in later phases:**
+- `load_profile` is called twice per request: once in `style_response` and once in `evaluate_response` (both need the profile). Both calls are fast JSON disk reads, but for clarity a future refactor could cache the loaded profile on the `Flow` instance or add a `profile` field to `CloneState`. For Phase 3 the current approach is fine.
+- Phase 3 will add `try/except` around each step body. The exception discipline from CLAUDE.md applies: catch only `httpx.HTTPError`, `litellm.APIError`, `cohere` errors, `json.JSONDecodeError`, and Instructor retry exhaustion. `pydantic.ValidationError` and `AssertionError` must propagate — they signal bugs, not transient failures.
+- The `@start()` decorator takes parentheses (decorator factory pattern). `@listen(method_ref)` takes the method reference directly, not a string. Getting either wrong produces a silent no-op step, not an error. The smoke script — which verifies state is actually populated — is the only reliable check that wiring is correct.
+
+**Test count after Phase 2:** 415 passing (403 baseline + 12 new)
+
+---
+
+### Phase 3: Router + Fallback Branch + Error Recovery
+
+**What I built:**
+- Converted `evaluate_response` from `@listen(style_response)` to `@router(style_response)` — returns the string `"deliver"` or `"fallback"` based on `state.evaluation.decision`
+- Added `handle_fallback` step (`@listen("fallback")`): builds trigger string from `state.trigger_reason` or `evaluation.final_score`, calls `build_fallback_response()`, writes `FallbackResponse` to `state.final_output`
+- Renamed the deliver-path step from `deliver` to `finalize` (`@listen("deliver")`) — see surprise below
+- Added `trigger_reason: str = ""` to `CloneState` as a cross-step error signal: any step that catches an exception sets this field, and subsequent steps early-exit (`if self.state.trigger_reason: return`) to propagate the failure gracefully to `handle_fallback`
+- `try/except` around each step body: catches `Exception` broadly, but re-raises `pydantic.ValidationError` and `AssertionError` (those are bugs, not transient failures)
+- 11 new tests: 2 boundary tests (0.7499 → `FallbackResponse`, 0.7500 → `StyledResponse`), 3 error-injection tests (retrieve/style/evaluate failure each → `FallbackResponse`), 6 never-None invariant tests, 1 trigger-reason content test
+- Coverage: `src/flow.py` at exactly 90% (missing lines are the `raise` re-raise paths and the double-failure safety net inside `handle_fallback` — not reachable via mocked tests)
+
+**What surprised me:**
+- **Method name = route string → infinite recursion.** When `@router` returns `"deliver"` and there is a method named `deliver` decorated with `@listen("deliver")`, CrewAI 1.13.0 treats the string as a match for both the route label and the method name. When the method completes, it triggers itself again through the listener registry — infinite recursion until Python hits the stack limit. The fix: rename the branch methods to names that cannot collide with the route strings. Used `finalize` (for route `"deliver"`) and `handle_fallback` (for route `"fallback"`). This is a silent footgun — no warning, just a stack overflow.
+- **`trigger_reason` needed a schema field.** The error-propagation design (step sets `trigger_reason`, subsequent steps check it) requires a field on `CloneState`. There was no `trigger_reason` field in the Phase 2 schema. Adding it was the right move — the state is the API — but it shows that error-path design decisions bleed into the state schema. In retrospect, Phase 2 could have added `trigger_reason: str = ""` speculatively since Phase 3 was already planned.
+- **Router return value is not validated.** If `evaluate_response` returns a string that doesn't match any `@listen("...")` step, the flow silently terminates without setting `final_output`. The `None`-check tests (`assert flow.state.final_output is not None`) are the only protection against a typo in the route string. CrewAI does not raise on unmatched routes.
+- **`@router` replaces `@listen` entirely.** The correct decorator for a routing step is `@router(upstream_method)` — not `@listen(upstream_method)` plus `@router()`. Using both would register the step as both a listener and a router, triggering it twice. The single `@router(style_response)` is the complete wiring.
+
+**Watch in later phases:**
+- The `trigger_reason` field is a cross-step signal, not audit data — it gets set on the first error and never cleared. If a Phase 4 dual-leader wrapper runs two Flow instances with a shared `CloneState`, the first run's `trigger_reason` would pre-poison the second run's error check. The wrapper must use separate `CloneState` instances per leader.
+- The `handle_fallback` inner `try/except` (the safety net that writes a minimal `FallbackResponse` if `build_fallback_response` itself fails) is not covered by tests — it would require injecting a failure into `build_fallback_response` *and* `FallbackResponse` construction simultaneously. Acceptable uncovered branch, but worth noting if coverage requirements tighten.
+- Phase 4 testing must verify that the retrieve early-exit guard still works correctly now that `evaluate_response` is a `@router` step. The routing chain is: `retrieve → style_response → evaluate_response(router) → finalize | handle_fallback`. A pre-populated `retrieved_chunks` in inputs skips the first step; the rest of the chain is unchanged.
+
+**Test count after Phase 3:** 426 passing (415 baseline + 11 new)
+
+---
+
+### Phase 4: Dual-Leader Comparison — Retrieve Once, Style Twice
+
+**What I built:**
+- `compare_leaders(query) -> LeaderComparison` — module-level function in `src/flow.py` that runs `DigitalCloneFlow` twice, sharing retrieved chunks across both runs
+- First run (Torvalds) performs the full retrieve → style → evaluate chain; second run (Kroah-Hartman) receives `retrieved_chunks` pre-populated via `kickoff(inputs={...})`, so the retrieve step early-exits immediately
+- Added `LeaderComparison` to the imports in `src/flow.py`; the wrapper raises `ValueError` if either leader produces a `FallbackResponse` rather than a `StyledResponse` (schema requires both fields typed as `StyledResponse`)
+- 7 new tests: `compare_leaders` returns `LeaderComparison`, both fields are `StyledResponse`, query propagates to both sub-responses, leaders differ, `RAGAgent.retrieve` called exactly once (`assert_called_once`), leader A failure (style error on first call) does not block leader B
+- `scripts/timing_dual_leader.py` — timing harness with mocked RAG (100ms sleep) and LLM (50ms sleep), 5 runs each
+
+**Timing results (for ADR-005):**
+- Shared-retrieval (`compare_leaders`): **413.6 ms**
+- Independent pipelines (two full flows): **460.9 ms**
+- Savings: **47.3 ms (10.3%)**
+- Expected from mocked RAG sleep alone: ~100 ms
+
+**What surprised me:**
+- **Actual savings were ~half the expected value.** With a 100ms mocked RAG sleep, the expected wall-clock savings was ~100ms (one avoided RAG call). The measured savings was only 47.3ms. The gap comes from CrewAI Flow initialization overhead — each `DigitalCloneFlow()` instantiation and `kickoff()` invocation carries per-run setup cost (state object creation, async event loop entry, Flow lifecycle hooks) that runs even when the retrieve step exits immediately. The savings are real and measurable, but the optimization only partially reclaims the RAG cost, not all of it. ADR-005 must report this honestly rather than claiming the full 100ms.
+- **The `compare_leaders` wrapper is purely serial.** Both flows run sequentially, not concurrently. This was the simplest correct design. A parallel version (two `asyncio` tasks sharing chunks via a queue) would be faster but adds coordination complexity. For now, the retrieve-once saving comes from avoiding one I/O-heavy step, not from parallelism — those are orthogonal optimizations.
+- **Independent error paths fall out naturally from Phase 3.** Because Phase 3 wrapped every step in `try/except` and routes failures to the fallback branch without raising, `flow_t.kickoff()` never raises an exception. So leader B always runs regardless of leader A's outcome — the wrapper doesn't need special error handling code for this. The independence guarantee is a free consequence of the Phase 3 design, not something the wrapper explicitly implements.
+- **`list(flow_t.state.retrieved_chunks)` is needed for the snapshot.** `self.state` inside a Flow is a `StateProxy` — the `.retrieved_chunks` attribute might be a proxy-wrapped list rather than a plain Python list. Calling `list(...)` forces a copy before passing to the second kickoff, avoiding any shared-state mutation if the second flow modifies the chunks list.
+
+**Watch in later phases:**
+- ADR-005 must quote the actual timing numbers (413.6ms / 460.9ms / 47.3ms), not the expected 100ms savings. The harness conditions are: mocked RAG with fixed 100ms sleep, mocked LLM with 50ms sleep, single query, 5-run average, Python 3.13.12 on macOS. Any change to those conditions changes the numbers.
+- The `compare_leaders` wrapper is the only place in the codebase that knows about the dual-leader optimization. If a future "compare N leaders" mode is needed, only this function changes — the Flow class stays single-purpose. Mentioning this in ADR-005 Consequences is important for framing.
+- `LeaderComparison.torvalds` and `LeaderComparison.kroah_hartman` are typed as `StyledResponse`, not `Union[StyledResponse, FallbackResponse]`. If either leader consistently falls below the 0.75 threshold in production, `compare_leaders` will always raise. The schema may need a `Union` field or a separate `DualLeaderResult` type that admits partial failures.
+
+**Test count after Phase 4:** 433 passing (426 baseline + 7 new)
+
+---
+
+### Phase 5: ADR-005 — Shared RAG Dual-Leader Mode
+
+**What I built:**
+- `docs/adr/ADR-005-shared-rag-dual-leader-mode.md` — 136-line ADR following the 5-section CLAUDE.md format (Context, Decision, Alternatives Considered, Quantified Validation, Consequences)
+- Two Mermaid sequence diagrams embedded inline in the Decision section:
+  - **A2** — single-query baseline pipeline (User → Flow → RAG → Style Crew → Evaluator → router → deliver/fallback)
+  - **A3** — dual-leader optimization (one RAG call feeds both style+evaluate passes, converging into `LeaderComparison`)
+- All numerical claims trace verbatim to the Phase 4 timing harness: 413.6ms / 460.9ms / 47.3ms (10.3%)
+- Java/TS parallel appears as one parenthetical at the end of Consequences only (Spring request-scoped bean / React context provider)
+
+**What I learned writing the ADR:**
+
+**Quantified Validation must be honest about discrepancies.** The measured savings (47.3ms) were roughly half the back-of-envelope prediction (100ms = one avoided RAG mock). The ADR explains the gap — per-run `DigitalCloneFlow` initialization overhead is constant regardless of whether RAG runs — rather than quietly omitting the discrepancy or padding the expected value down to match. An ADR that rounds actual numbers to match the theory is worse than useless: it trains future readers to distrust the numbers entirely. The correct instinct is to report what was measured and explain why it differs.
+
+**The Alternatives Considered section needs a genuine engineering argument per alternative, not a dismissal.** "Independent pipelines" is not obviously wrong — it is simpler and eliminates shared state. The ADR has to concede that simplicity, then explain why the production-scale cost (full RAG retrieval per call, ~600ms each, doubling for same-query comparisons) justifies the coupling. "Cached RAG with TTL" sounds like a valid alternative at first read but falls apart on analysis: dual-leader is a single request, both runs happen within the same ~500ms window, so any cache hit would come from within the same request, not across requests. Writing that out exposed a flaw in the alternative that I had not fully articulated during implementation.
+
+**Consequences must distinguish mitigation from wishful thinking.** The coupling risk is real: if leader A's retrieval fails, leader B gets empty chunks and routes to fallback. The mitigation isn't "it probably won't fail" — it's the Phase 3 error-recovery design that ensures a failure produces a surfaced `ValueError` rather than a silent wrong answer. Documenting the mitigation by name (Phase 3) rather than by generic reassurance keeps the ADR grounded.
+
+**Diagram granularity choice.** A2 (single-query) uses `alt/else` to show the router branching in one diagram. A3 (dual-leader) omits the router branches to keep the diagram focused on the retrieve-once optimization — showing six branches in A3 would obscure the structure being explained. The right granularity for each diagram is what the diagram is meant to explain, not maximum completeness.
+
+**Watch in later phases:**
+- ADR-005's Consequences flags that `LeaderComparison.torvalds` / `kroah_hartman` are typed as `StyledResponse` (not `Union`), so persistent fallbacks raise. If production data shows either leader consistently scoring below 0.75, the schema or wrapper will need to change. The ADR has the note; the code does not yet handle it.
+- The A2 and A3 diagrams use Mermaid `sequenceDiagram` syntax. Both render cleanly in GitHub's Mermaid renderer and VS Code's Markdown Preview Enhanced. No `mmdc` compile step required.
+
+**Test count after Phase 5:** 433 passing (no new tests — ADR is a documentation artifact)
