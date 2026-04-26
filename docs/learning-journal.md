@@ -438,3 +438,31 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - `LeaderComparison.torvalds` and `LeaderComparison.kroah_hartman` are typed as `StyledResponse`, not `Union[StyledResponse, FallbackResponse]`. If either leader consistently falls below the 0.75 threshold in production, `compare_leaders` will always raise. The schema may need a `Union` field or a separate `DualLeaderResult` type that admits partial failures.
 
 **Test count after Phase 4:** 433 passing (426 baseline + 7 new)
+
+---
+
+### Phase 5: ADR-005 — Shared RAG Dual-Leader Mode
+
+**What I built:**
+- `docs/adr/ADR-005-shared-rag-dual-leader-mode.md` — 136-line ADR following the 5-section CLAUDE.md format (Context, Decision, Alternatives Considered, Quantified Validation, Consequences)
+- Two Mermaid sequence diagrams embedded inline in the Decision section:
+  - **A2** — single-query baseline pipeline (User → Flow → RAG → Style Crew → Evaluator → router → deliver/fallback)
+  - **A3** — dual-leader optimization (one RAG call feeds both style+evaluate passes, converging into `LeaderComparison`)
+- All numerical claims trace verbatim to the Phase 4 timing harness: 413.6ms / 460.9ms / 47.3ms (10.3%)
+- Java/TS parallel appears as one parenthetical at the end of Consequences only (Spring request-scoped bean / React context provider)
+
+**What I learned writing the ADR:**
+
+**Quantified Validation must be honest about discrepancies.** The measured savings (47.3ms) were roughly half the back-of-envelope prediction (100ms = one avoided RAG mock). The ADR explains the gap — per-run `DigitalCloneFlow` initialization overhead is constant regardless of whether RAG runs — rather than quietly omitting the discrepancy or padding the expected value down to match. An ADR that rounds actual numbers to match the theory is worse than useless: it trains future readers to distrust the numbers entirely. The correct instinct is to report what was measured and explain why it differs.
+
+**The Alternatives Considered section needs a genuine engineering argument per alternative, not a dismissal.** "Independent pipelines" is not obviously wrong — it is simpler and eliminates shared state. The ADR has to concede that simplicity, then explain why the production-scale cost (full RAG retrieval per call, ~600ms each, doubling for same-query comparisons) justifies the coupling. "Cached RAG with TTL" sounds like a valid alternative at first read but falls apart on analysis: dual-leader is a single request, both runs happen within the same ~500ms window, so any cache hit would come from within the same request, not across requests. Writing that out exposed a flaw in the alternative that I had not fully articulated during implementation.
+
+**Consequences must distinguish mitigation from wishful thinking.** The coupling risk is real: if leader A's retrieval fails, leader B gets empty chunks and routes to fallback. The mitigation isn't "it probably won't fail" — it's the Phase 3 error-recovery design that ensures a failure produces a surfaced `ValueError` rather than a silent wrong answer. Documenting the mitigation by name (Phase 3) rather than by generic reassurance keeps the ADR grounded.
+
+**Diagram granularity choice.** A2 (single-query) uses `alt/else` to show the router branching in one diagram. A3 (dual-leader) omits the router branches to keep the diagram focused on the retrieve-once optimization — showing six branches in A3 would obscure the structure being explained. The right granularity for each diagram is what the diagram is meant to explain, not maximum completeness.
+
+**Watch in later phases:**
+- ADR-005's Consequences flags that `LeaderComparison.torvalds` / `kroah_hartman` are typed as `StyledResponse` (not `Union`), so persistent fallbacks raise. If production data shows either leader consistently scoring below 0.75, the schema or wrapper will need to change. The ADR has the note; the code does not yet handle it.
+- The A2 and A3 diagrams use Mermaid `sequenceDiagram` syntax. Both render cleanly in GitHub's Mermaid renderer and VS Code's Markdown Preview Enhanced. No `mmdc` compile step required.
+
+**Test count after Phase 5:** 433 passing (no new tests — ADR is a documentation artifact)
