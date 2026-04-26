@@ -408,3 +408,33 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - Phase 4 testing must verify that the retrieve early-exit guard still works correctly now that `evaluate_response` is a `@router` step. The routing chain is: `retrieve → style_response → evaluate_response(router) → finalize | handle_fallback`. A pre-populated `retrieved_chunks` in inputs skips the first step; the rest of the chain is unchanged.
 
 **Test count after Phase 3:** 426 passing (415 baseline + 11 new)
+
+---
+
+### Phase 4: Dual-Leader Comparison — Retrieve Once, Style Twice
+
+**What I built:**
+- `compare_leaders(query) -> LeaderComparison` — module-level function in `src/flow.py` that runs `DigitalCloneFlow` twice, sharing retrieved chunks across both runs
+- First run (Torvalds) performs the full retrieve → style → evaluate chain; second run (Kroah-Hartman) receives `retrieved_chunks` pre-populated via `kickoff(inputs={...})`, so the retrieve step early-exits immediately
+- Added `LeaderComparison` to the imports in `src/flow.py`; the wrapper raises `ValueError` if either leader produces a `FallbackResponse` rather than a `StyledResponse` (schema requires both fields typed as `StyledResponse`)
+- 7 new tests: `compare_leaders` returns `LeaderComparison`, both fields are `StyledResponse`, query propagates to both sub-responses, leaders differ, `RAGAgent.retrieve` called exactly once (`assert_called_once`), leader A failure (style error on first call) does not block leader B
+- `scripts/timing_dual_leader.py` — timing harness with mocked RAG (100ms sleep) and LLM (50ms sleep), 5 runs each
+
+**Timing results (for ADR-005):**
+- Shared-retrieval (`compare_leaders`): **413.6 ms**
+- Independent pipelines (two full flows): **460.9 ms**
+- Savings: **47.3 ms (10.3%)**
+- Expected from mocked RAG sleep alone: ~100 ms
+
+**What surprised me:**
+- **Actual savings were ~half the expected value.** With a 100ms mocked RAG sleep, the expected wall-clock savings was ~100ms (one avoided RAG call). The measured savings was only 47.3ms. The gap comes from CrewAI Flow initialization overhead — each `DigitalCloneFlow()` instantiation and `kickoff()` invocation carries per-run setup cost (state object creation, async event loop entry, Flow lifecycle hooks) that runs even when the retrieve step exits immediately. The savings are real and measurable, but the optimization only partially reclaims the RAG cost, not all of it. ADR-005 must report this honestly rather than claiming the full 100ms.
+- **The `compare_leaders` wrapper is purely serial.** Both flows run sequentially, not concurrently. This was the simplest correct design. A parallel version (two `asyncio` tasks sharing chunks via a queue) would be faster but adds coordination complexity. For now, the retrieve-once saving comes from avoiding one I/O-heavy step, not from parallelism — those are orthogonal optimizations.
+- **Independent error paths fall out naturally from Phase 3.** Because Phase 3 wrapped every step in `try/except` and routes failures to the fallback branch without raising, `flow_t.kickoff()` never raises an exception. So leader B always runs regardless of leader A's outcome — the wrapper doesn't need special error handling code for this. The independence guarantee is a free consequence of the Phase 3 design, not something the wrapper explicitly implements.
+- **`list(flow_t.state.retrieved_chunks)` is needed for the snapshot.** `self.state` inside a Flow is a `StateProxy` — the `.retrieved_chunks` attribute might be a proxy-wrapped list rather than a plain Python list. Calling `list(...)` forces a copy before passing to the second kickoff, avoiding any shared-state mutation if the second flow modifies the chunks list.
+
+**Watch in later phases:**
+- ADR-005 must quote the actual timing numbers (413.6ms / 460.9ms / 47.3ms), not the expected 100ms savings. The harness conditions are: mocked RAG with fixed 100ms sleep, mocked LLM with 50ms sleep, single query, 5-run average, Python 3.13.12 on macOS. Any change to those conditions changes the numbers.
+- The `compare_leaders` wrapper is the only place in the codebase that knows about the dual-leader optimization. If a future "compare N leaders" mode is needed, only this function changes — the Flow class stays single-purpose. Mentioning this in ADR-005 Consequences is important for framing.
+- `LeaderComparison.torvalds` and `LeaderComparison.kroah_hartman` are typed as `StyledResponse`, not `Union[StyledResponse, FallbackResponse]`. If either leader consistently falls below the 0.75 threshold in production, `compare_leaders` will always raise. The schema may need a `Union` field or a separate `DualLeaderResult` type that admits partial failures.
+
+**Test count after Phase 4:** 433 passing (426 baseline + 7 new)

@@ -12,11 +12,12 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.flow import DigitalCloneFlow
+from src.flow import DigitalCloneFlow, compare_leaders
 from src.schemas import (
     EvaluationResult,
     FallbackResponse,
     KnowledgeChunk,
+    LeaderComparison,
     RetrievalResult,
     StyledResponse,
     StyleFeatures,
@@ -377,3 +378,119 @@ def test_retrieve_error_trigger_reason_mentions_step():
     """trigger_reason on retrieve failure must mention 'retrieve'."""
     flow = _run_with_retrieve_error()
     assert "retrieve" in flow.state.trigger_reason.lower()
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — Dual-leader comparison
+# ---------------------------------------------------------------------------
+
+_SHARED_PATCHES = dict(
+    load_config="src.flow.load_config",
+    rag_init="src.flow.RAGAgent.__init__",
+    rag_retrieve="src.flow.RAGAgent.retrieve",
+    load_profile="src.flow.load_profile",
+    generate="src.flow.generate_styled_response",
+    evaluate="src.flow.EvaluatorAgent.evaluate",
+    fallback="src.flow.build_fallback_response",
+)
+
+
+def _run_compare_leaders(
+    query: str = "How does memory management work?",
+    styled_text: str = "The kernel uses slab allocators.",
+) -> LeaderComparison:
+    mock_eval = _make_evaluation(decision="deliver")
+    mock_profile = _make_profile()
+    with (
+        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
+        patch(_SHARED_PATCHES["rag_init"], return_value=None),
+        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]),
+        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
+        patch(_SHARED_PATCHES["generate"], return_value=styled_text),
+        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
+        patch(_SHARED_PATCHES["fallback"], return_value=_MOCK_FALLBACK),
+    ):
+        return compare_leaders(query)
+
+
+def test_dual_leader_returns_leader_comparison():
+    result = _run_compare_leaders()
+    assert isinstance(result, LeaderComparison)
+
+
+def test_dual_leader_torvalds_field_is_styled_response():
+    result = _run_compare_leaders()
+    assert isinstance(result.torvalds, StyledResponse)
+
+
+def test_dual_leader_kroah_hartman_field_is_styled_response():
+    result = _run_compare_leaders()
+    assert isinstance(result.kroah_hartman, StyledResponse)
+
+
+def test_dual_leader_query_propagated():
+    q = "What is the buddy allocator?"
+    result = _run_compare_leaders(query=q)
+    assert result.query == q
+    assert result.torvalds.query == q
+    assert result.kroah_hartman.query == q
+
+
+def test_dual_leader_leaders_differ():
+    result = _run_compare_leaders()
+    assert result.torvalds.leader != result.kroah_hartman.leader
+
+
+def test_dual_leader_rag_retrieve_called_once():
+    """RAGAgent.retrieve must be called exactly once across both Flow runs."""
+    mock_eval = _make_evaluation(decision="deliver")
+    mock_profile = _make_profile()
+    with (
+        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
+        patch(_SHARED_PATCHES["rag_init"], return_value=None),
+        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]) as mock_retrieve,
+        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
+        patch(_SHARED_PATCHES["generate"], return_value="response"),
+        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
+    ):
+        compare_leaders("test query")
+
+    mock_retrieve.assert_called_once()
+
+
+def test_dual_leader_leader_a_failure_does_not_block_leader_b():
+    """If leader A's style step fails, leader B must still produce a StyledResponse."""
+    mock_eval = _make_evaluation(decision="deliver")
+    mock_profile = _make_profile()
+    call_count = {"n": 0}
+
+    def generate_side_effect(*args, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise RuntimeError("LLM timeout for leader A")
+        return "KH response"
+
+    with (
+        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
+        patch(_SHARED_PATCHES["rag_init"], return_value=None),
+        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]),
+        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
+        patch(_SHARED_PATCHES["generate"], side_effect=generate_side_effect),
+        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
+        patch(_SHARED_PATCHES["fallback"], return_value=_MOCK_FALLBACK),
+    ):
+        flow_t = DigitalCloneFlow()
+        flow_t.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
+        shared_chunks = list(flow_t.state.retrieved_chunks)
+
+        flow_kh = DigitalCloneFlow()
+        flow_kh.kickoff(inputs={
+            "query": "test",
+            "leader": "Greg Kroah-Hartman",
+            "retrieved_chunks": shared_chunks,
+        })
+
+    # Leader A failed → FallbackResponse; leader B must have still run and produced output
+    assert isinstance(flow_t.state.final_output, FallbackResponse)
+    assert isinstance(flow_kh.state.final_output, StyledResponse)
+    assert flow_kh.state.final_output.response == "KH response"

@@ -2,9 +2,11 @@
 
 Steps (Phase 2, happy path): retrieve → style_response → evaluate_response → deliver
 Router + fallback branch added in Phase 3.
+Dual-leader comparison wrapper added in Phase 4.
 
 Public API:
     DigitalCloneFlow().kickoff(inputs={"query": ..., "leader": ...})
+    compare_leaders(query) -> LeaderComparison
 """
 
 from __future__ import annotations
@@ -20,7 +22,7 @@ from src.agents.fallback_steps import build_fallback_response
 from src.agents.rag_agent import RAGAgent
 from src.agents.style_crew import generate_styled_response
 from src.config import load_config
-from src.schemas import CloneState, EmailMessage, FallbackResponse, StyledResponse
+from src.schemas import CloneState, EmailMessage, FallbackResponse, LeaderComparison, StyledResponse
 from src.style.feature_extractor import extract_features
 from src.style.profile_builder import load_profile
 
@@ -162,3 +164,44 @@ class DigitalCloneFlow(Flow[CloneState]):
                 available_slots=[],
                 unstyled_response="",
             )
+
+
+# ---------------------------------------------------------------------------
+# Dual-leader comparison wrapper (Phase 4)
+# ---------------------------------------------------------------------------
+
+_LEADERS = ("Linus Torvalds", "Greg Kroah-Hartman")
+
+
+def compare_leaders(query: str) -> LeaderComparison:
+    """Run the flow for both leaders, sharing retrieved chunks across runs.
+
+    The first run (Torvalds) performs the RAG retrieval.  The second run
+    (Kroah-Hartman) receives those chunks pre-populated so its retrieve step
+    early-exits — one embed + FAISS + rerank call instead of two.
+
+    Both flows execute regardless of each other's outcome; if either produces
+    a FallbackResponse rather than a StyledResponse, ValueError is raised
+    after both runs complete so neither is blocked by the other.
+    """
+    flow_t = DigitalCloneFlow()
+    flow_t.kickoff(inputs={"query": query, "leader": _LEADERS[0]})
+
+    shared_chunks = list(flow_t.state.retrieved_chunks)
+
+    flow_kh = DigitalCloneFlow()
+    flow_kh.kickoff(inputs={
+        "query": query,
+        "leader": _LEADERS[1],
+        "retrieved_chunks": shared_chunks,
+    })
+
+    t_out = flow_t.state.final_output
+    kh_out = flow_kh.state.final_output
+
+    if not isinstance(t_out, StyledResponse):
+        raise ValueError(f"Torvalds pipeline did not produce a StyledResponse: {type(t_out)}")
+    if not isinstance(kh_out, StyledResponse):
+        raise ValueError(f"Kroah-Hartman pipeline did not produce a StyledResponse: {type(kh_out)}")
+
+    return LeaderComparison(query=query, torvalds=t_out, kroah_hartman=kh_out)
