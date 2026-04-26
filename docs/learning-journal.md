@@ -357,3 +357,28 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - The LLM model name `"gpt-4o-mini"` is hardcoded in `_LLM_MODEL`. If the config system adds a `style_model` key (analogous to how `evaluator.py` reads `_LLM_MODEL = "gpt-4o-mini"` from a module constant), this should be the first place to wire it.
 
 **Test count after Phase 1:** 403 passing (382 baseline + 21 new)
+
+---
+
+### Phase 2: `src/flow.py` — Happy Path Flow
+
+**What I built:**
+- `DigitalCloneFlow(Flow[CloneState])` with 4 sequential steps: `retrieve → style_response → evaluate_response → deliver`
+- `retrieve` step (`@start()`): early-exit guard (`if self.state.retrieved_chunks: return`) for the Phase 4 retrieve-once optimization; otherwise calls `RAGAgent.retrieve(self.state.query)` and stores results on state
+- `style_response` step (`@listen(retrieve)`): resolves leader config key via `_LEADER_KEY_MAP`, loads `StyleProfile` from disk, calls `generate_styled_response()`, writes the string to `state.styled_response`
+- `evaluate_response` step (`@listen(style_response)`): constructs a synthetic `EmailMessage` wrapping the styled response text, runs `extract_features()` on it to produce `response_features`, calls `EvaluatorAgent.evaluate()`, writes `EvaluationResult` to `state.evaluation`
+- `deliver` step (`@listen(evaluate_response)`): assembles `StyledResponse(query, leader, response, evaluation)` and writes to `state.final_output`
+- 12 tests in `tests/test_flow.py` — cover state population per field, early-exit guard (`assert_not_called`), KH leader path, and `final_output` never-None invariant
+
+**What surprised me:**
+- `kickoff(inputs={"query": ..., "leader": ...})` pre-populates `CloneState` fields before the first step fires. This is how the `retrieved_chunks` early-exit guard also works for the dual-leader case — pass a pre-populated `retrieved_chunks` list in `inputs` and the retrieve step skips immediately. The state is the API.
+- `self.state` inside a Flow step is a `StateProxy` wrapping `StateWithId`, not the raw `CloneState`. It has an auto-generated `id` field and behaves like `CloneState` for attribute access, but `isinstance(self.state, CloneState)` is `False`. This matters if you ever want to serialize or compare states directly outside the Flow.
+- Patching `RAGAgent.__init__` with `return_value=None` suppresses the FAISS index-load attempt in tests. Then `RAGAgent.retrieve` is patched separately at method level. The two patches are independent — `__init__` controls construction, `retrieve` controls the call. This is cleaner than mocking the whole class.
+- `extract_features()` takes an `EmailMessage`, not a plain string. The synthetic email has `quote_reply_ratio=0.0` (the `EmailMessage` default) because there are no quote markers in a generated response. This is correct — generated text has no quoted lines — but it means `response_features.quote_reply_ratio` will always be 0.0 for any generated response evaluated through this flow.
+
+**Watch in later phases:**
+- `load_profile` is called twice per request: once in `style_response` and once in `evaluate_response` (both need the profile). Both calls are fast JSON disk reads, but for clarity a future refactor could cache the loaded profile on the `Flow` instance or add a `profile` field to `CloneState`. For Phase 3 the current approach is fine.
+- Phase 3 will add `try/except` around each step body. The exception discipline from CLAUDE.md applies: catch only `httpx.HTTPError`, `litellm.APIError`, `cohere` errors, `json.JSONDecodeError`, and Instructor retry exhaustion. `pydantic.ValidationError` and `AssertionError` must propagate — they signal bugs, not transient failures.
+- The `@start()` decorator takes parentheses (decorator factory pattern). `@listen(method_ref)` takes the method reference directly, not a string. Getting either wrong produces a silent no-op step, not an error. The smoke script — which verifies state is actually populated — is the only reliable check that wiring is correct.
+
+**Test count after Phase 2:** 415 passing (403 baseline + 12 new)
