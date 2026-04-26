@@ -177,7 +177,7 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 ### Last Updated: 2026-04-26
 
 **Current Day:** Day 5 complete
-**Branch:** main (feat/day5-flow-orchestration pending PR)
+**Branch:** main (feat/day5-flow-orchestration merged — PR #5)
 **Tests:** 433 passing
 **Coverage:** 90% src/flow.py, 100% src/agents/style_crew.py (target ≥90% met)
 
@@ -230,14 +230,12 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] docs/learning-journal.md Day 4 entry
 
 ### What's Next
-- Day 5: Flow Orchestration + Integration
-  - `src/flow.py`: DigitalCloneFlow with @start, @listen, @router
-  - `src/agents/style_crew.py`: Single-agent CrewAI Crew for style generation
-  - Wire: retrieve_knowledge → apply_style → evaluate_response → deliver/fallback
-  - @router: return "deliver" or "fallback" based on EvaluationResult.decision
-  - Dual-leader comparison: run Flow twice, share retrieved_chunks via CloneState
-  - End-to-end test: query → scored response (single leader)
-  - ADR-005: Shared RAG for Dual-Leader Mode
+- Day 6: Experiment Day
+  - Embedding comparison: OpenAI vs MiniLM on same 10 queries → iteration log entry
+  - Chunking comparison: 500/50 vs semantic markdown split → iteration log entry
+  - Scoring weight sensitivity: 3 configs (0.4/0.4/0.2, 0.5/0.3/0.2, 0.3/0.5/0.2) × 10 queries
+  - Pre/post-2018 style evolution: partition Torvalds emails, compute features, plot time-series
+  - Iteration log: ≥3 entries with before/after metrics
 
 ### Blockers
 - None
@@ -274,18 +272,18 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] **Checkpoint:** Email parser works. 200+ emails per leader extracted and cleaned. PASSED.
 
 ### Day 2 — ChatStyleAgent
-- [ ] Feature extractor: 15 features (11 base + 4 LKML-specific)
+- [x] Feature extractor: 15 features (11 base + 4 LKML-specific)
   - Base: avg_message_length, greeting_patterns, punctuation_patterns, capitalization_ratio, question_frequency, vocabulary_richness, common_phrases, reasoning_patterns, sentiment_distribution, formality_level, technical_terminology
   - LKML: code_snippet_freq, quote_reply_ratio, patch_language, technical_depth
-- [ ] All features normalized to [0, 1]
-- [ ] Style profile builder: aggregate features across all emails → StyleProfile
-- [ ] Incremental learning: alpha-weighted update (`updated = (1-α)*current + α*new`)
-- [ ] Build profiles for BOTH Torvalds and Kroah-Hartman
-- [ ] Verify: radar chart shows visually distinct profiles
-- [ ] Style scorer: cosine similarity between profile vector and response feature vector
-- [ ] Tests for feature extractor + profile builder
-- [ ] **ADR-003: Feature vectors vs LLM embeddings for style** written and committed
-- [ ] **Checkpoint:** Two distinct style profiles. Style score > 0.90 on training emails.
+- [x] All features normalized to [0, 1]
+- [x] Style profile builder: aggregate features across all emails → StyleProfile
+- [x] Incremental learning: alpha-weighted update (`updated = (1-α)*current + α*new`)
+- [x] Build profiles for BOTH Torvalds and Kroah-Hartman
+- [x] Verify: radar chart shows visually distinct profiles
+- [x] Style scorer: cosine similarity between profile vector and response feature vector
+- [x] Tests for feature extractor + profile builder
+- [x] **ADR-003: Feature vectors vs LLM embeddings for style** written and committed
+- [x] **Checkpoint:** Two distinct style profiles. Style score > 0.90 on training emails.
 
 ### Day 3 — RAGAgent
 - [x] Corpus loader: HuggingFace `open-phi/textbooks`, filter field="computer science"
@@ -311,17 +309,17 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] **Checkpoint:** Evaluation pipeline scores responses. Fallback triggers correctly.
 
 ### Day 5 — Flow Orchestration + Integration
-- [ ] `src/flow.py`: DigitalCloneFlow with @start, @listen, @router
-- [ ] `src/agents/style_crew.py`: Single-agent CrewAI Crew for style generation
-- [ ] Wire: retrieve_knowledge → apply_style → evaluate_response → deliver/fallback
-- [ ] @router: return "deliver" or "fallback" based on final_score threshold
-- [ ] Dual-leader comparison: run Flow twice, share retrieved_chunks via state
-- [ ] Error recovery: try/except in Flow steps → fallback on any failure
-- [ ] End-to-end test: query → scored response (single leader)
-- [ ] End-to-end test: query → LeaderComparison (dual mode)
-- [ ] Architecture diagrams A2 (single query sequence) + A3 (dual-leader sequence)
-- [ ] **ADR-005: Shared RAG for Dual-Leader Mode** written and committed
-- [ ] **Checkpoint:** Full pipeline works. Dual-leader comparison produces two scored responses.
+- [x] `src/flow.py`: DigitalCloneFlow with @start, @listen, @router
+- [x] `src/agents/style_crew.py`: Single-agent CrewAI Crew for style generation
+- [x] Wire: retrieve_knowledge → apply_style → evaluate_response → deliver/fallback
+- [x] @router: return "deliver" or "fallback" based on final_score threshold
+- [x] Dual-leader comparison: run Flow twice, share retrieved_chunks via state
+- [x] Error recovery: try/except in Flow steps → fallback on any failure
+- [x] End-to-end test: query → scored response (single leader)
+- [x] End-to-end test: query → LeaderComparison (dual mode)
+- [x] Architecture diagrams A2 (single query sequence) + A3 (dual-leader sequence)
+- [x] **ADR-005: Shared RAG for Dual-Leader Mode** written and committed
+- [x] **Checkpoint:** Full pipeline works. Dual-leader comparison produces two scored responses.
 
 ### Day 6 — Experiment Day
 - [ ] Embedding comparison: OpenAI vs MiniLM on same 10 queries → iteration log entry
