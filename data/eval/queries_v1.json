@@ -1,62 +1,62 @@
 [
   {
     "id": "q01",
-    "query": "How does TCP ensure reliable data delivery between two hosts?",
-    "topic": "networking",
+    "query": "What criteria determine whether a bug fix qualifies for inclusion in a stable kernel release, and how should such a patch be submitted?",
+    "topic": "stable_tree_process",
     "expected_groundedness_band": "high"
   },
   {
     "id": "q02",
-    "query": "What is the purpose of virtual memory in an operating system?",
-    "topic": "operating_systems",
+    "query": "What patterns for error handling and resource cleanup are expected in Linux kernel driver code?",
+    "topic": "driver_error_handling",
     "expected_groundedness_band": "high"
   },
   {
     "id": "q03",
-    "query": "How does binary search work and what is its time complexity?",
-    "topic": "algorithms",
+    "query": "What qualities does a kernel patch need to be accepted — what do maintainers look for in the commit message, code structure, and testing evidence?",
+    "topic": "patch_review_process",
     "expected_groundedness_band": "high"
   },
   {
     "id": "q04",
-    "query": "What is the difference between a stack and a queue, and when is each used?",
-    "topic": "data_structures",
+    "query": "What kernel-level mechanisms and coding practices exist to prevent and detect memory corruption bugs such as use-after-free and double-free?",
+    "topic": "memory_safety",
     "expected_groundedness_band": "high"
   },
   {
     "id": "q05",
-    "query": "What are the trade-offs between normalized and denormalized database schema designs?",
-    "topic": "databases",
+    "query": "When is RCU preferable to traditional spinlocks or mutexes in the Linux kernel, and what constraints apply to RCU critical sections?",
+    "topic": "rcu_and_locking",
     "expected_groundedness_band": "medium"
   },
   {
     "id": "q06",
-    "query": "How do link-state and distance-vector routing protocols differ in their approach to path selection?",
-    "topic": "networking",
+    "query": "How does the Linux kernel handle CPU microarchitecture vulnerabilities such as Spectre and Meltdown, and what tradeoffs do these mitigations introduce?",
+    "topic": "hardware_mitigations",
     "expected_groundedness_band": "medium"
   },
   {
     "id": "q07",
-    "query": "What strategies can an operating system use to prevent or avoid deadlocks among competing processes?",
-    "topic": "operating_systems",
+    "query": "What runtime tools and techniques do kernel developers use to diagnose race conditions, locking bugs, and memory corruption?",
+    "topic": "kernel_debugging",
     "expected_groundedness_band": "medium"
   },
   {
     "id": "q08",
-    "query": "How does dynamic programming differ from a greedy approach when solving optimization problems?",
-    "topic": "algorithms",
+    "query": "What challenges arise when maintaining architecture-specific kernel code, and how do maintainers handle hardware errata or missing CPU features across architectures?",
+    "topic": "arch_portability",
     "expected_groundedness_band": "medium"
   },
   {
     "id": "q09",
-    "query": "How do buffer overflow vulnerabilities arise from memory management practices, and what mitigations exist at the OS and compiler level?",
-    "topic": "security",
+    "query": "What are the security arguments for restricting kernel modification at runtime, and how does the kernel balance security hardening with legitimate developer access?",
+    "topic": "kernel_lockdown",
     "expected_groundedness_band": "low"
   },
   {
     "id": "q10",
-    "query": "How does cache coherence in multi-core processors relate to the memory consistency models that programming languages expose to developers?",
-    "topic": "computer_architecture",
+    "query": "How does the Linux kernel build system handle compiler-specific feature detection and flags across different toolchains?",
+    "topic": "build_system",
     "expected_groundedness_band": "low"
   }
 ]

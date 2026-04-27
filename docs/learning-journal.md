@@ -484,10 +484,11 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 1 — Iteration log scaffold + 10-query set
 
-**What I built.** Created `data/eval/queries_v1.json` (10 queries spanning 7 CS topics, 4/4/2 high/medium/low groundedness split), `docs/iteration-log.md` (Day 6 H2 header, empty — experiment entries land in Phases 2–6), and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
+**What I built.** Created `data/eval/queries_v1.json` (10 LKML-grounded queries spanning 8 kernel-development topics, 4/4/2 high/medium/low groundedness split authored from a 30-email corpus sample), `docs/iteration-log.md` with PRD §7g scaffold and corpus-inspection provenance note, and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
 
 **What surprised me.**
-- The loader returning `list[dict]` rather than `list[str]` was the right call as soon as I looked at Phase 2's charting requirement: per-query IDs are needed for the x-axis labels, and the plan's `list[str]` type hint was written before the chart spec was fully fleshed out. Returning dicts is strictly more useful at zero additional cost.
-- q10 (cache coherence + PL memory models) is a genuinely hard edge case — it spans computer architecture and programming-language semantics, two topics the CS textbook corpus may cover independently but never explicitly bridge. That makes it a good boundary probe for groundedness experiments.
+- The first draft of the query set used generic CS topics (TCP, binary search, virtual memory definitions). Ruby caught this immediately: the corpus is LKML emails, not a CS textbook, so those queries would have returned near-zero groundedness and made the embedding/chunking comparisons meaningless noise. Corpus inspection took ~10 minutes but completely changed the query set.
+- The Kroah-Hartman corpus is dominated by stable-tree backport patches, not architectural discussions — the high-groundedness queries had to target patch process and driver error handling, not kernel internals philosophy. Torvalds' emails are where the architectural opinions live, but they're less frequent and less uniformly structured.
+- The loader returning `list[dict]` rather than the plan's `list[str]` was the right call: per-query IDs are needed for the x-axis labels in Phase 2's charts.
 
-**What I'd do differently.** n/a
+**What I'd do differently.** Sample the corpus before drafting any query set — the 10 minutes of corpus inspection saved a full day of meaningless experiment results.
