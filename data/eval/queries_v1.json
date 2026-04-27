@@ -1,0 +1,62 @@
+[
+  {
+    "id": "q01",
+    "query": "How does TCP ensure reliable data delivery between two hosts?",
+    "topic": "networking",
+    "expected_groundedness_band": "high"
+  },
+  {
+    "id": "q02",
+    "query": "What is the purpose of virtual memory in an operating system?",
+    "topic": "operating_systems",
+    "expected_groundedness_band": "high"
+  },
+  {
+    "id": "q03",
+    "query": "How does binary search work and what is its time complexity?",
+    "topic": "algorithms",
+    "expected_groundedness_band": "high"
+  },
+  {
+    "id": "q04",
+    "query": "What is the difference between a stack and a queue, and when is each used?",
+    "topic": "data_structures",
+    "expected_groundedness_band": "high"
+  },
+  {
+    "id": "q05",
+    "query": "What are the trade-offs between normalized and denormalized database schema designs?",
+    "topic": "databases",
+    "expected_groundedness_band": "medium"
+  },
+  {
+    "id": "q06",
+    "query": "How do link-state and distance-vector routing protocols differ in their approach to path selection?",
+    "topic": "networking",
+    "expected_groundedness_band": "medium"
+  },
+  {
+    "id": "q07",
+    "query": "What strategies can an operating system use to prevent or avoid deadlocks among competing processes?",
+    "topic": "operating_systems",
+    "expected_groundedness_band": "medium"
+  },
+  {
+    "id": "q08",
+    "query": "How does dynamic programming differ from a greedy approach when solving optimization problems?",
+    "topic": "algorithms",
+    "expected_groundedness_band": "medium"
+  },
+  {
+    "id": "q09",
+    "query": "How do buffer overflow vulnerabilities arise from memory management practices, and what mitigations exist at the OS and compiler level?",
+    "topic": "security",
+    "expected_groundedness_band": "low"
+  },
+  {
+    "id": "q10",
+    "query": "How does cache coherence in multi-core processors relate to the memory consistency models that programming languages expose to developers?",
+    "topic": "computer_architecture",
+    "expected_groundedness_band": "low"
+  }
+]
