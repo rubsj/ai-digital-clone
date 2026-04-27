@@ -481,3 +481,13 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - The `docs/plans/day6-plan.md` file was untracked on main (created during planning but never committed). Phase 0's commit is also where it lands in git history — cleaner than leaving it loose on main before the branch existed.
 
 **What I'd do differently.** Commit the plan file to main at the end of the planning session rather than carrying it as an untracked file across the branch cut.
+
+### Phase 1 — Iteration log scaffold + 10-query set
+
+**What I built.** Created `data/eval/queries_v1.json` (10 queries spanning 7 CS topics, 4/4/2 high/medium/low groundedness split), `docs/iteration-log.md` (Day 6 H2 header, empty — experiment entries land in Phases 2–6), and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
+
+**What surprised me.**
+- The loader returning `list[dict]` rather than `list[str]` was the right call as soon as I looked at Phase 2's charting requirement: per-query IDs are needed for the x-axis labels, and the plan's `list[str]` type hint was written before the chart spec was fully fleshed out. Returning dicts is strictly more useful at zero additional cost.
+- q10 (cache coherence + PL memory models) is a genuinely hard edge case — it spans computer architecture and programming-language semantics, two topics the CS textbook corpus may cover independently but never explicitly bridge. That makes it a good boundary probe for groundedness experiments.
+
+**What I'd do differently.** n/a
