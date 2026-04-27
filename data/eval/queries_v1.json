@@ -25,7 +25,7 @@
   },
   {
     "id": "q05",
-    "query": "What are the trade-offs between normalized and denormalized database schema designs?",
+    "query": "What are the trade-offs between read-committed, repeatable-read, and serializable transaction isolation levels in terms of consistency guarantees and concurrency?",
     "topic": "databases",
     "expected_groundedness_band": "medium"
   },
@@ -37,7 +37,7 @@
   },
   {
     "id": "q07",
-    "query": "What strategies can an operating system use to prevent or avoid deadlocks among competing processes?",
+    "query": "What are the performance and correctness trade-offs between LRU, clock (second-chance), and working-set page replacement algorithms under different memory access patterns?",
     "topic": "operating_systems",
     "expected_groundedness_band": "medium"
   },

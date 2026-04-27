@@ -40,7 +40,7 @@ def test_load_queries_raises_on_non_array(tmp_path: Path) -> None:
 
 
 def test_load_queries_canonical_file() -> None:
-    canonical = Path("data/eval/queries_v2.json")
+    canonical = Path("data/eval/queries_v1.json")
     records = load_queries(canonical)
     assert len(records) == 10
     bands = {r["expected_groundedness_band"] for r in records}

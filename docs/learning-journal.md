@@ -484,11 +484,19 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 1 — Iteration log scaffold + 10-query set
 
-**What I built.** Created `data/eval/queries_v2.json` (10 LKML-grounded queries spanning 8 kernel-development topics, 4/4/2 high/medium/low groundedness split authored from a 30-email corpus sample), `docs/iteration-log.md` with PRD §7g scaffold and corpus-inspection provenance note, and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
+**What I built.** Created `data/eval/queries_v1.json` (10 CS-textbook-grounded queries spanning 6 topics, 4/4/2 high/medium/low groundedness split calibrated against a 30-item `open-phi/textbooks` sample), `docs/iteration-log.md` with PRD §7g scaffold and corpus-inspection provenance note, and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
 
 **What surprised me.**
-- The first draft of the query set used generic CS topics (TCP, binary search, virtual memory definitions). Ruby caught this immediately: the corpus is LKML emails, not a CS textbook, so those queries would have returned near-zero groundedness and made the embedding/chunking comparisons meaningless noise. Corpus inspection took ~10 minutes but completely changed the query set.
-- The Kroah-Hartman corpus is dominated by stable-tree backport patches, not architectural discussions — the high-groundedness queries had to target patch process and driver error handling, not kernel internals philosophy. Torvalds' emails are where the architectural opinions live, but they're less frequent and less uniformly structured.
 - The loader returning `list[dict]` rather than the plan's `list[str]` was the right call: per-query IDs are needed for the x-axis labels in Phase 2's charts.
 
-**What I'd do differently.** Sample the corpus before drafting any query set — the 10 minutes of corpus inspection saved a full day of meaningless experiment results.
+**What I'd do differently.** Confirm corpus type by reading `corpus_loader.py` before authoring queries, not from a reviewer's restated framing. Phase 1 stop-gate should include "confirmed corpus type from `src/rag/corpus_loader.py`" as a paste-back item.
+
+### Phase 1 — Query revision (v2 → v1 restored): reviewer error correction
+
+**What I built.** Deleted the LKML-grounded query file (wrong domain — the RAG corpus is `open-phi/textbooks`, not LKML emails). Restored `data/eval/queries_v1.json` as the canonical query set. Sampled 1511 CS-filtered items from `open-phi/textbooks` (seed=42) to calibrate groundedness bands. Swapped q05 (DB normalization, 118 corpus hits = true HIGH) for a harder transaction isolation-levels query (22 hits = MEDIUM), and swapped q07 (OS deadlock prevention, 116 hits = true HIGH) for a harder page-replacement tradeoffs query (29 hits = MEDIUM). Updated references in `docs/plans/day6-plan.md`, `docs/iteration-log.md`, and `tests/test_query_loader.py`.
+
+**What surprised me.**
+- The `open-phi/textbooks` CS corpus is 98% "programming" subfield — language tutorials, framework guides, and general programming textbooks, not the OS/networking/DB textbooks the word "CS" implies. Core topics like binary search and TCP appear broadly (28% and 9% of items), but OS and DB synthesis topics appear only in 1–2% of items, and cross-cutting security/architecture topics in under 1.5%.
+- DB normalization (118 hits) and deadlock prevention (116 hits) were genuinely higher-coverage than the original MEDIUM labels predicted — both are textbook staples. Replacing them with isolation levels (22 hits) and page replacement (29 hits) gives the experiments queries that will actually straddle the threshold for Phase 4's sensitivity test.
+
+**What I'd do differently.** Confirm corpus type by reading `src/rag/corpus_loader.py` before authoring queries, not from any reviewer's framing (including prior-session Claude restating the architecture). The Phase 1 stop-gate should explicitly include "confirmed corpus = `open-phi/textbooks` CS filter, verified in `corpus_loader.py`" as a line in the paste-back.

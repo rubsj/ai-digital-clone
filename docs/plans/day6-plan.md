@@ -88,7 +88,7 @@ Phase 1 establishes the file using that exact set of fields. Do not invent a dif
 - P6 repo (`/Users/rubyjha/repo/AI/ai-digital-clone`) — searched `tests/`, `data/`, `scripts/`, `docs/` for `*quer*` / `*eval*` files. **No reusable query set found.** The hits (`tests/test_evaluator.py`, `src/agents/evaluator_steps.py`, `src/evaluation/evaluator.py`) are evaluation code, not query corpora.
 - P5 repo (`/Users/rubyjha/repo/AI/ai-rag-evaluation-framework`) — `data/output/qa_pairs.json` exists with 56 QA pairs, but they are over the **Armadale Capital Plc financial-report corpus**, not the `open-phi/textbooks` CS corpus P6 uses. **Domain mismatch — not reusable.** Forcing them through P6's RAG would produce uniformly low groundedness and tell us nothing about the configurations being compared.
 
-**Conclusion: query-set creation is required and is Phase 1's first sub-step.** Persist the 10 queries to `data/eval/queries_v2.json` (versioned filename) and freeze the file for the rest of the day. Do not modify it between phases — reproducibility depends on a stable query set.
+**Conclusion: query-set creation is required and is Phase 1's first sub-step.** Persist the 10 queries to `data/eval/queries_v1.json` (versioned filename) and freeze the file for the rest of the day. Do not modify it between phases — reproducibility depends on a stable query set.
 
 **Selection criteria for the 10 queries** (the executor authors them against these constraints, not freehand):
 1. **Domain coverage.** Spread across the major CS/OS topics present in the indexed corpus — networking, operating systems, algorithms, data structures, databases, security. At least 6 distinct topics across the 10 queries; no more than 2 queries on the same narrow subtopic.
@@ -97,7 +97,7 @@ Phase 1 establishes the file using that exact set of fields. Do not invent a dif
 4. **Style-agnostic phrasing.** Queries are not phrased to favor one leader's voice over the other (no "ranty" or "diplomatic" framing). Style is downstream of retrieval; the query set's job is exercising RAG, not style.
 5. **No proper-noun trivia.** Avoid queries answerable only by remembering a specific named entity (e.g., "What year was POSIX standardized?"). Those reward memorization, not retrieval+grounding. Prefer concept-explanation queries.
 
-JSON schema for `data/eval/queries_v2.json` (executor uses exactly this):
+JSON schema for `data/eval/queries_v1.json` (executor uses exactly this):
 ```json
 [
   {"id": "q01", "query": "...", "topic": "networking", "expected_groundedness_band": "high"},
@@ -142,25 +142,25 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Orientation.** Two artifacts, both versioned, both prerequisites for every later phase.
 
-1. **Query set (`data/eval/queries_v2.json`).** Author 10 queries spanning the textbook corpus topics. Spread them across difficulty: a few that should retrieve obviously well (general OS / networking concepts present in the corpus), a few mid-difficulty (specific algorithms, named protocols), a couple that probe edges (cross-topic reasoning, slightly out-of-corpus). The point is that 6a/6b need queries where embedding choice can plausibly differ; 6c needs queries where final-score will straddle the 0.75 threshold so weight changes move the deliver/fallback boundary; 6e needs queries that exercise the evaluator's full output range. One query set must serve all four use cases.
+1. **Query set (`data/eval/queries_v1.json`).** Author 10 queries spanning the textbook corpus topics. Spread them across difficulty: a few that should retrieve obviously well (general OS / networking concepts present in the corpus), a few mid-difficulty (specific algorithms, named protocols), a couple that probe edges (cross-topic reasoning, slightly out-of-corpus). The point is that 6a/6b need queries where embedding choice can plausibly differ; 6c needs queries where final-score will straddle the 0.75 threshold so weight changes move the deliver/fallback boundary; 6e needs queries that exercise the evaluator's full output range. One query set must serve all four use cases.
 2. **Iteration log (`docs/iteration-log.md`).** Create with a top-of-file H1, a brief one-paragraph "what this file is" preamble, and the `## Day 6 — Experiment Day (2026-04-27)` H2 header. Empty under the H2 — Phases 2–6 each append one H3 entry.
 
 **A small loader module is allowed if and only if it is reused by ≥ 2 experiment phases.** If only one phase needs to read the queries, inline the JSON load. Otherwise create `src/eval/query_loader.py` with `load_queries(path) -> list[str]` and a unit test (`tests/test_query_loader.py`). Same rule applies to a chart utility (`src/eval/charts.py`) — only create it when the second chart-producing phase forces the abstraction. Avoid speculative abstractions.
 
 **Acceptance criteria.**
-- `data/eval/queries_v2.json` exists, contains exactly 10 strings, valid JSON.
+- `data/eval/queries_v1.json` exists, contains exactly 10 strings, valid JSON.
 - `docs/iteration-log.md` exists with the structure described above and no per-experiment entries yet.
 - If a loader module was created: `pytest tests/test_query_loader.py -v` passes; `src/` coverage still ≥ 90%.
 
 **Stop gate output to paste.**
-- `cat data/eval/queries_v2.json` (full content — 10 queries are short).
+- `cat data/eval/queries_v1.json` (full content — 10 queries are short).
 - `cat docs/iteration-log.md` (full content — should fit on a screen).
 - Coverage report if a new `src/` module was added.
 - (Per-phase cadence) Commit SHA and the rendered Phase 1 learning-journal H3 entry.
 
 **Human-review gate (in addition to standard paste-back, not a replacement).**
 
-> **STOP. Do not proceed to Phase 2.** Wait for Ruby to review the query set against the 5 selection criteria (domain coverage, difficulty distribution, expected groundedness range, style-agnostic phrasing, no proper-noun trivia) and explicitly approve in chat with `queries approved, proceed to Phase 2` or equivalent. If Ruby requests changes, revise `queries_v2.json`, re-run any helper-test commands, and re-paste the full file before re-requesting approval.
+> **STOP. Do not proceed to Phase 2.** Wait for Ruby to review the query set against the 5 selection criteria (domain coverage, difficulty distribution, expected groundedness range, style-agnostic phrasing, no proper-noun trivia) and explicitly approve in chat with `queries approved, proceed to Phase 2` or equivalent. If Ruby requests changes, revise `queries_v1.json`, re-run any helper-test commands, and re-paste the full file before re-requesting approval.
 
 ---
 
@@ -168,7 +168,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Goal.** Run the 10 queries through two RAG configurations that differ **only** in the embedding model. Same chunking (500/50), same Cohere reranker, same retriever, same evaluator, same scoring weights. Measure groundedness, end-to-end final score, and retrieval latency.
 
-**Inputs.** `data/eval/queries_v2.json`, the existing OpenAI FAISS index, and a freshly built MiniLM index (build it once at the top of the script if not already on disk; cache to `data/rag/faiss_index_minilm/`). The MiniLM index build is not a deliverable on its own — it is a prerequisite for this experiment. Reuse `embed_chunks(provider="minilm")` per the Day 3 implementation note in the learning journal.
+**Inputs.** `data/eval/queries_v1.json`, the existing OpenAI FAISS index, and a freshly built MiniLM index (build it once at the top of the script if not already on disk; cache to `data/rag/faiss_index_minilm/`). The MiniLM index build is not a deliverable on its own — it is a prerequisite for this experiment. Reuse `embed_chunks(provider="minilm")` per the Day 3 implementation note in the learning journal.
 
 **Outputs.**
 - `scripts/experiment_6a_embeddings.py` (deterministic, all knobs in-source).
@@ -196,7 +196,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Chunk-relevance metric.** Define it explicitly in the script's docstring before measuring it. Suggested definition: mean of the top-5 reranker relevance scores per query, averaged across all 10 queries. Whatever the executor chooses, the definition is committed to source so Phase 6 (handover note) can reference it without ambiguity.
 
-**Inputs.** `data/eval/queries_v2.json`, two FAISS indices: the existing baseline (500/50 fixed) and a fresh semantic-split index built via `chunk_semantic()` (Day 3, `src/rag/chunker.py`). Build the semantic index once and cache it to `data/rag/faiss_index_semantic/`.
+**Inputs.** `data/eval/queries_v1.json`, two FAISS indices: the existing baseline (500/50 fixed) and a fresh semantic-split index built via `chunk_semantic()` (Day 3, `src/rag/chunker.py`). Build the semantic index once and cache it to `data/rag/faiss_index_semantic/`.
 
 **Outputs.**
 - `scripts/experiment_6b_chunking.py`.
@@ -386,7 +386,7 @@ The handover note lives **outside the repo** (it is pasted into Notion). The pha
 
 | Path | Action | Phase |
 |------|--------|-------|
-| `data/eval/queries_v2.json` | Create | 1 |
+| `data/eval/queries_v1.json` | Create | 1 |
 | `docs/iteration-log.md` | Create + append entries | 1, 2, 3, 4, 5, 6 |
 | `docs/images/6a-embeddings.png` | Create | 2 |
 | `docs/images/6b-chunking.png` | Create | 3 |
