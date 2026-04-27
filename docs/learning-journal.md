@@ -466,3 +466,18 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - The A2 and A3 diagrams use Mermaid `sequenceDiagram` syntax. Both render cleanly in GitHub's Mermaid renderer and VS Code's Markdown Preview Enhanced. No `mmdc` compile step required.
 
 **Test count after Phase 5:** 433 passing (no new tests — ADR is a documentation artifact)
+
+---
+
+## Day 6 — Experiment Day (2026-04-27)
+
+_H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). Each entry: What I built / What surprised me / What I'd do differently._
+
+### Phase 0 — Branch + scaffolding + draft PR
+
+**What I built.** Cut `feat/day6-experiments` from main, created `docs/images/` and `data/eval/` with `.gitkeep` markers, and opened a draft PR. The Day 6 H2 in this journal was already present from the planning session and carried forward cleanly onto the branch.
+
+**What surprised me.**
+- The `docs/plans/day6-plan.md` file was untracked on main (created during planning but never committed). Phase 0's commit is also where it lands in git history — cleaner than leaving it loose on main before the branch existed.
+
+**What I'd do differently.** Commit the plan file to main at the end of the planning session rather than carrying it as an untracked file across the branch cut.
