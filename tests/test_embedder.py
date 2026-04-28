@@ -45,13 +45,9 @@ def _normalized_vec(dim: int = 1536) -> list[float]:
 
 
 def _make_litellm_response(texts: list[str], dim: int = 1536) -> MagicMock:
-    """Build a mock LiteLLM embedding response."""
+    """Build a mock LiteLLM embedding response matching current dict format."""
     response = MagicMock()
-    response.data = []
-    for _ in texts:
-        item = MagicMock()
-        item.embedding = _normalized_vec(dim)
-        response.data.append(item)
+    response.data = [{"embedding": _normalized_vec(dim)} for _ in texts]
     return response
 
 
@@ -78,27 +74,29 @@ def test_md5_different_inputs_differ():
 
 
 def test_load_cache_missing_file_returns_empty(tmp_path):
-    cache = _load_cache(tmp_path / "nonexistent.json")
+    cache = _load_cache(tmp_path / "nonexistent.npz")
     assert cache == {}
 
 
 def test_save_and_load_cache_roundtrip(tmp_path):
-    path = tmp_path / "cache.json"
+    path = tmp_path / "cache.npz"
     data = {"abc": [1.0, 2.0, 3.0]}
     _save_cache(data, path)
     loaded = _load_cache(path)
-    assert loaded == data
+    assert list(loaded.keys()) == ["abc"]
+    assert len(loaded["abc"]) == 3
+    assert abs(loaded["abc"][0] - 1.0) < 1e-6
 
 
 def test_save_cache_creates_parent_dirs(tmp_path):
-    path = tmp_path / "nested" / "dir" / "cache.json"
+    path = tmp_path / "nested" / "dir" / "cache.npz"
     _save_cache({"k": [1.0]}, path)
     assert path.exists()
 
 
-def test_load_cache_corrupt_json_returns_empty(tmp_path):
-    path = tmp_path / "bad.json"
-    path.write_text("not valid json{{{")
+def test_load_cache_corrupt_file_returns_empty(tmp_path):
+    path = tmp_path / "bad.npz"
+    path.write_bytes(b"not a valid npz file")
     assert _load_cache(path) == {}
 
 
@@ -112,7 +110,7 @@ def test_embed_openai_returns_correct_count(mock_litellm, tmp_path):
     texts = ["text one", "text two", "text three"]
     mock_litellm.embedding.return_value = _make_litellm_response(texts)
 
-    results = embed_openai(texts, cache_path=tmp_path / "cache.json")
+    results = embed_openai(texts, cache_path=tmp_path / "cache.npz")
 
     assert len(results) == 3
 
@@ -122,7 +120,7 @@ def test_embed_openai_returns_numpy_arrays(mock_litellm, tmp_path):
     texts = ["hello"]
     mock_litellm.embedding.return_value = _make_litellm_response(texts)
 
-    results = embed_openai(texts, cache_path=tmp_path / "cache.json")
+    results = embed_openai(texts, cache_path=tmp_path / "cache.npz")
 
     assert isinstance(results[0], np.ndarray)
 
@@ -132,7 +130,7 @@ def test_embed_openai_normalized(mock_litellm, tmp_path):
     texts = ["check normalization"]
     mock_litellm.embedding.return_value = _make_litellm_response(texts)
 
-    results = embed_openai(texts, cache_path=tmp_path / "cache.json")
+    results = embed_openai(texts, cache_path=tmp_path / "cache.npz")
 
     norm = np.linalg.norm(results[0])
     assert abs(norm - 1.0) < 1e-5
@@ -143,7 +141,7 @@ def test_embed_openai_caches_result(mock_litellm, tmp_path):
     texts = ["cached text"]
     mock_litellm.embedding.return_value = _make_litellm_response(texts)
 
-    cache_path = tmp_path / "cache.json"
+    cache_path = tmp_path / "cache.npz"
     embed_openai(texts, cache_path=cache_path)
     embed_openai(texts, cache_path=cache_path)
 
@@ -161,14 +159,14 @@ def test_embed_openai_batch_splitting(mock_litellm, tmp_path):
 
     mock_litellm.embedding.side_effect = side_effect
 
-    embed_openai(texts, cache_path=tmp_path / "cache.json", batch_size=100)
+    embed_openai(texts, cache_path=tmp_path / "cache.npz", batch_size=100)
 
     assert mock_litellm.embedding.call_count == 3
 
 
 @patch("src.rag.embedder.litellm")
 def test_embed_openai_empty_input(mock_litellm, tmp_path):
-    results = embed_openai([], cache_path=tmp_path / "cache.json")
+    results = embed_openai([], cache_path=tmp_path / "cache.npz")
     assert results == []
     mock_litellm.embedding.assert_not_called()
 
@@ -187,7 +185,7 @@ def test_embed_minilm_returns_correct_count(mock_get, tmp_path):
     mock_model.encode.return_value = vecs
     mock_get.return_value = mock_model
 
-    results = embed_minilm(texts, cache_path=tmp_path / "cache.json")
+    results = embed_minilm(texts, cache_path=tmp_path / "cache.npz")
     assert len(results) == 3
 
 
@@ -200,7 +198,7 @@ def test_embed_minilm_caches_result(mock_get, tmp_path):
     mock_model.encode.return_value = vecs
     mock_get.return_value = mock_model
 
-    cache_path = tmp_path / "cache.json"
+    cache_path = tmp_path / "cache.npz"
     embed_minilm(texts, cache_path=cache_path)
     embed_minilm(texts, cache_path=cache_path)
 
@@ -209,7 +207,7 @@ def test_embed_minilm_caches_result(mock_get, tmp_path):
 
 @patch("src.rag.embedder._get_minilm")
 def test_embed_minilm_empty_input(mock_get, tmp_path):
-    results = embed_minilm([], cache_path=tmp_path / "cache.json")
+    results = embed_minilm([], cache_path=tmp_path / "cache.npz")
     assert results == []
     mock_get.assert_not_called()
 
@@ -224,7 +222,7 @@ def test_embed_chunks_sets_embedding(mock_litellm, tmp_path):
     chunk = _make_chunk("some content")
     mock_litellm.embedding.return_value = _make_litellm_response(["some content"])
 
-    result = embed_chunks([chunk], provider="openai", cache_path=tmp_path / "c.json")
+    result = embed_chunks([chunk], provider="openai", cache_path=tmp_path / "c.npz")
 
     assert len(result) == 1
     assert result[0].embedding is not None
@@ -237,7 +235,7 @@ def test_embed_chunks_returns_new_objects(mock_litellm, tmp_path):
     chunk = _make_chunk("content")
     mock_litellm.embedding.return_value = _make_litellm_response(["content"])
 
-    result = embed_chunks([chunk], provider="openai", cache_path=tmp_path / "c.json")
+    result = embed_chunks([chunk], provider="openai", cache_path=tmp_path / "c.npz")
 
     assert chunk.embedding is None  # original unchanged
     assert result[0].embedding is not None
@@ -245,7 +243,7 @@ def test_embed_chunks_returns_new_objects(mock_litellm, tmp_path):
 
 @patch("src.rag.embedder.litellm")
 def test_embed_chunks_empty_input(mock_litellm, tmp_path):
-    result = embed_chunks([], provider="openai", cache_path=tmp_path / "c.json")
+    result = embed_chunks([], provider="openai", cache_path=tmp_path / "c.npz")
     assert result == []
 
 
@@ -258,7 +256,7 @@ def test_embed_chunks_empty_input(mock_litellm, tmp_path):
 def test_embed_query_returns_single_array(mock_litellm, tmp_path):
     mock_litellm.embedding.return_value = _make_litellm_response(["query"])
 
-    result = embed_query("query", provider="openai", cache_path=tmp_path / "q.json")
+    result = embed_query("query", provider="openai", cache_path=tmp_path / "q.npz")
 
     assert isinstance(result, np.ndarray)
     assert result.ndim == 1
@@ -268,6 +266,6 @@ def test_embed_query_returns_single_array(mock_litellm, tmp_path):
 def test_embed_query_normalized(mock_litellm, tmp_path):
     mock_litellm.embedding.return_value = _make_litellm_response(["query"])
 
-    result = embed_query("query", provider="openai", cache_path=tmp_path / "q.json")
+    result = embed_query("query", provider="openai", cache_path=tmp_path / "q.npz")
 
     assert abs(np.linalg.norm(result) - 1.0) < 1e-5
