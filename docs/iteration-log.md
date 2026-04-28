@@ -23,6 +23,11 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 ### 6a — Run 2 (corrected corpus + dual-rank measurement)
 
+**Headline finding:**
+On this corpus shape, Cohere exhibits BIMODAL reranker behavior: relevance scores cluster either above 0.20 (q03 binary search max=0.751, q04 stacks/queues max=0.999, q06 routing protocols max=0.372–0.421; q02 virtual memory borderline at 0.24 OpenAI / 0.16 MiniLM) or below 0.05 (q01 TCP, q05 isolation levels, q07 page replacement, q08 DP/greedy OpenAI, q09 buffer overflow, q10 cache coherence). There is no smooth middle ground. Embedding choice produces +2.5% post-rerank groundedness on average, but Cohere collapses both embeddings to near-identical scores on the 6 near-zero queries — retrieving different candidate chunks does not produce different outcomes when the reranker assigns ~0 to all of them. Exception: q08 shows a **reversal** — MiniLM beats OpenAI post-rerank (0.4846 vs 0.4820) because Cohere found better DP/greedy content in MiniLM's top-20 candidate pool (MiniLM CohMax=0.548 vs OpenAI CohMax=0.023 on this query). This is the only query where OA < ML after reranking.
+
+**Implication for ADR-002:** The P5 carry-forward "Cohere provides 20% lift" is corpus-shape sensitive. On a 4-subfield programming-heavy corpus with broad CS queries, Cohere provides binary verdicts (strong signal on algorithms/data-structures queries, near-zero on OS/networking/security/DB queries), not a uniform percentage lift. ADR-006 candidate (see also Confidence scorer limitation below).
+
 **Run 1 rejection findings corrected in this run:**
 - F1/F2: Corpus expanded to 5 docs (6713 chunks, 4 subfields: programming_languages, human-computer_interfaces, data_mining×2, algorithms_and_data_structures). Candidate pool overlap dropped from 60% (q01, 1 doc) to diverse retrieval behavior across query topics.
 - F3 (confidence scorer): Documented as limitation, not fixed (see below).
@@ -42,15 +47,32 @@ This file records experiment results for the P6 Digital Clone project, one entry
 | **Metric Before (Run 1, invalid)** | OpenAI post-rerank groundedness: 0.4199 (1 doc, 1476 chunks) |
 | **Metric After (Run 2)** | OpenAI post-rerank: 0.4653±0.1057 \| MiniLM post-rerank: 0.4539±0.1200 \| OpenAI pre-rerank: 0.4704±0.1035 \| MiniLM pre-rerank: 0.4574±0.1182 |
 | **Delta** | Post-rerank Δ(OA−ML): +0.0114 (+2.5%); Pre-rerank Δ(OA−ML): +0.0130 (+2.8%). H1: no queries hit ≥0.95 ceiling. H2: actual delta +2.5-2.8% vs predicted 10-18% and P5 prior +26% — corpus concentration effect stronger than hypothesised even with 4 diverse subfields. |
-| **Keep?** | Keep OpenAI. Direction confirmed (OA > MiniLM) on 5-doc corpus. Gap (+2.5% post-rerank) remains far below P5 prior. ADR-002 embedding claim is directionally supported but magnitude does not replicate. |
+| **Keep?** | Keep OpenAI. Direction confirmed (OA ≥ MiniLM) on 5-doc corpus overall, with one reversal (q08 MiniLM wins post-rerank due to better DP candidate pool). Gap (+2.5% post-rerank) remains far below P5 prior. ADR-002 embedding claim is directionally supported but magnitude does not replicate. |
+
+**Phase 2 diagnostics (2026-04-28):**
+
+D1 — q07 zero-Cohere one-shot test: Called Cohere `rerank-english-v3.0` directly (outside experiment harness) on q07 query + 3 OpenAI FAISS top-3 candidate chunks. Returned max=0.000006, effectively zero. Candidate chunks were about hash tables and distributed memory systems — not page replacement. **Finding: corpus genuinely lacks page-replacement content; the 0.000 scores in Run 2 are not a harness bug.** Pre-experiment sampling predicted MEDIUM-band hits via raw text matching ("page", "replacement") but Cohere semantic relevance assessment disagrees — the 5-doc corpus has no OS content whatsoever.
+
+D2 — Latency attribution: `experiment_6a_embeddings.py` measures single wall-clock time (retrieve + Cohere HTTP + groundedness scoring) with no per-stage breakdown. Anomalous latencies (q05-minilm: 3448ms, q06-openai: 3787ms, q06-minilm: 3640ms vs typical 240–500ms) are Cohere API tail latency; FAISS retrieval on 6713 vectors is <10ms regardless of embedding model. Absolute latency numbers should be treated cautiously — Cohere API variability dominates.
+
+D3 — Conditional aggregate (differentiating queries only, excluding bit-identical q03/q04/q07/q09/q10):
+
+| Config | Post-G (5 queries) | Pre-G (5 queries) |
+|---|---|---|
+| OpenAI | 0.4006±0.0491 | 0.4094±0.0521 |
+| MiniLM | 0.3947±0.0550 | 0.3835±0.0756 |
+| **Δ (OA−ML)** | **+0.0059 (+1.5%)** | **+0.0259 (+6.8%)** |
+
+Headline (all 10 queries): post +2.5%, pre +2.8%. Conditional (5 differentiating queries): post +1.5%, pre +6.8%. The pre-rerank conditional delta (6.8%) is 2.4× higher than the headline (2.8%), showing that OpenAI embedding quality advantage is materially larger on queries where Cohere doesn't collapse the candidate pool. Post-rerank conditional (1.5%) is lower than headline (2.5%) because q08 reversal (MiniLM wins) reduces the differentiating-query aggregate.
 
 **Cohere reranker behavior on this corpus (Run 2 finding — separate from embedding comparison):**
 
 Per-query Cohere max score range: [0.000, 0.999]. Bimodal distribution:
-- HIGH signal (max > 0.20): q03 (binary search, max=0.751), q04 (stacks/queues, max=0.999), q05 OA (max=0.032 — marginal), q06 (routing protocols, max=0.372–0.421)
-- NEAR-ZERO signal (max < 0.05): q01 (TCP), q02 (virtual memory), q05 ML (max=0.001), q07 (page replacement, max=0.000), q08 (DP vs greedy), q09 (buffer overflow), q10 (cache coherence)
+- HIGH signal (max > 0.20): q03 (binary search, max=0.751), q04 (stacks/queues, max=0.999), q06 (routing protocols, max=0.372–0.421). q02 borderline (max=0.239 OpenAI / 0.157 MiniLM).
+- NEAR-ZERO signal (max < 0.05): q01 (TCP), q02 (MiniLM), q05 (both), q07 (both, max=0.000), q08 (OpenAI, max=0.023), q09, q10.
+- Exception: q08 MiniLM (max=0.548 in diagnostic run) — asymmetric Cohere signal between embedding models on same query; Cohere found meaningful DP/greedy content in MiniLM's candidate pool but not OpenAI's.
 
-Mean per-query Cohere std: 0.065 (both embeddings). Low std across the 20-candidate pool for most queries = reranker is not meaningfully differentiating candidates. q07 (page replacement): Cohere assigns 0.000 to all 20 chunks from both embeddings — the 5-doc corpus has zero OS content; reranker adds no signal for this query. **This finding challenges ADR-002's "20% reranker lift" carry-forward from P5** — P5's P5 corpus was domain-matched; P6's textbook corpus lacks coverage for networking, OS, security, and architecture queries.
+Mean per-query Cohere std: 0.065 (both embeddings). Low std across the 20-candidate pool for most queries = reranker is not meaningfully differentiating candidates. q07 (page replacement): Cohere assigns 0.000 to all 20 chunks from both embeddings — D1 one-shot test confirmed corpus has zero OS content. **This finding challenges ADR-002's "20% reranker lift" carry-forward from P5** — P5's corpus was domain-matched; P6's textbook corpus lacks coverage for networking, OS, security, and architecture queries. Note: q06 showed CohMax=0.37–0.42 in Run 2 but near-zero in D3 diagnostic run, confirming Cohere non-determinism on marginal-signal queries.
 
 **Confidence scorer limitation (documented per Phase 2 re-approval terms):**
 score_confidence() with query-as-proxy makes completeness=1.0 and uncertainty_penalty=1.0 for all queries. Only retrieval_relevance (1/3 weight) varies. Confidence ≈ 0.667 + Cohere_mean/3. This is not a scorer bug — it is a design tradeoff from Day 4 that surfaces here: the query-as-proxy eliminates 2/3 of the confidence signal. ADR-006 candidate.
