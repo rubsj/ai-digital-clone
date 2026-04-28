@@ -45,13 +45,9 @@ def _normalized_vec(dim: int = 1536) -> list[float]:
 
 
 def _make_litellm_response(texts: list[str], dim: int = 1536) -> MagicMock:
-    """Build a mock LiteLLM embedding response."""
+    """Build a mock LiteLLM embedding response matching current dict format."""
     response = MagicMock()
-    response.data = []
-    for _ in texts:
-        item = MagicMock()
-        item.embedding = _normalized_vec(dim)
-        response.data.append(item)
+    response.data = [{"embedding": _normalized_vec(dim)} for _ in texts]
     return response
 
 

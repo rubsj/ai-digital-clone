@@ -96,7 +96,8 @@ def embed_openai(
                 batch = uncached_texts[batch_start : batch_start + batch_size]
                 response = litellm.embedding(model="text-embedding-3-small", input=batch)
                 for j, item in enumerate(response.data):
-                    vec = np.array(item.embedding, dtype=np.float32)
+                    raw = item["embedding"] if isinstance(item, dict) else item.embedding
+                    vec = np.array(raw, dtype=np.float32)
                     norm = np.linalg.norm(vec)
                     if norm > 0:
                         vec = vec / norm

@@ -5,3 +5,19 @@ This file records experiment results for the P6 Digital Clone project, one entry
 **Query set provenance.** `queries_v1.json` was authored on 2026-04-27 from a 30-item random sample (seed=42, first 1511 CS-filtered items drawn from the `open-phi/textbooks` HuggingFace dataset). The sample is dominated by the "programming" subfield (≈98%), with a long tail of algorithms, systems, and networking textbooks. Core CS concepts — TCP, binary search, stacks/queues — appear in 9–28% of items, confirming HIGH bands; OS and DB synthesis topics (isolation levels, page replacement) appear in 1–2%, confirming MEDIUM bands; cross-cutting topics (cache coherence, buffer overflow) appear in under 1.5%, confirming LOW bands.
 
 ## Day 6 — Experiment Day (2026-04-27)
+
+### 6a — Embedding comparison: OpenAI vs MiniLM
+
+**Pre-run hypotheses (logged before running):**
+- H1: q01 (TCP, 9% corpus coverage) and q03 (binary search, 28%) may top out near 1.0 groundedness for both configs — if both land ≥ 0.95 they are non-differentiating and are reported separately rather than included in the unweighted mean.
+- H2: The 98% programming-subfield corpus concentration likely compresses the OpenAI-vs-MiniLM gap below P5 RAG-eval's 26% Recall@5 delta. Both embeddings can retrieve "some programming book" for almost any CS query. Expected Δmean_groundedness: 10–18%. Direction should hold (OpenAI > MiniLM); magnitude may shrink.
+
+| Field | Value |
+|---|---|
+| **Change** | Swap `text-embedding-3-small` (OpenAI, 1536d) for `all-MiniLM-L6-v2` (384d) as the index and query embedding model. All other pipeline components held constant: chunking 500/50, Cohere rerank-english-v3.0 top-20→top-5, scoring weights 0.4/0.4/0.2. |
+| **Reason** | Verify whether P5 RAG-eval's +26% Recall@5 lift for OpenAI over MiniLM replicates on P6's textbook corpus. Ground ADR-002's embedding-model claim in live P6 data. |
+| **Metric Before** | OpenAI — mean groundedness: 0.4199, mean final: 0.6090, mean retrieval latency: 22539ms |
+| **Metric After** | MiniLM — mean groundedness: 0.4121, mean final: 0.6057, mean retrieval latency: 584ms |
+| **Delta** | Δmean_groundedness: +0.0077 (+1.9%); Δmean_final: +0.0033; Δlatency: −21955ms (MiniLM 38× faster on retrieve+rerank). H1: no queries topped out at ≥0.95 (max groundedness = 0.67 for q04); H2: actual +1.9% gap vs predicted 10–18% — corpus concentration effect is even more severe than hypothesised. Note: OpenAI retrieval latency (avg 22.5s) dominated by cold embed_query API calls per query; MiniLM latency (avg 0.6s) is local inference + Cohere rerank only. Corpus capped at max_docs=1 (~1476 chunks); 20-doc full corpus produced 30K chunks and a 921MB JSON embedding cache that caused a process crash at cleanup. |
+| **Keep?** | Keep OpenAI. Direction holds (OpenAI > MiniLM groundedness), ADR-002's embedding claim confirmed on P6 data. However the gap (+1.9%) is far smaller than P5's +26% Recall@5 — the 98% programming-subfield corpus makes both models roughly equivalent at retrieving "some programming book." MiniLM's 38× latency advantage is compelling for dev loops; OpenAI's marginal groundedness edge justifies keeping it for prod evaluation runs. |
+

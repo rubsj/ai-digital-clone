@@ -500,3 +500,14 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - DB normalization (118 hits) and deadlock prevention (116 hits) were genuinely higher-coverage than the original MEDIUM labels predicted — both are textbook staples. Replacing them with isolation levels (22 hits) and page replacement (29 hits) gives the experiments queries that will actually straddle the threshold for Phase 4's sensitivity test.
 
 **What I'd do differently.** Confirm corpus type by reading `src/rag/corpus_loader.py` before authoring queries, not from any reviewer's framing (including prior-session Claude restating the architecture). The Phase 1 stop-gate should explicitly include "confirmed corpus = `open-phi/textbooks` CS filter, verified in `corpus_loader.py`" as a line in the paste-back.
+
+### Phase 2 — Experiment 6a: Embedding comparison OpenAI vs MiniLM
+
+**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/images/6a-embeddings.png`.
+
+**What surprised me.**
+- The groundedness delta between OpenAI and MiniLM was +1.9% — far below both the P5 prior (+26% Recall@5) and the H2 prediction (10–18%). The 98% programming-subfield corpus is so homogeneous that both models retrieve essentially equivalent chunks. The direction held (OpenAI > MiniLM) but the magnitude essentially vanished.
+- OpenAI retrieval latency averaged 22.5 seconds per query vs MiniLM's 0.6 seconds (38× slower). Most of the OpenAI latency was cold embed_query API calls — each unique query string is a cache miss. On a cached system the gap would be much smaller, but for first-pass dev loops MiniLM's local inference advantage is substantial.
+- The 20-doc corpus (30K chunks) caused a segfault — the JSON embedding cache grew to 921MB and the Rich progress bar + multiprocessing cleanup crashed the process. Capping at max_docs=1 (1476 chunks) fixed it. The "~900-chunk" plan estimate was off by 20×.
+
+**What I'd do differently.** Profile the cache size before running the full corpus; add a `MAX_CHUNKS` guard to the corpus loader or script config. The embedding cache needs a binary format (numpy .npy) rather than JSON for any corpus above ~5K chunks.
