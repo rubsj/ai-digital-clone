@@ -511,3 +511,21 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - The 20-doc corpus (30K chunks) caused a segfault — the JSON embedding cache grew to 921MB and the Rich progress bar + multiprocessing cleanup crashed the process. Capping at max_docs=1 (1476 chunks) fixed it. The "~900-chunk" plan estimate was off by 20×.
 
 **What I'd do differently.** Profile the cache size before running the full corpus; add a `MAX_CHUNKS` guard to the corpus loader or script config. The embedding cache needs a binary format (numpy .npy) rather than JSON for any corpus above ~5K chunks.
+
+### Phase 2 (Run 2) — Experiment 6a corrected
+
+**What I built (Run 2 additions).**
+- Switched `src/rag/embedder.py` cache from JSON to numpy npz. Root bug: `dtype=object` on the keys array requires pickle; loading with `allow_pickle=False` silently returns `{}`, breaking the cache. Fix: `dtype=str` (Unicode fixed-width). 880MB JSON → 29MB npz for 6713 chunks (30× smaller), no crash.
+- Expanded corpus to `max_docs=5` (6713 chunks, 4 subfields: programming_languages, human-computer_interfaces, data_mining×2, algorithms_and_data_structures).
+- Added `pre_rerank_groundedness` (top-5 by raw FAISS score, no Cohere) to isolate embedding quality from reranker behavior.
+- Added Cohere score distribution logging (mean/std/max across all top-20 candidates per query).
+- Added 7s inter-query sleep to respect Cohere trial key rate limit (10 calls/min, 21 calls total).
+- Wrote `scripts/diagnostic_6a_chunk_overlap.py` to root-cause the bit-identical scores from Run 1.
+
+**What Run 2 revealed.**
+- Run 1's bit-identical groundedness (7/10 queries) was caused by 60% candidate-pool overlap from a 1-doc corpus — confirmed by the diagnostic. The collapse site was Cohere rerank: same top-3 chunks from the overlapping pool → same post-rerank groundedness. Run 2 with a diverse 5-doc corpus broke this: most queries now show differentiated candidates.
+- The embedding gap held but stayed small: post-rerank Δ = +2.5%, pre-rerank Δ = +2.8% (OpenAI > MiniLM). Both far below H2's 10-18% prediction and P5's +26% prior. The diversity of the corpus matters less than its coverage — 4 subfields still lack networking, OS, security, and architecture content.
+- Cohere reranker behavior is the unexpected headline finding. Bimodal: queries covered by the algorithms textbook (q03 binary search, q04 stacks/queues) get strong Cohere signal (max 0.75–0.99); all others get near-zero (max < 0.04). q07 (page replacement): Cohere assigns 0.000 to all 20 candidates from both embeddings — zero reranker signal for any OS query. Low per-query Cohere std (mean 0.065) means the reranker is not differentiating within most candidate pools. This challenges ADR-002's "20% reranker lift" claim from P5 — P5's corpus was domain-matched; P6's textbook corpus has no OS, networking, or security books.
+- Confidence 0.667 floor: confirmed as a query-as-proxy design tradeoff, not a Day 4 regression. completeness=1.0 and uncertainty_penalty=1.0 are constants when response=query. The scorer would produce meaningful signal with real LLM responses. ADR-006 candidate.
+
+**What I'd do differently.** The reranker behavior finding should have been measured in P5 RAG-eval under domain-mismatch conditions. "20% reranker lift" from P5 was measured on a domain-matched corpus; it doesn't transfer to a general textbook corpus with sparse coverage. Any future project that carries forward P5 reranker results should validate on the target corpus first.
