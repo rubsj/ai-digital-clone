@@ -6,6 +6,29 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 ## Day 6 — Experiment Day (2026-04-27)
 
+### 6b — Chunking comparison: fixed 500/50 vs semantic markdown
+
+**Pre-run hypotheses (logged before running):**
+- H1: Near-zero Cohere queries (q01, q05, q07, q08, q09, q10) — chunking cannot recover Cohere signal; corpus lacks the content regardless of how it is sliced.
+- H2: High-Cohere queries (q02, q03, q04, q06) — semantic chunking may shift which specific chunks rank highest but Cohere max scores should remain in their current band.
+- H3: `open-phi/textbooks` documents load from a `markdown` column; `chunk_semantic()` may find headers and produce meaningfully different sections. If documents are prose-heavy with few headers, semantic ≈ baseline.
+- H4: Net aggregate groundedness delta will be smaller than the per-query delta on high-Cohere queries.
+
+**Chunk-relevance metric (defined before measuring):** mean of the top-5 Cohere reranker relevance scores per query, averaged across all 10 queries. Higher = reranker finds retrieved chunks more relevant. This isolates chunking quality from embedding/reranker choice.
+
+| Field | Value |
+|---|---|
+| **Change** | Switch chunking from `RecursiveCharacterTextSplitter` 500/50 (baseline) to `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic). Same OpenAI embeddings, same Cohere reranker, same downstream pipeline. |
+| **Reason** | Test whether semantic section boundaries in markdown textbooks produce more coherent, topic-aligned chunks that improve retrieval groundedness. |
+| **Metric Before** | Baseline: post_G=0.4653±0.1057 \| pre_G=0.4704±0.1035 \| chunk_rel=0.1561±0.2735 \| 6713 chunks |
+| **Metric After** | Semantic: post_G=0.4652±0.1055 \| pre_G=0.4698±0.1034 \| chunk_rel=0.1567±0.2737 \| 7044 chunks (+4.9%) |
+| **Delta** | Post-G Δ(baseline−semantic): +0.0002 (+0.0%); Pre-G Δ: +0.0006 (+0.1%); ChunkRel Δ: −0.0006. All deltas are noise-level. High-Cohere subset (q02/q03/q04/q06): baseline chunk_rel=0.3825, semantic=0.3835 — no meaningful shift. Near-zero subset (q01/q05/q07/q08/q09/q10): both configs remain at chunk_rel<0.012 — H1 confirmed. |
+| **Keep?** | Keep baseline. Semantic chunking produces zero measurable retrieval improvement on this corpus. H3 confirmed: markdown headers are sparse in `open-phi/textbooks` (4.9% more chunks, predominantly from whitespace/section boundary artifacts rather than meaningful topic splits); semantic falls back to `RecursiveCharacterTextSplitter` for most documents and produces near-identical chunk boundaries. Semantic index build adds 83.6s and 331 extra chunks with no retrieval benefit. |
+
+**Rate limiting note:** 7s inter-query sleep was insufficient; Cohere 429 fired on q03-semantic (confirmed in script output). Cause: preflight call + 6 query calls within ~25s. For q03-semantic and q04-baseline, reranker fell back to FAISS top-20 order. Since both configurations show near-identical numbers (q03: 0.5952/0.5952 for both; q04: 0.6678/0.6678 for both), fallback did not affect the conclusion. Next experiment (6c): use 10s inter-query sleep and/or add explicit sleep after preflight call.
+
+---
+
 ### 6a — Embedding comparison: OpenAI vs MiniLM
 
 **Pre-run hypotheses (logged before running):**
