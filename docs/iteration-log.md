@@ -6,6 +6,25 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 ## Day 6 — Experiment Day (2026-04-27)
 
+### 6d — Pre/post-2018 Torvalds style evolution
+
+**Significance criterion (stated before measuring):** A per-feature delta is a measurable shift only if `|pre_mean − post_mean| > 2 × std(feature on larger partition)`. Larger partition = post-2018 (6,661 emails). Anything below this threshold is reported as "within noise."
+
+**Tracked features:** sentiment (dict_mean of sentiment_distribution), capitalization (capitalization_ratio), exclamations (punctuation_patterns["exclamation"]), formality (formality_level). Extracted via `extract_features()` unmodified — partition filter applied in script only.
+
+| Field | Value |
+|---|---|
+| **Change** | Partition 11,052 Torvalds emails (2015–2023) at 2018-09-01. Pre: 4,391 emails (2015-01-01–2018-08-30). Post: 6,661 emails (2018-09-01–2023-12-31). Compute per-feature means and std on the larger partition for each. |
+| **Reason** | PRD §8 Day 6 exit criterion requires "style evolution chart shows measurable shift." The 2018-09 boundary marks Torvalds' public apology and temporary leave, expected to produce a detectable tone change in kernel emails. |
+| **Metric Before** | Pre-2018: sentiment=0.0747 \| capitalization=0.0218 \| exclamations=0.0047 \| formality=0.4884 |
+| **Metric After** | Post-2018: sentiment=0.0704 \| capitalization=0.0203 \| exclamations=0.0049 \| formality=0.5052 |
+| **Delta** | sentiment: −0.00437 (2σ=0.197 — within noise) \| capitalization: −0.00150 (2σ=0.034 — within noise) \| exclamations: +0.00019 (2σ=0.050 — within noise) \| formality: +0.01680 (2σ=0.212 — within noise). No feature clears the 2σ threshold. Largest signal: formality +0.017 = 8% of 2σ band. |
+| **Keep?** | n/a — no measurable shift detected at the 2σ threshold. The behavioral change (2018 apology/leave) does not produce a detectable signal in these four features at individual-email resolution. High within-partition variance (std ≈ 0.1–0.2 for sentiment and formality) swamps the small inter-partition deltas. Formality is the closest to a shift (Δ/2σ ≈ 8%) — directionally consistent with a less confrontational tone post-2018 but not significant. |
+
+**PRD §8 note:** The exit criterion ("style evolution chart shows measurable shift") is not met on these four features. The null result is documented honestly per day6-plan.md §Phase 5: "A null result is a valid finding and goes into the handover honestly." The chart at `docs/images/6d-style-evolution.png` shows monthly-bucketed time series with partition means and ±2σ bands.
+
+---
+
 ### 6c — Scoring weight sensitivity (3 configs × 10 queries)
 
 **Pre-run hypotheses (logged before running):**

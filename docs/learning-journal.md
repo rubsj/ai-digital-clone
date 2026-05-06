@@ -553,3 +553,16 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - Ground-heavy achieved the highest single-query score (q04: 0.6731) by pushing more weight onto the highest groundedness query — but the aggregate Δ versus default is −0.0038, not meaningful. The formula is insensitive to these weight perturbations when the corpus produces style ≈ groundedness ≈ 0.5.
 
 **What I'd do differently.** Run Phase 4 with actual generated responses (not query proxies) to test weight sensitivity when style ≥ 0.80 — that's where the style-heavy vs ground-heavy tradeoff would become visible. The current proxy design answers "are the weights insensitive?" (yes, in this region) but doesn't answer "what's the optimal weight for production?" — which requires real style scores to differentiate.
+
+---
+
+### Phase 5 — Experiment 6d: Pre/post-2018 Torvalds style evolution
+
+**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `docs/images/6d-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
+
+**What surprised me.**
+- The null result: none of the four features cleared the 2σ significance threshold. The 2018 behavioral change (public apology, leave) was expected to produce at least a formality or sentiment signal — formality did move in the expected direction (+0.017, post > pre) but at 8% of the 2σ band it's completely buried in noise.
+- Within-partition variance is very high for sentiment (std=0.098) and formality (std=0.106) — individual emails span nearly the full [0,1] range. The significance criterion correctly reflects that per-email style is highly variable; a behavioral shift would need to be enormous to register here.
+- Capitalization and exclamations were nearly zero in both partitions (pre~0.022 and ~0.005), so even small absolute changes look proportionally large but are still within noise. The 2σ criterion handles this correctly by scaling to each feature's own variance.
+
+**What I'd do differently.** The null result is honest given the data, but the monthly bucketing chart (108 months of data) is much noisier than year-level bucketing would be. A year-bucketed version would be easier to read — the 12-month rolling mean in the chart partially compensates but the underlying monthly noise is visible.
