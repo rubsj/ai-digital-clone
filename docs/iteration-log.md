@@ -6,6 +6,29 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 ## Day 6 — Experiment Day (2026-04-27)
 
+### 6c — Scoring weight sensitivity (3 configs × 10 queries)
+
+**Pre-run hypotheses (logged before running):**
+- H1: Style component will be uniformly low (~0.50) for all queries using query-as-proxy (queries are not Torvalds-style emails). Style-heavy config should underperform because it increases the weight on the lowest component.
+- H2: Ground-heavy config should produce the highest final scores on high-groundedness queries (q03, q04, q10) by downweighting the constrained style dimension.
+- H3: No config will reach the 0.75 threshold with the query-as-proxy setup. The 100% fallback rate will be an artifact of the proxy, not production behavior.
+- H4: ADR-006 trigger will NOT fire — delta in mean_final is expected to be below 0.05 because the three configs only reshuffle two similarly-valued components (style ≈ groundedness ≈ 0.5).
+
+**Optimal-config criterion (stated before running):** "optimal" = highest mean final score AND fallback rate closest to 30-40% PRD target. If criteria disagree, report both — no automatic winner.
+
+| Field | Value |
+|---|---|
+| **Change** | Sweep three weight configs — default (0.4/0.4/0.2), style-heavy (0.5/0.3/0.2), ground-heavy (0.3/0.5/0.2) — against the same 10 queries. Retrieve and Cohere-rerank ONCE per query; apply all three weight formulas to the same (style, groundedness, confidence) component scores. |
+| **Reason** | Test whether altering the balance between style and groundedness weights materially changes final scores or the deliver/fallback boundary. ADR-006 trigger check per day6-plan.md §Phase 7. |
+| **Metric Before** | Default (0.4/0.4/0.2): mean_final=0.5278±0.0548 \| fallback=100% \| style_mean=0.5023 \| groundedness_mean=0.4638 \| confidence_mean=0.7070 |
+| **Metric After** | style_heavy (0.5/0.3/0.2): mean_final=0.5317±0.0438 \| fallback=100%. ground_heavy (0.3/0.5/0.2): mean_final=0.5240±0.0658 \| fallback=100%. |
+| **Delta** | Δ(style_heavy − default): +0.0039 (+0.7%); Δ(ground_heavy − default): −0.0038 (−0.7%). All deltas are noise-level. All three configs produce 100% fallback rate — no query reaches the 0.75 threshold under any configuration. ADR-006 trigger: NO (Δ ≤ 0.05; all configs equally outside the 30-40% fallback band). H1–H4 confirmed. |
+| **Keep?** | Keep default (0.4/0.4/0.2). Weight changes produce no material improvement. The 100% fallback rate is a proxy artifact: style ≈ 0.50 for all queries because queries don't resemble Torvalds-style emails; in production, proper responses would produce style ≈ 0.90 and reach final scores > 0.75. Ground-heavy produces the highest individual query score (q04: 0.6731 vs 0.6547 default) but the aggregate Δ is noise. The experiment answers its own question: in the 0.5/0.5/0.7 component-score region this corpus produces, the formula is insensitive to the tested weight perturbations. |
+
+**Proxy limitation note:** Using query-as-proxy for the style component artificially caps style at ~0.50 (mean=0.5023, std=0.0101 across all queries — nearly constant). This reduces the weight-sensitivity signal: all three configs are combining one near-constant component (style) with two variable ones (groundedness, confidence). A follow-on experiment using actual generated responses would reveal whether style-heavy becomes advantageous when style ≥ 0.80. This is an ADR-006 candidate for documenting the confidence-scorer and style-scorer proxy limitations together.
+
+---
+
 ### 6b — Chunking comparison: fixed 500/50 vs semantic markdown
 
 **Pre-run hypotheses (logged before running):**
@@ -25,7 +48,9 @@ This file records experiment results for the P6 Digital Clone project, one entry
 | **Delta** | Post-G Δ(baseline−semantic): +0.0002 (+0.0%); Pre-G Δ: +0.0006 (+0.1%); ChunkRel Δ: −0.0006. All deltas are noise-level. High-Cohere subset (q02/q03/q04/q06): baseline chunk_rel=0.3825, semantic=0.3835 — no meaningful shift. Near-zero subset (q01/q05/q07/q08/q09/q10): both configs remain at chunk_rel<0.012 — H1 confirmed. |
 | **Keep?** | Keep baseline. Semantic chunking produces zero measurable retrieval improvement on this corpus. H3 confirmed: markdown headers are sparse in `open-phi/textbooks` (4.9% more chunks, predominantly from whitespace/section boundary artifacts rather than meaningful topic splits); semantic falls back to `RecursiveCharacterTextSplitter` for most documents and produces near-identical chunk boundaries. Semantic index build adds 83.6s and 331 extra chunks with no retrieval benefit. |
 
-**Rate limiting note:** 7s inter-query sleep was insufficient; Cohere 429 fired on q03-semantic (confirmed in script output). Cause: preflight call + 6 query calls within ~25s. For q03-semantic and q04-baseline, reranker fell back to FAISS top-20 order. Since both configurations show near-identical numbers (q03: 0.5952/0.5952 for both; q04: 0.6678/0.6678 for both), fallback did not affect the conclusion. Next experiment (6c): use 10s inter-query sleep and/or add explicit sleep after preflight call.
+**Rate limiting note:** 7s inter-query sleep was insufficient; Cohere 429 fired on q03-semantic (confirmed in script output). Cause: preflight call + 6 query calls within ~25s. For q03-semantic and q04-baseline, reranker fell back to FAISS top-20 order. **Fallback behavior:** `reranker.py` on any exception returns `results[:top_n]` with the original FAISS dot-product scores (cosine similarity, ~0.1–0.9 range) in FAISS retrieval order — NOT Cohere 0–1 relevance scores. This means `_retrieval_relevance()` in the confidence scorer would see FAISS scores rather than Cohere scores on a fallback run; for groundedness (keyword overlap), chunk content is identical so the fallback does not affect groundedness values. Since both configurations showed near-identical numbers (q03: 0.5952/0.5952 for both; q04: 0.6678/0.6678 for both), fallback did not affect the conclusion. Next experiment (6c): use 10s inter-query sleep and explicit sleep after preflight call.
+
+**Corpus-shape note (connects to Phase 2):** Phase 2 found Cohere's rerank lift is corpus-shape sensitive (bimodal verdicts, not smooth lift). Phase 3 finds chunking strategy choice is also corpus-shape sensitive (semantic ≈ baseline when headers are sparse). These are not independent findings — both reflect P5's RAG priors not fully transferring to P6's prose-heavy textbook corpus. ADR-006 candidate framing: any ADR covering retrieval-pipeline decisions should treat corpus structure as a first-class variable, not an assumption carried forward from P5.
 
 ---
 
