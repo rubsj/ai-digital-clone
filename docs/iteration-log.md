@@ -6,6 +6,32 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 ## Day 6 — Experiment Day (2026-04-27)
 
+### 6e — GPT-4o-mini vs local Ollama (qwen3:8b) for evaluation scoring
+
+**Pearson note (stated before running):** Final scores are computed from the same component scores via the same deterministic formula for both configs, so Pearson(GPT-scores, Ollama-scores) = 1.0 trivially. The meaningful metrics are (a) explanation validity — structured-output success rate and 5-query spot check — and (b) latency per explanation call.
+
+**Decision outcomes (stated before running):**
+1. **Quality parity** — all Ollama explanations valid AND qualitatively equivalent → recommend Ollama for dev, GPT-4o-mini for prod.
+2. **Quality drift** — any structured-output failure OR hallucinated reasoning → recommend GPT-4o-mini for both.
+3. **Latency tradeoff** — parity on quality but latency meaningfully different → state tradeoff; recommend per-environment.
+
+**Headline finding.** Ollama qwen3:8b produces valid structured explanations (100% success) and is 2.1x faster than GPT-4o-mini on this task (mean 739ms vs 1570ms, ratio=0.47x). The latency difference is meaningful (> 1.5x threshold). Outcome: **LATENCY_TRADEOFF** → Ollama for dev (zero API cost, lower and more stable latency), GPT-4o-mini for prod.
+
+Spot-check quality: neither model reliably identifies the true weakest scoring dimension. GPT misattributed the driver on q03 (blamed style=0.496 when groundedness=0.595 was below the 0.60 target). Ollama misattributed on q04 (blamed groundedness when it was above target at 0.668). Both produce plausible-sounding explanations, but the one-sentence prompt does not force arithmetic verification against thresholds. This is a prompt-design gap common to both models — not an Ollama-specific quality drift.
+
+| Field | Value |
+|---|---|
+| **Change** | Replace the explanation-LLM call in the evaluator with Ollama qwen3:8b (via `instructor.from_litellm`, `mode=JSON`) at script level. Retrieve and Cohere-rerank ONCE per query; compute component scores ONCE per query; generate explanation TWICE (GPT-4o-mini + Ollama). |
+| **Reason** | PRD §8: test whether a local model can replace the API call for evaluation scoring. Phase 7 ADR-006 decision point. |
+| **Metric Before** | GPT-4o-mini: mean_latency=1570ms (std=640ms, min=904ms, max=3030ms). Structured-output success: 10/10 (100%). |
+| **Metric After** | Ollama qwen3:8b: mean_latency=739ms (std=59ms, min=686ms, max=893ms). Structured-output success: 10/10 (100%). Latency ratio (Ollama/GPT): 0.47x. Pearson(final scores): 1.000 (trivially — same formula). |
+| **Delta** | Latency: −831ms mean (−53%). Ollama is 2.1x faster and more consistent (std 59ms vs 640ms). Final scores: identical (Δ=0.0000 for all 10 queries — deterministic formula, same inputs). Structured-output reliability: parity (100%/100%). |
+| **Keep?** | LATENCY_TRADEOFF: use Ollama qwen3:8b for dev evaluation (zero API cost, 2.1x faster, stable latency). Use GPT-4o-mini for prod (network-tolerant, proven reliability at scale). Neither model reliably identifies the true weakest scoring dimension from the one-sentence prompt — recommend prompt improvement in ADR-006. ADR-006 is triggered per Phase 7 criterion: "6e produced an actionable decision (parity → dev/prod split)." |
+
+**ADR-006 trigger:** YES — "6e produced an actionable decision" condition met. Phase 7 also has Phase 4 methodology finding. Per plan §Phase 7 "Both 6c and 6e produced findings → STOP" — stop gate posted, awaiting Ruby's framing decision before writing.
+
+---
+
 ### 6d — Pre/post-2018 Torvalds style evolution
 
 **Significance criterion (stated before measuring):** A per-feature delta is a measurable shift only if `|pre_mean − post_mean| > 2 × std(feature on larger partition)`. Larger partition = post-2018 (6,661 emails). Anything below this threshold is reported as "within noise."

@@ -566,3 +566,17 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - Capitalization and exclamations were nearly zero in both partitions (pre~0.022 and ~0.005), so even small absolute changes look proportionally large but are still within noise. The 2σ criterion handles this correctly by scaling to each feature's own variance.
 
 **What I'd do differently.** The null result is honest given the data, but the monthly bucketing chart (108 months of data) is much noisier than year-level bucketing would be. A year-bucketed version would be easier to read — the 12-month rolling mean in the chart partially compensates but the underlying monthly noise is visible.
+
+---
+
+### Phase 6 — Experiment 6e: GPT-4o-mini vs local Ollama qwen3:8b for evaluation scoring
+
+**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/images/6e-local-vs-api.png` (scatter plot + latency bar chart).
+
+**What surprised me.**
+- Ollama qwen3:8b is faster than GPT-4o-mini on this task: mean 739ms vs 1570ms (0.47x the latency, 2.1x faster). On a local M5 Max with the 8b Q4_K_M quant, the explanation call completes in under 1 second consistently (std=59ms vs GPT std=640ms). GPT latency variance was higher than expected (range: 904ms–3030ms), driven by network jitter.
+- Structured output worked out of the box with `instructor.Mode.JSON` for Ollama — 100% success rate on all 10 queries. I expected this to be a potential failure point.
+- The Pearson correlation of 1.0 is honest but slightly unsatisfying as a headline metric — both models are scoring the same numbers through the same formula; the scatter plot is a diagonal line by construction. The real signal is in the latency panel and the spot-check quality comparison.
+- Spot-check divergence: GPT misattributed the weakest dimension on q03 (blamed "low style" when style=0.496 and groundedness=0.595 was below its 0.60 target — a factual error). Ollama correctly identified groundedness on q03 but misattributed on q04 (blamed groundedness when it was above target). Neither model reliably identifies the true weakest dimension — both generate plausible-sounding explanations that may not reflect the actual scoring arithmetic.
+
+**What I'd do differently.** The explanation-quality spot check reveals that neither model reliably reasons about which dimension drove the fallback. A better prompt would explicitly ask the model to compare each score against its target threshold and name the furthest-below-target dimension. This would make the explanation factually grounded rather than stylistically plausible. Worth including in ADR-006 as a recommendation alongside the dev/prod split.
