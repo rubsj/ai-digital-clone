@@ -12,6 +12,14 @@ This file records experiment results for the P6 Digital Clone project, one entry
 
 **Tracked features:** sentiment (dict_mean of sentiment_distribution), capitalization (capitalization_ratio), exclamations (punctuation_patterns["exclamation"]), formality (formality_level). Extracted via `extract_features()` unmodified — partition filter applied in script only.
 
+**Headline finding.** The 2018 behavioral change does not produce a detectable signal at per-email feature resolution. Within-individual-email variance (std=0.10–0.21 for sentiment and formality) is large relative to between-period mean shifts (|Δ|=0.0002–0.017). All four features remain within their 2σ noise bands.
+
+Formality moved +0.017 in the direction consistent with the public narrative (more formal post-2018) but at 8% of the 2σ band. The direction is suggestive; the magnitude is not measurable at this resolution.
+
+This finding has implications: per-email feature-level analysis cannot validate style-detection sensitivity for behavioral changes of this magnitude. Population-level aggregation (monthly rolling mean, in the chart) shows trends visually but the per-email significance test is the appropriate statistical bar. The PRD §8 "measurable shift" exit criterion is not met.
+
+This finding clusters with Phase 2 (Cohere bimodal on this corpus), Phase 4 (proxy regime pins style score) as the third instance of methodology-limit findings on Day 6 — the underlying theme is that measurement-design choices on this corpus and these inputs produce results that look like absence-of-effect but actually reflect the limits of the measurement.
+
 | Field | Value |
 |---|---|
 | **Change** | Partition 11,052 Torvalds emails (2015–2023) at 2018-09-01. Pre: 4,391 emails (2015-01-01–2018-08-30). Post: 6,661 emails (2018-09-01–2023-12-31). Compute per-feature means and std on the larger partition for each. |
@@ -20,6 +28,8 @@ This file records experiment results for the P6 Digital Clone project, one entry
 | **Metric After** | Post-2018: sentiment=0.0704 \| capitalization=0.0203 \| exclamations=0.0049 \| formality=0.5052 |
 | **Delta** | sentiment: −0.00437 (2σ=0.197 — within noise) \| capitalization: −0.00150 (2σ=0.034 — within noise) \| exclamations: +0.00019 (2σ=0.050 — within noise) \| formality: +0.01680 (2σ=0.212 — within noise). No feature clears the 2σ threshold. Largest signal: formality +0.017 = 8% of 2σ band. |
 | **Keep?** | n/a — no measurable shift detected at the 2σ threshold. The behavioral change (2018 apology/leave) does not produce a detectable signal in these four features at individual-email resolution. High within-partition variance (std ≈ 0.1–0.2 for sentiment and formality) swamps the small inter-partition deltas. Formality is the closest to a shift (Δ/2σ ≈ 8%) — directionally consistent with a less confrontational tone post-2018 but not significant. |
+
+**Formality measurement note.** `formality_level` is a weighted mean of five sub-signals (`src/style/feature_extractor.py:_formality_level`): `0.25 × formal_word_rate + 0.20 × (1 − contraction_rate) + 0.20 × avg_sent_len_norm + 0.20 × (1 − profanity_rate) + 0.15 × (1 − first_person_rate)`. It is not a simple formal/informal word count. The +0.017 post-2018 shift is therefore directionally consistent with slightly longer sentences, fewer contractions, or reduced first-person usage — all plausible post-apology behavioral changes — but none of these sub-signals can be isolated without a sub-signal breakdown per partition. The measurement is reasonable but composite; any claim that "Torvalds became more formal post-2018" should cite the composite score and this limitation.
 
 **PRD §8 note:** The exit criterion ("style evolution chart shows measurable shift") is not met on these four features. The null result is documented honestly per day6-plan.md §Phase 5: "A null result is a valid finding and goes into the handover honestly." The chart at `docs/images/6d-style-evolution.png` shows monthly-bucketed time series with partition means and ±2σ bands.
 
