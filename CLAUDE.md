@@ -174,12 +174,12 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 
 > **Update this section at the end of EVERY session.**
 
-### Last Updated: 2026-04-26
+### Last Updated: 2026-04-27
 
-**Current Day:** Day 5 complete
-**Branch:** main (feat/day5-flow-orchestration merged — PR #5)
-**Tests:** 433 passing
-**Coverage:** 90% src/flow.py, 100% src/agents/style_crew.py (target ≥90% met)
+**Current Day:** Day 6 complete
+**Branch:** feat/day6-experiments (PR #6 open — pending review)
+**Tests:** 437 passing (433 → 437, +4 new)
+**Coverage:** ≥90% src/ maintained; no new src/ modules added in Day 6 experiment scripts
 
 ### What's Done
 - [x] Customized requirements page created in Notion
@@ -228,17 +228,45 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] 6 new test files (382 total, 99% coverage on new modules)
 - [x] docs/adr/ADR-004-groundedness-scoring-approach.md
 - [x] docs/learning-journal.md Day 4 entry
+- [x] src/agents/style_crew.py — single-agent CrewAI Crew (ChatStyleAgent), injects concrete StyleProfile numerics into role/goal/backstory
+- [x] src/flow.py — DigitalCloneFlow with 5 steps: retrieve → style_response → evaluate_response (@router) → finalize / handle_fallback
+- [x] src/schemas.py — trigger_reason: str = "" added to CloneState for cross-step error propagation
+- [x] scripts/timing_dual_leader.py — timing harness (mocked RAG 100ms, LLM 50ms, 5-run avg): shared 413.6ms vs independent 460.9ms
+- [x] tests/test_style_crew.py (21 tests), tests/test_flow.py (37 tests)
+- [x] docs/adr/ADR-005-shared-rag-dual-leader-mode.md
+- [x] docs/learning-journal.md Day 5 entries
+- [x] data/eval/queries_v1.json — 10 CS queries (seed=42, open-phi/textbooks), versioned for all Day 6 experiments
+- [x] docs/iteration-log.md — 7 H3 entries (6a, 6a Run 2, 6b, 6c, 6d, 6e Run 1, 6e Run 2) per PRD §7g six-field format
+- [x] scripts/experiment_6a_embeddings.py — OpenAI vs MiniLM embedding comparison (Cohere bimodal finding)
+- [x] scripts/experiment_6b_chunking.py — fixed 500/50 vs semantic markdown chunking (+0 measurable Δ)
+- [x] scripts/experiment_6c_weight_sensitivity.py — 3 weight configs × 10 queries (proxy pins style; weights retained by inertia)
+- [x] scripts/experiment_6d_style_evolution.py — pre/post-2018 Torvalds style evolution (null result at per-email resolution)
+- [x] scripts/experiment_6e_local_vs_api.py — Run 1 explanation-generation latency comparison (degenerate Pearson=1.0; preserved as audit trail)
+- [x] scripts/experiment_6e_run2_groundedness_agreement.py — Run 2 independent groundedness scoring (Pearson(GPT,baseline)=0.82)
+- [x] docs/images/6a-embeddings.png, 6b-chunking.png, 6c-weight-sensitivity.png, 6d-style-evolution.png, 6e-local-vs-api.png, 6e-run2-groundedness-agreement.png
+- [x] src/eval/query_loader.py + tests/test_query_loader.py (loader reused across ≥2 experiment scripts)
+- [x] docs/adr/ADR-006-day6-methodology-and-corpus-shape-limits.md — three methodology-limit findings clustered
+- [x] docs/adr/ADR-007-llm-evaluation-scoring-viability.md — GPT-4o-mini validated at Pearson=0.82; Ollama for explanation only
+- [x] docs/learning-journal.md Day 6 entries (Phases 1–7)
 
 ### What's Next
-- Day 6: Experiment Day
-  - Embedding comparison: OpenAI vs MiniLM on same 10 queries → iteration log entry
-  - Chunking comparison: 500/50 vs semantic markdown split → iteration log entry
-  - Scoring weight sensitivity: 3 configs (0.4/0.4/0.2, 0.5/0.3/0.2, 0.3/0.5/0.2) × 10 queries
-  - Pre/post-2018 style evolution: partition Torvalds emails, compute features, plot time-series
-  - Iteration log: ≥3 entries with before/after metrics
+- Day 7: Streamlit + CLI + Architecture Docs
+  - Streamlit app: query input, leader selector, response display, score breakdown, side-by-side comparison
+  - Click CLI: learn, index, query, compare, evaluate commands
+  - All 7 visualization PNGs in results/charts/
+  - Architecture diagrams A1, A4, A5 as Mermaid markdown
+  - Tests for CLI commands
 
 ### Blockers
 - None
+
+### Key Decisions Made (Day 6)
+- **Cohere bimodal verdict on CS textbook corpus (6a).** ADR-002's ~20% Recall@5 lift claim is corpus-shape sensitive. On open-phi/textbooks, Cohere collapses both embedding models to near-identical scores on 6/10 queries (Cohere max < 0.05). Embedding choice produces +2.5% post-rerank Δ groundedness — far below the P5 prior +26%. ADR-006 documents as a known limit; ADR-002 amendment is flagged as future work.
+- **Production weights 0.4/0.4/0.2 retained by inertia, not evidence (6c).** Query-as-proxy pins style at ≈0.50 (std=0.0101), making weight sensitivity on the style dimension unmeasurable. All three weight configs produce Δ < 0.004. Re-measurement against actual generated responses (style ≥ 0.80) is the proper validation path; out of scope for Day 6.
+- **PRD §8 style evolution exit criterion not met at per-email resolution (6d).** Within-email variance (std ≈ 0.10–0.21) swamps between-period shifts (|Δ| = 0.0002–0.017). Formality moved +0.017 in the expected direction (8% of 2σ band). Null result documented honestly — it reflects measurement resolution, not absence of behavioral change.
+- **Two-ADR split: ADR-006 for methodology-limit cluster, ADR-007 for LLM scoring viability (6e).** Phase 6 Run 2 produced a positive, actionable finding — not a measurement-design limit. Merging it into the methodology cluster would have obscured a calibrated, usable result. Structurally different findings warrant separate ADRs regardless of how they land on a pre-data agreement-band framework.
+- **GPT-4o-mini validated for scoring; Ollama qwen3:8b approved for explanation generation only (6e Run 2).** Pearson(GPT, baseline)=0.82 at latency parity (1504ms vs 1465ms). Pearson(Ollama, baseline)=0.68; the 0.14 gap produces directional disagreements sufficient to flip routing decisions (q03: Ollama=0.9 vs baseline=0.60 → +0.16 final score impact). Do not use Ollama qwen3:8b for evaluation scoring in production.
+- **Run 1 latency advantage (2.1x) was task-specific (6e audit trail).** Run 1 measured explanation-generation latency on a degenerate task (arithmetic over pre-computed scores). Run 2 found parity on the harder scoring task. Both runs preserved in iteration log; any future citation of Run 1 speed must specify the sub-task.
 
 ### Key Decisions Made (Day 4)
 - Batch embedding over per-sentence calls: `embed_openai(sentences)` once for all response sentences, then one more call for any chunks missing `.embedding`. Avoids N API calls for N sentences.
@@ -322,13 +350,13 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
 - [x] **Checkpoint:** Full pipeline works. Dual-leader comparison produces two scored responses.
 
 ### Day 6 — Experiment Day
-- [ ] Embedding comparison: OpenAI vs MiniLM on same 10 queries → iteration log entry
-- [ ] Chunking comparison: 500/50 vs semantic markdown split → iteration log entry
-- [ ] Scoring weight sensitivity: 3 configs (0.4/0.4/0.2, 0.5/0.3/0.2, 0.3/0.5/0.2) × 10 queries
-- [ ] Pre/post-2018 style evolution: partition Torvalds emails, compute features, plot time-series
-- [ ] Iteration log: ≥3 entries with before/after metrics
-- [ ] Optional: local vs API LLM experiment → ADR-006 if interesting
-- [ ] **Checkpoint:** All experiments complete. Iteration log populated. Style evolution chart generated.
+- [x] Embedding comparison: OpenAI vs MiniLM on same 10 queries → iteration log entry
+- [x] Chunking comparison: 500/50 vs semantic markdown split → iteration log entry
+- [x] Scoring weight sensitivity: 3 configs (0.4/0.4/0.2, 0.5/0.3/0.2, 0.3/0.5/0.2) × 10 queries
+- [x] Pre/post-2018 style evolution: partition Torvalds emails, compute features, plot time-series
+- [x] Iteration log: 7 entries (≥3 required; 5 experiments + 2 corrected runs)
+- [x] Local vs API LLM experiment → ADR-006 + ADR-007 (two ADRs, both written)
+- [x] **Checkpoint:** All experiments complete. Iteration log populated. Style evolution chart generated.
 
 ### Day 7 — Streamlit + CLI + Architecture Docs
 - [ ] Streamlit app: query input, leader selector dropdown, response display, score breakdown, confidence explanation, fallback display, side-by-side comparison mode
