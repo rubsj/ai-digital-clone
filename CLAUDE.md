@@ -257,6 +257,11 @@ Claude Code reporting steps as "done" is not sufficient. For each deliverable:
   - Architecture diagrams A1, A4, A5 as Mermaid markdown
   - Tests for CLI commands
 
+### Deferred Items (carried forward from Day 6)
+- **Re-measure weight sensitivity against generated responses** — Day 6's sweep used queries as input proxy, which pinned style at ≈0.50 (production range 0.80–0.95). No valid measurement of weight sensitivity was produced. Re-run 6c against actual StyleCrew-generated responses when available. Source: ADR-006 §Consequences.
+- **Re-measure Torvalds style evolution at population level** — Per-email significance test was the wrong instrument (within-email variance swamps between-period shifts). Re-run 6d with monthly rolling means and a mixed-effects model partitioning within-email vs between-period variance. Source: ADR-006 §Consequences.
+- **ADR-002 amendment: Cohere Recall@5 lift is corpus-shape sensitive** — The ~20% Recall@5 claim came from P5 financial reports; on CS textbooks it was +2.5%. ADR-002 needs an amendment noting the corpus-shape dependency before it is cited for a new corpus. Source: ADR-006 §Consequences.
+
 ### Blockers
 - None
 
