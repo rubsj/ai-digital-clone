@@ -28,7 +28,40 @@ Spot-check quality: neither model reliably identifies the true weakest scoring d
 | **Delta** | Latency: −831ms mean (−53%). Ollama is 2.1x faster and more consistent (std 59ms vs 640ms). Final scores: identical (Δ=0.0000 for all 10 queries — deterministic formula, same inputs). Structured-output reliability: parity (100%/100%). |
 | **Keep?** | LATENCY_TRADEOFF: use Ollama qwen3:8b for dev evaluation (zero API cost, 2.1x faster, stable latency). Use GPT-4o-mini for prod (network-tolerant, proven reliability at scale). Neither model reliably identifies the true weakest scoring dimension from the one-sentence prompt — recommend prompt improvement in ADR-006. ADR-006 is triggered per Phase 7 criterion: "6e produced an actionable decision (parity → dev/prod split)." |
 
-**ADR-006 trigger:** YES — "6e produced an actionable decision" condition met. Phase 7 also has Phase 4 methodology finding. Per plan §Phase 7 "Both 6c and 6e produced findings → STOP" — stop gate posted, awaiting Ruby's framing decision before writing.
+**RUN 1 LIMITATION (documented before Run 2).** Run 1 measured weighted-sum computation latency, not LLM scoring agreement. Both models received pre-computed component scores (style, groundedness, confidence) and applied the same deterministic formula — this is arithmetic, not evaluation. Pearson = 1.0 is a degenerate result: it confirms that 0.4×a + 0.4×b + 0.2×c equals itself regardless of which model computes it. The latency data (GPT mean=1570ms, Ollama mean=739ms) and structured-output success rate (100%/100%) are valid observations on the explanation-generation sub-task but do not address the intended question: do the two models agree when independently scoring groundedness from the same (query, top-5 chunks) context? Run 2 corrects this. See Run 2 entry below.
+
+**ADR-006 trigger:** Deferred — Run 1 result is insufficient to trigger. Run 2 outcome determines framing.
+
+---
+
+### 6e (Run 2) — GPT-4o-mini vs Ollama qwen3:8b: groundedness scoring agreement
+
+**Production scorer note:** `score_groundedness()` is NOT keyword overlap. It computes sentence-level OpenAI embedding cosine similarity (query-as-response proxy). "Baseline" throughout = this embedding-cosine scorer.
+
+**Pre-run hypotheses:**
+- H1: Pearson(GPT, Ollama) ≈ 0.85–0.95 (bimodal Cohere distribution makes relevant/irrelevant split unambiguous)
+- H2: Pearson(GPT, baseline) ≈ 0.70–0.85 (same signal, LLMs add contextual reasoning)
+- H3: Pearson(Ollama, baseline) ≈ similar to H2
+- H4: Ollama structured-output success ≥ 95% on harder task
+
+**Weakest-dimension tie-breaking rule (stated before running):** if top-two shortfalls within 0.05 of each other, naming either counts as correct. Style shortfall ≈ 0.40 for all queries in the proxy regime (style ≈ 0.50, target 0.90) — proxy artifact noted in advance.
+
+**Headline finding.** Both models gravitate to discrete anchor values from the calibration scale: GPT used only {0.0, 0.5}, Ollama used {0.0, 0.5, 0.9}. The calibration anchors (0.0/0.5/1.0) constrained the scoring distribution — models treated the anchor points as discrete buckets rather than endpoints of a continuous scale. Pearson(GPT, Ollama) = 0.7982 (MEDIUM AGREEMENT): rank-order broadly agrees, but absolute scores differ where models chose different buckets (largest divergence: q03, GPT=0.5 vs Ollama=0.9). Latency finding from Run 1 (Ollama 2.1x faster) does NOT hold on the harder scoring task — Run 2 shows parity (0.97x). The latency advantage is task-specific: Ollama is faster on simple text generation but matches GPT on reasoning over chunk texts.
+
+| Field | Value |
+|---|---|
+| **Change** | Both models independently score groundedness in [0,1] from (query, top-5 chunk texts). Style and confidence remain deterministic. Baseline = embedding-cosine scorer (production). Three Pearsons computed. |
+| **Reason** | Corrects Run 1's degenerate result. Tests the intended question: do GPT-4o-mini and qwen3:8b agree when independently evaluating groundedness? |
+| **Metric Before** | Baseline (embedding-cosine, query-as-proxy): mean=0.4638 \| std=0.1072 \| min=0.3560 \| max=0.6678 |
+| **Metric After** | GPT-4o-mini: mean=0.2500 \| std=0.2500 (quantized to {0.0, 0.5}). Ollama qwen3:8b: mean=0.3400 \| std=0.3007 (quantized to {0.0, 0.5, 0.9}). Latency: GPT mean=1504ms \| Ollama mean=1465ms (ratio=0.97x — parity). Structured-output success: 100%/100%. |
+| **Delta** | Pearson(GPT, Ollama)=+0.7982 (p=0.0056) — MEDIUM AGREEMENT. MAE=0.0900±0.1814. Pearson(GPT, baseline)=+0.8172 (p=0.0039). Pearson(Ollama, baseline)=+0.6796 (p=0.0306). H1 PARTIAL (predicted 0.85–0.95, got 0.7982). H2 CONFIRMED. H3 CONFIRMED. H4 CONFIRMED. |
+| **Keep?** | MEDIUM AGREEMENT + latency parity → merge 6e with methodology cluster in ADR. Recommend GPT-4o-mini for prod (calibration consistency, stable absolute scores). Ollama viable for dev with the caveat that absolute scores may drift from prod baseline by up to 0.4 on individual queries. The latency advantage from Run 1 does not hold on the scoring task; run-1 speed (2.1x) was an artifact of the trivial explanation-generation task. |
+
+**Weakest-dimension attribution:** Both models named "groundedness" for all 10 queries — 100% inter-model agreement but 50% (GPT) / 40% (Ollama) accuracy. Cause: both models correctly assess groundedness-as-evaluated, but the actual largest shortfall is style (≈0.40 from 0.90 target) in the proxy regime, which both models ignored. This is the proxy-regime artifact from Phase 4 recurring: the style score (≈0.50) is structurally the weakest component, but models responding to a groundedness prompt don't surface it.
+
+**Calibration anchor artifact:** Providing explicit anchor values (0.0/0.5/1.0) caused score quantization. A continuous prompt without anchor examples would likely produce more varied scores and improve Pearson discriminability. Flagged as prompt-design gap for ADR.
+
+**ADR-006 trigger:** YES — "6e produced an actionable decision." Band = MEDIUM AGREEMENT. Decision deferred to Phase 7 pending Ruby's framing choice (one vs two ADRs).
 
 ---
 

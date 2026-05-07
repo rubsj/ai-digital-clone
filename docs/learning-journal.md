@@ -580,3 +580,17 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - Spot-check divergence: GPT misattributed the weakest dimension on q03 (blamed "low style" when style=0.496 and groundedness=0.595 was below its 0.60 target — a factual error). Ollama correctly identified groundedness on q03 but misattributed on q04 (blamed groundedness when it was above target). Neither model reliably identifies the true weakest dimension — both generate plausible-sounding explanations that may not reflect the actual scoring arithmetic.
 
 **What I'd do differently.** The explanation-quality spot check reveals that neither model reliably reasons about which dimension drove the fallback. A better prompt would explicitly ask the model to compare each score against its target threshold and name the furthest-below-target dimension. This would make the explanation factually grounded rather than stylistically plausible. Worth including in ADR-006 as a recommendation alongside the dev/prod split.
+
+---
+
+### Phase 6 (Run 2) — Experiment 6e corrected: groundedness scoring agreement
+
+**What I built.** `scripts/experiment_6e_run2_groundedness_agreement.py` — both models independently score groundedness in [0,1] from (query, top-5 chunk texts); production embedding-cosine scorer provides the baseline third column. Three Pearsons computed. Chart: 2×2 grid (three scatter plots + latency bar).
+
+**What surprised me.**
+- The calibration anchor artifact. Providing explicit 0.0/0.5/1.0 anchor values in the prompt caused both models to quantize scores to those anchor points. GPT used only {0.0, 0.5}; Ollama used {0.0, 0.5, 0.9}. This collapsed the effective scoring range and limited Pearson discriminability. The anchors were intended to reduce calibration drift between models — they instead caused a different artifact: discrete bucketing rather than continuous scoring. A better design would use anchor examples (query + chunks + score) rather than abstract scale descriptions.
+- Latency parity on the harder task. Run 1's 2.1x Ollama speed advantage disappeared on Run 2's reasoning-over-chunk-texts task (0.97x). Ollama's latency advantage is task-specific: fast on short text generation, slow on reasoning over long context. This reverses the Run 1 dev/prod split recommendation.
+- Both models named "groundedness" as the weakest dimension for all 10 queries (100% agreement). But style shortfall ≈ 0.40 was always larger in the proxy regime. The models were asked to evaluate groundedness, so they focused on groundedness — this isn't miscalibration, it's prompt focus. The proxy-regime style artifact (Phase 4) is still distorting the weakest-dimension metric.
+- q03 (binary search) was the largest GPT vs Ollama divergence: GPT=0.5, Ollama=0.9. Ollama's 0.9 likely reflects model knowledge about binary search rather than a grounded assessment of whether the retrieved chunks answer the query — a form of hallucination via overconfident scoring.
+
+**What I'd do differently.** Use few-shot calibration examples (actual (query, chunks, score) triples with known answers) rather than abstract scale anchors. This would avoid the quantization artifact and give models a concrete reference for what 0.3 vs 0.6 vs 0.9 look like on this specific corpus. Also: run both models on the same query with a "what score would you give if you had no context?" baseline to isolate whether Ollama's higher scores are corpus-driven or prior-driven.
