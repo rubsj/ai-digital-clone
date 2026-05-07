@@ -1,17 +1,17 @@
 """Embed KnowledgeChunk content using OpenAI (via LiteLLM) or MiniLM.
 
 Two embedding providers:
-  - openai: text-embedding-3-small (1536d) via LiteLLM, JSON cache, batch 100
-  - minilm: all-MiniLM-L6-v2 (384d) via SentenceTransformers, JSON cache
+  - openai: text-embedding-3-small (1536d) via LiteLLM, npz cache, batch 100
+  - minilm: all-MiniLM-L6-v2 (384d) via SentenceTransformers, npz cache
 
 All vectors are L2-normalized before caching and returning.
 Cache keys are MD5 hashes of the input text.
+Cache format: numpy .npz (keys array + vectors matrix) — ~13x smaller than JSON.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -48,21 +48,34 @@ def _md5(text: str) -> str:
 
 
 def _load_cache(cache_path: Path) -> dict[str, list[float]]:
-    """Load JSON cache. Returns empty dict if file missing or corrupt."""
+    """Load npz cache. Returns empty dict if file missing or corrupt."""
     if not cache_path.exists():
         return {}
     try:
-        with open(cache_path) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
+        data = np.load(str(cache_path), allow_pickle=False)
+        keys = data["keys"].tolist()
+        vectors = data["vectors"]
+        return {k: vectors[i].tolist() for i, k in enumerate(keys)}
+    except Exception:
         return {}
 
 
 def _save_cache(cache: dict[str, list[float]], cache_path: Path) -> None:
-    """Persist cache to JSON, creating parent dirs as needed."""
+    """Persist cache to numpy npz, creating parent dirs as needed.
+
+    np.savez_compressed appends .npz automatically, so strip it first.
+    """
     cache_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_path, "w") as f:
-        json.dump(cache, f)
+    stem = str(cache_path)
+    if stem.endswith(".npz"):
+        stem = stem[:-4]
+    if not cache:
+        keys_arr: np.ndarray = np.array([], dtype="U1")
+        vectors_arr = np.zeros((0, 0), dtype=np.float32)
+    else:
+        keys_arr = np.array(list(cache.keys()), dtype=str)
+        vectors_arr = np.array(list(cache.values()), dtype=np.float32)
+    np.savez_compressed(stem, keys=keys_arr, vectors=vectors_arr)
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +85,7 @@ def _save_cache(cache: dict[str, list[float]], cache_path: Path) -> None:
 
 def embed_openai(
     texts: list[str],
-    cache_path: Path = Path("data/cache/embeddings_openai.json"),
+    cache_path: Path = Path("data/cache/embeddings_openai.npz"),
     batch_size: int = 100,
 ) -> list[np.ndarray]:
     """Embed texts with text-embedding-3-small via LiteLLM.
@@ -96,7 +109,8 @@ def embed_openai(
                 batch = uncached_texts[batch_start : batch_start + batch_size]
                 response = litellm.embedding(model="text-embedding-3-small", input=batch)
                 for j, item in enumerate(response.data):
-                    vec = np.array(item.embedding, dtype=np.float32)
+                    raw = item["embedding"] if isinstance(item, dict) else item.embedding
+                    vec = np.array(raw, dtype=np.float32)
                     norm = np.linalg.norm(vec)
                     if norm > 0:
                         vec = vec / norm
@@ -116,7 +130,7 @@ def embed_openai(
 
 def embed_minilm(
     texts: list[str],
-    cache_path: Path = Path("data/cache/embeddings_minilm.json"),
+    cache_path: Path = Path("data/cache/embeddings_minilm.npz"),
 ) -> list[np.ndarray]:
     """Embed texts with all-MiniLM-L6-v2.
 
@@ -161,10 +175,10 @@ def embed_chunks(
     texts = [c.content for c in chunks]
 
     if provider == "minilm":
-        path = cache_path or Path("data/cache/embeddings_minilm.json")
+        path = cache_path or Path("data/cache/embeddings_minilm.npz")
         vecs = embed_minilm(texts, cache_path=path)
     else:
-        path = cache_path or Path("data/cache/embeddings_openai.json")
+        path = cache_path or Path("data/cache/embeddings_openai.npz")
         vecs = embed_openai(texts, cache_path=path)
 
     return [c.model_copy(update={"embedding": v}) for c, v in zip(chunks, vecs)]
@@ -177,9 +191,9 @@ def embed_query(
 ) -> np.ndarray:
     """Embed a single query string. Returns a normalized vector."""
     if provider == "minilm":
-        path = cache_path or Path("data/cache/embeddings_minilm.json")
+        path = cache_path or Path("data/cache/embeddings_minilm.npz")
         vecs = embed_minilm([query], cache_path=path)
     else:
-        path = cache_path or Path("data/cache/embeddings_openai.json")
+        path = cache_path or Path("data/cache/embeddings_openai.npz")
         vecs = embed_openai([query], cache_path=path)
     return vecs[0]

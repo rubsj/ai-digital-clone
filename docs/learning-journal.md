@@ -466,3 +466,146 @@ The cross-leader cosine remains high (0.96) because Vocab Richness (~0.71) and F
 - The A2 and A3 diagrams use Mermaid `sequenceDiagram` syntax. Both render cleanly in GitHub's Mermaid renderer and VS Code's Markdown Preview Enhanced. No `mmdc` compile step required.
 
 **Test count after Phase 5:** 433 passing (no new tests — ADR is a documentation artifact)
+
+---
+
+## Day 6 — Experiment Day (2026-04-27)
+
+_H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). Each entry: What I built / What surprised me / What I'd do differently._
+
+### Phase 0 — Branch + scaffolding + draft PR
+
+**What I built.** Cut `feat/day6-experiments` from main, created `docs/images/` and `data/eval/` with `.gitkeep` markers, and opened a draft PR. The Day 6 H2 in this journal was already present from the planning session and carried forward cleanly onto the branch.
+
+**What surprised me.**
+- The `docs/plans/day6-plan.md` file was untracked on main (created during planning but never committed). Phase 0's commit is also where it lands in git history — cleaner than leaving it loose on main before the branch existed.
+
+**What I'd do differently.** Commit the plan file to main at the end of the planning session rather than carrying it as an untracked file across the branch cut.
+
+### Phase 1 — Iteration log scaffold + 10-query set
+
+**What I built.** Created `data/eval/queries_v1.json` (10 CS-textbook-grounded queries spanning 6 topics, 4/4/2 high/medium/low groundedness split calibrated against a 30-item `open-phi/textbooks` sample), `docs/iteration-log.md` with PRD §7g scaffold and corpus-inspection provenance note, and `src/eval/query_loader.py` with `load_queries()` and a 4-test unit suite. Test count moved from 433 → 437; coverage held at 92%.
+
+**What surprised me.**
+- The loader returning `list[dict]` rather than the plan's `list[str]` was the right call: per-query IDs are needed for the x-axis labels in Phase 2's charts.
+
+**What I'd do differently.** Confirm corpus type by reading `corpus_loader.py` before authoring queries, not from a reviewer's restated framing. Phase 1 stop-gate should include "confirmed corpus type from `src/rag/corpus_loader.py`" as a paste-back item.
+
+### Phase 1 — Query revision (v2 → v1 restored): reviewer error correction
+
+**What I built.** Deleted the LKML-grounded query file (wrong domain — the RAG corpus is `open-phi/textbooks`, not LKML emails). Restored `data/eval/queries_v1.json` as the canonical query set. Sampled 1511 CS-filtered items from `open-phi/textbooks` (seed=42) to calibrate groundedness bands. Swapped q05 (DB normalization, 118 corpus hits = true HIGH) for a harder transaction isolation-levels query (22 hits = MEDIUM), and swapped q07 (OS deadlock prevention, 116 hits = true HIGH) for a harder page-replacement tradeoffs query (29 hits = MEDIUM). Updated references in `docs/plans/day6-plan.md`, `docs/iteration-log.md`, and `tests/test_query_loader.py`.
+
+**What surprised me.**
+- The `open-phi/textbooks` CS corpus is 98% "programming" subfield — language tutorials, framework guides, and general programming textbooks, not the OS/networking/DB textbooks the word "CS" implies. Core topics like binary search and TCP appear broadly (28% and 9% of items), but OS and DB synthesis topics appear only in 1–2% of items, and cross-cutting security/architecture topics in under 1.5%.
+- DB normalization (118 hits) and deadlock prevention (116 hits) were genuinely higher-coverage than the original MEDIUM labels predicted — both are textbook staples. Replacing them with isolation levels (22 hits) and page replacement (29 hits) gives the experiments queries that will actually straddle the threshold for Phase 4's sensitivity test.
+
+**What I'd do differently.** Confirm corpus type by reading `src/rag/corpus_loader.py` before authoring queries, not from any reviewer's framing (including prior-session Claude restating the architecture). The Phase 1 stop-gate should explicitly include "confirmed corpus = `open-phi/textbooks` CS filter, verified in `corpus_loader.py`" as a line in the paste-back.
+
+### Phase 2 — Experiment 6a: Embedding comparison OpenAI vs MiniLM
+
+**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/images/6a-embeddings.png`.
+
+**What surprised me.**
+- The groundedness delta between OpenAI and MiniLM was +1.9% — far below both the P5 prior (+26% Recall@5) and the H2 prediction (10–18%). The 98% programming-subfield corpus is so homogeneous that both models retrieve essentially equivalent chunks. The direction held (OpenAI > MiniLM) but the magnitude essentially vanished.
+- OpenAI retrieval latency averaged 22.5 seconds per query vs MiniLM's 0.6 seconds (38× slower). Most of the OpenAI latency was cold embed_query API calls — each unique query string is a cache miss. On a cached system the gap would be much smaller, but for first-pass dev loops MiniLM's local inference advantage is substantial.
+- The 20-doc corpus (30K chunks) caused a segfault — the JSON embedding cache grew to 921MB and the Rich progress bar + multiprocessing cleanup crashed the process. Capping at max_docs=1 (1476 chunks) fixed it. The "~900-chunk" plan estimate was off by 20×.
+
+**What I'd do differently.** Profile the cache size before running the full corpus; add a `MAX_CHUNKS` guard to the corpus loader or script config. The embedding cache needs a binary format (numpy .npy) rather than JSON for any corpus above ~5K chunks.
+
+### Phase 2 (Run 2) — Experiment 6a corrected
+
+**What I built (Run 2 additions).**
+- Switched `src/rag/embedder.py` cache from JSON to numpy npz. Root bug: `dtype=object` on the keys array requires pickle; loading with `allow_pickle=False` silently returns `{}`, breaking the cache. Fix: `dtype=str` (Unicode fixed-width). 880MB JSON → 29MB npz for 6713 chunks (30× smaller), no crash.
+- Expanded corpus to `max_docs=5` (6713 chunks, 4 subfields: programming_languages, human-computer_interfaces, data_mining×2, algorithms_and_data_structures).
+- Added `pre_rerank_groundedness` (top-5 by raw FAISS score, no Cohere) to isolate embedding quality from reranker behavior.
+- Added Cohere score distribution logging (mean/std/max across all top-20 candidates per query).
+- Added 7s inter-query sleep to respect Cohere trial key rate limit (10 calls/min, 21 calls total).
+- Wrote `scripts/diagnostic_6a_chunk_overlap.py` to root-cause the bit-identical scores from Run 1.
+
+**What Run 2 revealed.**
+- Run 1's bit-identical groundedness (7/10 queries) was caused by 60% candidate-pool overlap from a 1-doc corpus — confirmed by the diagnostic. The collapse site was Cohere rerank: same top-3 chunks from the overlapping pool → same post-rerank groundedness. Run 2 with a diverse 5-doc corpus broke this: most queries now show differentiated candidates.
+- The embedding gap held but stayed small: post-rerank Δ = +2.5%, pre-rerank Δ = +2.8% (OpenAI > MiniLM). Both far below H2's 10-18% prediction and P5's +26% prior. The diversity of the corpus matters less than its coverage — 4 subfields still lack networking, OS, security, and architecture content.
+- Cohere reranker behavior is the unexpected headline finding. Bimodal: queries covered by the algorithms textbook (q03 binary search, q04 stacks/queues) get strong Cohere signal (max 0.75–0.99); all others get near-zero (max < 0.04). q07 (page replacement): Cohere assigns 0.000 to all 20 candidates from both embeddings — zero reranker signal for any OS query. Low per-query Cohere std (mean 0.065) means the reranker is not differentiating within most candidate pools. This challenges ADR-002's "20% reranker lift" claim from P5 — P5's corpus was domain-matched; P6's textbook corpus has no OS, networking, or security books.
+- Confidence 0.667 floor: confirmed as a query-as-proxy design tradeoff, not a Day 4 regression. completeness=1.0 and uncertainty_penalty=1.0 are constants when response=query. The scorer would produce meaningful signal with real LLM responses. ADR-006 candidate.
+
+**What I'd do differently.** The reranker behavior finding should have been measured in P5 RAG-eval under domain-mismatch conditions. "20% reranker lift" from P5 was measured on a domain-matched corpus; it doesn't transfer to a general textbook corpus with sparse coverage. Any future project that carries forward P5 reranker results should validate on the target corpus first.
+
+**Process-level note (sampling methodology — Phase 7 ADR-002 carry-forward):** D1's q07 one-shot diagnostic exposed a real methodology gap: text-match counts during corpus sampling overstate what the corpus can actually ground semantically. Phase 1 predicted q07 as MEDIUM (29 raw text hits on "page replacement") but Cohere found zero semantic relevance across all 20 candidates. For future RAG projects, corpus sampling should include semantic-relevance probes (e.g., embed the query, retrieve top-5, inspect manually) alongside keyword match counts. Keyword counts measure whether the words exist; semantic relevance probes measure whether the corpus can answer the question.
+
+### Phase 3 — Experiment 6b: Chunking comparison (fixed vs semantic)
+
+**What I built.** `scripts/experiment_6b_chunking.py` — runs 10 queries through two chunking strategies on the same 5-doc corpus: `RecursiveCharacterTextSplitter` 500/50 (baseline, cached index) vs `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic, new index at `data/rag/faiss_index_semantic/`). Measures post-rerank groundedness, pre-rerank groundedness, and chunk-relevance (mean top-5 Cohere score per query). Generated `docs/images/6b-chunking.png`.
+
+**What surprised me.**
+- The aggregate delta was essentially zero: post_G Δ = +0.0002 (0.0%), chunk_rel Δ = −0.0006. Both strategies perform identically on this corpus.
+- Cohere 429 fired again on q03-semantic despite 7s inter-query sleep. The preflight call + first 6 query Cohere calls happen within ~25 seconds, staying under 10/min in theory but apparently hitting Cohere's rate-limit window differently than expected. The 7s sleep between query pairs is not sufficient when preflight is included; fallback to FAISS order fired for q03-semantic. Since both configs showed identical numbers for q03 and q04, the contamination did not change the conclusion.
+- H3 confirmed but narrowly: semantic produces 4.9% more chunks (7044 vs 6713). The `open-phi/textbooks` markdown column does contain headers but they are sparse — most document text is prose that the `MarkdownHeaderTextSplitter` falls back on rather than splits cleanly. The extra 331 chunks come from header-boundary artifacts, not meaningful topic splits.
+
+**What I'd do differently.** Add an explicit 10s sleep after the Cohere preflight call (before the query loop) and increase inter-query sleep to 10s. The current 7s sleep was calibrated for query pairs only; adding the preflight into the window budget requires a longer initial pause. Also: profiling chunk-topic diversity (e.g., how many distinct `source_topic` values in top-20) before running would have predicted the near-zero delta — if both strategies retrieve chunks from the same small topic set, reranker and groundedness scores will be indistinguishable.
+
+### Phase 4 — Experiment 6c: Scoring weight sensitivity
+
+**What I built.** `scripts/experiment_6c_weight_sensitivity.py` — retrieves and Cohere-reranks once per query (10 calls), computes (style, groundedness, confidence) component scores from the same top-5 chunks, then applies three weight configs (default 0.4/0.4/0.2, style-heavy 0.5/0.3/0.2, ground-heavy 0.3/0.5/0.2) to the same numbers without additional API calls. Generated `docs/images/6c-weight-sensitivity.png`.
+
+**What surprised me.**
+- All three configs produce 100% fallback rate — every query falls below the 0.75 threshold. This is a proxy artifact: using query text as a style-response proxy gives style ≈ 0.50 for all queries (std=0.0101, nearly constant) because short CS queries bear no resemblance to Torvalds' verbose kernel emails. The style dimension was expected to be low, but I didn't anticipate it being this uniform — style ends up contributing a near-constant offset to all three configs, which makes the weight perturbations nearly invisible (Δ ≤ ±0.004).
+- The "retrieve once, rescore three times" design worked exactly as designed: 11 Cohere calls total (preflight + 10 queries), zero additional API calls for the weight sweep. The 10s post-preflight sleep + 10s inter-query sleep kept the rate-limit well under control (no 429s).
+- Ground-heavy achieved the highest single-query score (q04: 0.6731) by pushing more weight onto the highest groundedness query — but the aggregate Δ versus default is −0.0038, not meaningful. The formula is insensitive to these weight perturbations when the corpus produces style ≈ groundedness ≈ 0.5.
+
+**What I'd do differently.** Run Phase 4 with actual generated responses (not query proxies) to test weight sensitivity when style ≥ 0.80 — that's where the style-heavy vs ground-heavy tradeoff would become visible. The current proxy design answers "are the weights insensitive?" (yes, in this region) but doesn't answer "what's the optimal weight for production?" — which requires real style scores to differentiate.
+
+---
+
+### Phase 5 — Experiment 6d: Pre/post-2018 Torvalds style evolution
+
+**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `docs/images/6d-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
+
+**What surprised me.**
+- The null result: none of the four features cleared the 2σ significance threshold. The 2018 behavioral change (public apology, leave) was expected to produce at least a formality or sentiment signal — formality did move in the expected direction (+0.017, post > pre) but at 8% of the 2σ band it's completely buried in noise.
+- Within-partition variance is very high for sentiment (std=0.098) and formality (std=0.106) — individual emails span nearly the full [0,1] range. The significance criterion correctly reflects that per-email style is highly variable; a behavioral shift would need to be enormous to register here.
+- Capitalization and exclamations were nearly zero in both partitions (pre~0.022 and ~0.005), so even small absolute changes look proportionally large but are still within noise. The 2σ criterion handles this correctly by scaling to each feature's own variance.
+
+**What I'd do differently.** The null result is honest given the data, but the monthly bucketing chart (108 months of data) is much noisier than year-level bucketing would be. A year-bucketed version would be easier to read — the 12-month rolling mean in the chart partially compensates but the underlying monthly noise is visible.
+
+---
+
+### Phase 6 — Experiment 6e: GPT-4o-mini vs local Ollama qwen3:8b for evaluation scoring
+
+**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/images/6e-local-vs-api.png` (scatter plot + latency bar chart).
+
+**What surprised me.**
+- Ollama qwen3:8b is faster than GPT-4o-mini on this task: mean 739ms vs 1570ms (0.47x the latency, 2.1x faster). On a local M5 Max with the 8b Q4_K_M quant, the explanation call completes in under 1 second consistently (std=59ms vs GPT std=640ms). GPT latency variance was higher than expected (range: 904ms–3030ms), driven by network jitter.
+- Structured output worked out of the box with `instructor.Mode.JSON` for Ollama — 100% success rate on all 10 queries. I expected this to be a potential failure point.
+- The Pearson correlation of 1.0 is honest but slightly unsatisfying as a headline metric — both models are scoring the same numbers through the same formula; the scatter plot is a diagonal line by construction. The real signal is in the latency panel and the spot-check quality comparison.
+- Spot-check divergence: GPT misattributed the weakest dimension on q03 (blamed "low style" when style=0.496 and groundedness=0.595 was below its 0.60 target — a factual error). Ollama correctly identified groundedness on q03 but misattributed on q04 (blamed groundedness when it was above target). Neither model reliably identifies the true weakest dimension — both generate plausible-sounding explanations that may not reflect the actual scoring arithmetic.
+
+**What I'd do differently.** The explanation-quality spot check reveals that neither model reliably reasons about which dimension drove the fallback. A better prompt would explicitly ask the model to compare each score against its target threshold and name the furthest-below-target dimension. This would make the explanation factually grounded rather than stylistically plausible. Worth including in ADR-006 as a recommendation alongside the dev/prod split.
+
+---
+
+### Phase 6 (Run 2) — Experiment 6e corrected: groundedness scoring agreement
+
+**What I built.** `scripts/experiment_6e_run2_groundedness_agreement.py` — both models independently score groundedness in [0,1] from (query, top-5 chunk texts); production embedding-cosine scorer provides the baseline third column. Three Pearsons computed. Chart: 2×2 grid (three scatter plots + latency bar).
+
+**What surprised me.**
+- The calibration anchor artifact. Providing explicit 0.0/0.5/1.0 anchor values in the prompt caused both models to quantize scores to those anchor points. GPT used only {0.0, 0.5}; Ollama used {0.0, 0.5, 0.9}. This collapsed the effective scoring range and limited Pearson discriminability. The anchors were intended to reduce calibration drift between models — they instead caused a different artifact: discrete bucketing rather than continuous scoring. A better design would use anchor examples (query + chunks + score) rather than abstract scale descriptions.
+- Latency parity on the harder task. Run 1's 2.1x Ollama speed advantage disappeared on Run 2's reasoning-over-chunk-texts task (0.97x). Ollama's latency advantage is task-specific: fast on short text generation, slow on reasoning over long context. This reverses the Run 1 dev/prod split recommendation.
+- Both models named "groundedness" as the weakest dimension for all 10 queries (100% agreement). But style shortfall ≈ 0.40 was always larger in the proxy regime. The models were asked to evaluate groundedness, so they focused on groundedness — this isn't miscalibration, it's prompt focus. The proxy-regime style artifact (Phase 4) is still distorting the weakest-dimension metric.
+- q03 (binary search) was the largest GPT vs Ollama divergence: GPT=0.5, Ollama=0.9. Ollama's 0.9 likely reflects model knowledge about binary search rather than a grounded assessment of whether the retrieved chunks answer the query — a form of hallucination via overconfident scoring.
+
+**What I'd do differently.** Use few-shot calibration examples (actual (query, chunks, score) triples with known answers) rather than abstract scale anchors. This would avoid the quantization artifact and give models a concrete reference for what 0.3 vs 0.6 vs 0.9 look like on this specific corpus. Also: run both models on the same query with a "what score would you give if you had no context?" baseline to isolate whether Ollama's higher scores are corpus-driven or prior-driven.
+
+**Process note — on framework application.** Before Run 2, I sketched a four-way decision framework with a branch: "MEDIUM AGREEMENT + 2x faster local → merge into methodology cluster." Run 2 erased the latency precondition (0.97x parity). Instead of reasoning from the data fresh, I applied the closest branch anyway — "merge into cluster" — because the Pearson landed in the MEDIUM band and the framework said MEDIUM → merge. Ruby caught this: the merge recommendation was data-fitting, not data reasoning. The right response when Run 2 erased a framework precondition was to ask whether the framework still applied, not to find the nearest branch. Future rule: frameworks I receive are pre-data sketches. When the data shifts a precondition of the framework, reason fresh from the data rather than fit the closest branch. Framework recommendations from reviewers should be treated as guidelines, not decision trees.
+
+---
+
+### Phase 7 — ADR-006 + ADR-007: methodology limits and LLM scoring viability
+
+**What I built.** Two ADRs: ADR-006 documenting the three Day 6 measurement-design limit findings as a cluster (Phases 2, 4, 5 — Cohere bimodal behavior, proxy regime, per-email resolution), and ADR-007 recording the actionable LLM scoring viability decision from Phase 6 Run 2 (GPT-4o-mini validated at Pearson=0.82 vs production scorer; Ollama approved for explanation generation only, not scoring).
+
+**What surprised me.**
+- Writing ADR-006 forced explicit articulation of the common cause across three independently-conducted experiments. All three trace to measurement-design choices (proxy regime, per-email resolution, corpus shape) suppressing the signal the experiment was designed to detect. The cluster framing — which Ruby insisted on from the start — is far more useful than three separate null-result entries, because it names the underlying pattern and points directly at the re-measurement paths.
+- Phase 6 Run 2 being structurally distinct from the cluster was not obvious until Ruby articulated the distinction: Phases 2/4/5 produced null results that reflect measurement limits, while Phase 6 Run 2 produced a positive, actionable finding. Once that framing landed, the two-ADR split was the only sensible structure. My initial "merge into cluster" recommendation missed this by focusing on Pearson band rather than finding type.
+- The quantization caveat (±0.05 noise from the calibration anchor artifact) needed to be in ADR-007's Quantified Validation. Without it, the 0.82 / 0.68 / 0.80 correlations could be read as more precise than they are. Ruby flagged this before ADR writing began — the right habit is to document known measurement artifacts in the same section as the numbers they affect.
+
+**What I'd do differently.** When a reviewer rejects a framing recommendation before ADR writing begins, treat the rejection as the primary input for the ADR structure — not as a correction to a draft. Here, the two-ADR split was settled in review; writing the ADRs afterward was clean. In a case where I draft first and receive corrections after, I risk anchoring the structure on the wrong framing and patching it, rather than rebuilding it cleanly.
