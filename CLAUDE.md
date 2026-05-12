@@ -11,38 +11,79 @@
 - **Location:** `rubsj/06-torvalds-digital-clone` (standalone repo)
 - **Timeline:** 8 sessions (~32h total), with learn day + experiment day prioritizing depth
 - **PRD:** `docs/PRD.md` — the product requirements contract (v1)
+- **Engineering Protocols (canonical standard):** [Notion → Engineering Protocols](https://www.notion.so/35ddb630640a818aa961d003d43c0200). This CLAUDE.md copies the protocol invariants verbatim into the Prompt Discipline, Verification, and Teach-Back sections below, then adds P6-specific specializations. The Notion page is the canonical source; this file is the project-frozen snapshot.
 - **Requirements:** [Notion Customized Requirements](https://www.notion.so/336db630640a81f2882bcbdf53723796)
 - **Original Bootcamp Spec:** [Notion Original Requirements](https://www.notion.so/335db630640a816680d4f12d00e14afd)
 
 ---
 
-## Model Routing Protocol (CRITICAL)
+## Prompt Discipline Protocol
 
-**Opus plans. Sonnet executes.**
+> Canonical standard: [Engineering Protocols → Prompt Discipline Protocol](https://www.notion.so/35ddb630640a81458abcf79d51973120). The invariants below are copied verbatim from that page. P6 specializations are noted under each component.
 
-### Opus (Planning & Architecture)
-- Start of each day: read PRD tasks, create detailed implementation plan with file-by-file approach
+### Component 1: Model Routing (invariant)
+
+**Opus plans. Sonnet executes.** Non-negotiable.
+
+The invariant: Opus handles design, debugging, and analysis. Sonnet handles implementation. If I find myself opening Sonnet for planning or Opus for routine implementation, I have crossed a wire.
+
+**P6 specialization — detailed responsibility split:**
+
+*Opus (Planning & Architecture):*
+- Start of each day: read PRD/CLAUDE.md, produce file-by-file implementation plan
 - Design Pydantic schemas, CrewAI Flow structure, function signatures
+- ChatStyleAgent role/goal/backstory generation — the LLM-agency framing affects every downstream feature injection, so this goes to Opus even when it looks mechanical
+- Style profile + Flow architecture decisions regardless of how mechanical they feel
 - Debug non-trivial issues (conceptual, not typos)
 - Analyze experiment results and decide what findings matter
 - Any ambiguity in the PRD
 
-### Sonnet (Implementation)
+*Sonnet (Implementation):*
 - All code writing — implement what Opus planned
 - File creation, dependency setup, test writing
 - Running commands (uv sync, pytest, experiment runs)
 - Routine fixes (imports, parameters, formatting)
 - Chart generation, documentation
+- Session notes (`docs/session-notes/dayN.md`) — raw phase notes per Verification Component 6
+- Git commits, CLAUDE.md state updates
+
+Note: Sonnet no longer writes journal entries or handover notes. Those moved to me under Teach-Back Author Pass (Day 7+).
+
+### Component 2: Planning Prompts (invariant)
+
+Constraint-heavy. Contain: orientation, source-of-truth references, deliverables, guardrails. Do NOT contain function signatures, pseudocode, pre-solved tradeoffs, or "the code should..." instructions. Cap ~30 lines.
+
+**P6 specialization:** Planning prompts must reference Architecture Rules section in this file as the locked-decision boundary. Opus is not allowed to re-debate any of the 15 Architecture Rules; if a plan touches one, Opus must flag it back to me rather than work around it.
+
+### Component 3: Execution Prompts (invariant)
+
+Lean. Contain: session context, plan-file authority instruction, Verification Protocol reference, phased stop gates. Do NOT re-type the plan, duplicate implementation guidance, or introduce new design decisions. Typical length 40-60 lines.
+
+**P6 specialization:** Execution prompts must include the trigger_reason: str = "" propagation convention on CloneState. Cross-step error context is project-specific and Sonnet has dropped it twice without the explicit reminder.
+
+### Component 4: Plan-File Authority Rule (invariant)
+
+Every execution prompt opens with: *"Re-read docs/plans/dayN-plan.md from disk before proceeding. The file on disk is authoritative over any version in your context."*
+
+**P6 specialization:** Plan files for P6 live at `docs/plans/dayN-plan.md`. Day 4 onward use the `dayN-plan.md` naming convention strictly — earlier days had inconsistent names that broke this rule once.
 
 ### Session Workflow
+
 ```
-1. Opus: "Read CLAUDE.md and docs/PRD.md. Today is Day [N]. Plan implementation."
-2. Opus produces: file-by-file plan, function signatures, key logic, validation criteria
-3. Ruby reviews plan for gaps against PRD
-4. Sonnet: "Execute the plan. Start with [first file]."
-5. Sonnet implements, tests, commits
-6. If blocked → Opus for debugging
-7. Session end → Sonnet for git commit, journal entry, CLAUDE.md update
+1. Claude.ai (Opus): Socratic Gate — answer 3-5 questions on day's concepts before any plan
+2. Claude.ai (Opus): "Read CLAUDE.md and docs/PRD.md. Today is Day [N]. Plan implementation."
+3. Opus produces: file-by-file plan, function signatures, key logic, validation criteria
+4. Ruby reviews plan for gaps against PRD
+5. Claude.ai: Ruby drafts execution prompt for Sonnet (Prompt Discipline)
+6. Claude Code (Sonnet): "Re-read docs/plans/dayN-plan.md from disk. Execute. Start with [first file]."
+7. Sonnet implements Phase 1, runs tests, appends Phase 1 block to docs/session-notes/dayN.md, stops at gate
+8. Claude.ai: Ruby pastes Phase 1 terminal output; Claude reviews against Verification Components 3 and 4
+9. If verification passes, Ruby writes Phase Defense (2-3 prompts from menu, at least one Category A + at least one B/C/D)
+10. Claude grades defense; on clear, Ruby reads Phase Notes block, drafts journal entry (100-200 words), Claude redlines, push to Notion
+11. Claude Code: Sonnet continues to Phase 2 (repeat steps 7-10 for each phase)
+12. If blocked → Opus for debugging
+13. Session end in Claude Code: Sonnet runs Plan-Diff, commits
+14. Session end in Claude.ai: Ruby reads full session notes + Plan-Diff, drafts handover (10 min max), Claude redlines, push to Notion
 ```
 
 ---
@@ -146,27 +187,202 @@ These come from PRD Sections 3, 4, and 5. All design decisions are finalized.
 
 ---
 
-## Stop Gates (CRITICAL)
+## Verification Protocol
 
-Claude Code MUST stop and get Ruby's approval before:
+> Canonical standard: [Engineering Protocols → Verification Protocol](https://www.notion.so/35ddb630640a81929b92e02c79c9b9c3). The 6 components below are copied verbatim. P6 specializations follow each component.
 
-1. **Any destructive operation** — deleting files, overwriting existing data, dropping indices
-2. **Changing architecture decisions** — anything in the "Architecture Rules" section above
-3. **Adding new dependencies** beyond what's in pyproject.toml
-4. **Modifying the scoring formula** (0.4/0.4/0.2 weights) outside of Day 6 experiments
-5. **Any operation that calls OpenAI API more than 100 times** in a single run (cost guard)
-6. **Committing directly to main** — always work on feature branches
+### Component 1: Echo-Back (invariant — first step, before any code)
+
+Before writing any code, Claude Code echoes every deliverable as a numbered implementation plan. For EACH item: (1) file(s), (2) function/class, (3) verification command or test. If anything is unclear or conflicts with existing code, ASK before proceeding. Wait for explicit "approved, proceed" before implementation begins.
+
+**P6 specialization:** Echo must explicitly name which agent (RAGAgent, EvaluatorAgent, FallbackAgent, ChatStyleAgent) the phase modifies and which Pydantic schemas in `src/schemas.py` are touched. Schema changes that affect CloneState require special attention since they propagate across every Flow step.
+
+### Component 2: Phased Execution with Stop Gates (invariant)
+
+Split plan into 2-4 phases. Max 5-6 items per phase. After each phase, report with `file:line` references and STOP. Do not proceed until "continue" is approved.
+
+**Approval stop gates (always require explicit OK, invariant):**
+1. Any destructive operation — deleting files, overwriting data, dropping indices
+2. Changing architecture decisions — anything in the "Architecture Rules" section above
+3. Adding new dependencies beyond what's in pyproject.toml
+4. Any operation that calls OpenAI API more than 100 times in a single run (cost guard)
+5. Committing directly to main — always work on feature branches
+
+**P6 specializations (additional project-specific stop gates):**
+- Modifying the scoring formula (0.4 style + 0.4 groundedness + 0.2 confidence) outside of Day 6 experiments
+- Bypassing the 0.75 delivery threshold in the @router branching logic
+- Importing from FallbackAgent inside EvaluatorAgent (circular dependency risk; build_fallback_response composes fallbacks at the agent facade layer only)
+- Calling LiteLLM directly from agent code — always go through the wrapper
+
+### Component 3: Verification Contract (invariant — raw terminal output, never descriptions)
+
+Before reporting any session complete, Claude Code MUST run and paste ACTUAL terminal output:
+
+- **Smoke tests**: specific commands proving each deliverable works
+- **Grep verification**: `grep -n "function_name" src/file.py | head -5` proving code exists
+- **Test suite**: `python -m pytest tests/ -x --tb=short 2>&1 | tail -10` (all pass, 0 failures)
+- **Coverage**: `python -m pytest --cov=src --cov-report=term-missing 2>&1 | tail -20` (≥90%)
+
+**P6 specialization:** Coverage threshold is ≥90% on any file under `src/`. The threshold is a hard gate. Day 4 set the precedent at 99% on new modules; Day 6 maintained ≥90% across src/ overall while experiment scripts (in `scripts/`) are exempt.
+
+### Component 4: Plan-Diff at Session End (invariant)
+
+For EVERY numbered plan item, report one of:
+- **DONE**: `file:line` + 1-sentence description
+- **SKIPPED**: reason + whether acceptable
+- **PARTIAL**: what's missing + impact
+
+No DONE without specific file:line citation. "Implemented as planned" or "completed successfully" without proof is insufficient.
+
+**P6 specialization (no addition).** Component 4 is fully invariant for P6.
+
+### Component 5: Anti-Patterns Checklist (invariant)
+
+| Anti-Pattern | Prevention |
+|---|---|
+| Report "done" without running code | Verification Contract (component 3) |
+| Skip plan items silently | Plan-Diff (component 4) forces accounting |
+| Happy-path-only tests | Plan must specify edge cases; Plan-Diff catches |
+| Guess environment variables | `echo $VAR \| head -c4` to verify before using |
+| Proceed past STOP gate | Explicit gate in prompt, wait for "continue" |
+| Duplicate PRD instead of reading it | "Read PRD directly, don't re-derive" |
+
+**P6 specializations (additional project-specific anti-patterns):**
+
+| Anti-Pattern | Prevention |
+|---|---|
+| Style score collapses to ~0.50 across all queries | Verify generated responses (not queries) are passed to scorer; Day 6 6c surfaced this |
+| FAISS returns -1 padding for k > ntotal | Filter -1 in retriever before metadata lookup |
+| `faiss.normalize_L2()` skipped before search() | Must call before BOTH `add()` and `search()` — mutates in-place |
+| Cohere reranking treated as universally +20% Recall | Corpus-shape sensitive; verify per project (P5: +20%, P6 CS textbooks: +2.5%) |
+| `@router()` returning True/False instead of string | Must return string matching `@listen("string_value")` |
+| Calendar mock uses `random.seed()` globally | Use isolated `random.Random(seed)` instance for test isolation |
+
+### Component 6: Session Notes (invariant — raw material for Author Pass)
+
+After each phase clears the stop gate, Claude Code appends 3-5 bullets to `docs/session-notes/dayN.md`. One block per phase. Each block covers five fields:
+
+- **Built.** What got built. `file:line`.
+- **Why.** Why this approach over the alternative we discussed in planning.
+- **Surprising.** Anything unexpected during implementation. Edge case, library quirk, dead end.
+- **Deferred.** Anything that came up as future work, not done today.
+- **ADR candidate.** Any decision worth a separate ADR if not already one.
+
+These notes are raw material I read at session close before drafting the journal entry. They are NOT the final journal entry. They are NOT a handover note. They are NOT a place for synthesis or cross-phase patterns.
+
+The file is committed to the repo at `docs/session-notes/dayN.md`. Same path across all projects.
+
+**Format example:**
+
+```
+## Phase 2: EvaluatorAgent groundedness scorer
+
+- Built: src/evaluation/groundedness_scorer.py:1-87, sentence-level max cosine similarity
+- Why: chose semantic similarity over LLM judge to keep latency under 100ms; LLM judge stays as 5-sample calibration only
+- Surprising: chunk.embedding was None on cache miss; had to add lazy embed fallback inside the scorer
+- Deferred: per-domain calibration threshold; today's threshold is global
+- ADR candidate: yes, ADR-004 covers this. Done.
+```
+
+**P6 specializations:**
+- Component 6 is new as of Day 7. Days 1-6 have no session notes file — that history lives in the existing learning-journal.md and ADRs. Do not retroactively create session notes for Days 1-6.
+- The `docs/session-notes/` directory must be created on Day 7 alongside the first phase block.
+- For P6 specifically, the "Why" field should reference Architecture Rule numbers when the decision touches one (e.g., "Why: per Architecture Rule 9, feature vectors over LLM embeddings").
 
 ---
 
-## Verification Protocol
+## Teach-Back Protocol
 
-Claude Code reporting steps as "done" is not sufficient. For each deliverable:
+> Canonical standard: [Engineering Protocols → Teach-Back Protocol](https://www.notion.so/35ddb630640a81e0a086ce5812853b9b). New as of Day 7. The 3 components below are invariant; P6 specialization noted at the end.
 
-1. **Echo-back**: Paste the actual terminal output or file content showing it works
-2. **File:line references**: Point to specific code locations, not just file names
-3. **Test evidence**: Show pytest output with pass counts
-4. **Plan-diff**: If implementation deviated from plan, explain what changed and why
+### Component 1: Socratic Gate (invariant — before any plan or prompt)
+
+Before Claude generates the day's plan or Claude Code prompt, Claude asks 3-5 questions about the day's concepts in increasing specificity. Ruby answers in own words, no lookup, 2-3 sentences per question. Claude grades honestly and closes gaps via first-principles reasoning before any plan generation begins.
+
+### Component 2: Phase Defense (invariant — Claude.ai, after each Claude Code phase)
+
+This is a debrief, not a closed-book exam. By the time the phase finishes, I have evidence: the terminal output, the Phase Notes block Claude Code wrote in `docs/session-notes/dayN.md`, and my memory of the planning conversation. The defense uses all of it. The retrieval value comes from articulating my model in my own words, not from withholding information.
+
+**Per-phase workflow (invariant ordering):**
+
+1. Claude Code finishes phase, reports file:line, appends Phase Notes block to `docs/session-notes/dayN.md`, stops at gate
+2. I paste Claude Code terminal output into Claude.ai; Claude reviews it against Verification Components 3 and 4 for this phase's items
+3. If verification passes, I write the Phase Defense
+4. Claude grades the defense
+5. Defense clears
+6. I read the full Phase Notes block again as source material
+7. I draft the journal entry (Author Pass)
+
+Verification first establishes that the code works. Then the defense tests whether I understand what works. Then the journal entry synthesizes.
+
+**How to write the defense.**
+
+Pick 2-3 prompts from the menu below. At least one from Category A. At least one from B, C, or D. Each answer 1-3 sentences. Total defense 4-8 sentences.
+
+*Category A — What got built (always at least one):*
+- What does this phase add to the system that wasn't there before? Name the new capability in one sentence.
+- Which files changed and what each one is responsible for now.
+- What's the entry point for this new capability? How would a caller invoke it?
+
+*Category B — Design and tradeoffs (at least one if a real decision was made):*
+- Why this approach over the alternative we discussed in planning. (Skip if no alternative was discussed.)
+- What tradeoff did this phase accept? (Latency vs accuracy, simplicity vs flexibility, etc.)
+- Which architecture rule did this phase implement or constrain against?
+- Why this library, this pattern, this data structure over the obvious alternative.
+
+*Category C — Risk and edge cases (pick one when applicable):*
+- What's the most likely way this code breaks in production?
+- Which test case would I write next if I had more time?
+- What's the dumbest input that would crash this?
+- What downstream code now depends on this in a way that wasn't true before?
+
+*Category D — Connection (pick one when applicable):*
+- How does this phase connect to a previous phase today or a previous day?
+- What does this phase set up for the next phase?
+- Has a similar problem come up in a prior project? How was it solved differently there?
+
+**What Claude pushes back on:**
+- Category coverage (all-A defenses skip synthesis; B/C/D required)
+- Hollow answers ("built the scorer, tests pass")
+- Paraphrases of terminal output or Phase Notes (the category prompts require synthesis beyond what's on screen)
+- Claims that contradict the terminal output or Phase Notes (signals I misunderstood the phase)
+
+**P6 specialization:** When Category B is selected and the decision touches an Architecture Rule, the defense must name the rule number (e.g., "Architecture Rule 9: feature vectors over LLM embeddings"). This ties phase-level decisions back to the locked design boundary.
+
+### Component 3: End-of-Day Author Pass (invariant — Claude.ai, per phase + session close)
+
+I write two artifacts: the journal entry for each phase, and the session handover note. Both used to be Claude Code's job in P1-P5. Both are mine now.
+
+The raw material comes from `docs/session-notes/dayN.md` (written by Claude Code under Verification Component 6).
+
+**Before drafting either artifact, I read `docs/session-notes/dayN.md` end to end.** The session notes are my source. They are not my draft.
+
+**Journal entry — per phase, right after Phase Defense clears.**
+
+- Read the Phase Notes block for this phase from `docs/session-notes/dayN.md`
+- Draft the journal entry in Claude.ai. 100-200 words per phase, minimum
+- Claude redlines for vagueness, fabricated certainty, missing tradeoffs, weak verbs, and passages that paraphrase the session notes instead of synthesizing
+- Revise once, push to Notion
+
+**Synthesis bar (invariant):** the journal entry must add something the session notes do not have. One of three things:
+- Cross-phase pattern (how this phase connects to earlier phases today or earlier days)
+- Analogy (Java/TS parallel, prior project parallel, or real-world analog)
+- Connection to prior projects (P2 evidence used here, or P5 pattern applied)
+
+If the entry is recognizably a paraphrase of the session notes, Claude pushes back and I redraft.
+
+**Handover note — at session close.**
+
+- Read the full `docs/session-notes/dayN.md` + the Verification Plan-Diff
+- Draft the handover in Claude.ai. 10 minutes maximum
+- Claude redlines for vagueness, fabricated certainty, missing tradeoffs, weak verbs
+- Revise once, push to Notion
+
+Claude Code does not write journal entries. Claude Code does not write the handover note.
+
+**Per-phase journaling is the default for P6 and all future projects.** Batching is rejected because by session close, Phase 1 details have faded and the entry collapses to plan-diff paraphrase.
+
+**P6 specialization:** Socratic Gate question banks for P6 concentrate on: RAG metrics (groundedness, faithfulness, recall@k), multi-agent topologies (Flow vs Crew vs Hierarchical), CrewAI Flow decorators (@start/@listen/@router state propagation), feature-vector style transfer (vs LLM embeddings), and weighted scoring formula sensitivity. Day 7 onward, every session begins with a Socratic Gate drawn from these domains.
 
 ---
 
