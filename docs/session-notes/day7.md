@@ -46,6 +46,46 @@ Weights and threshold are locked Architecture Rules (ADR-005). One LLM call per 
 
 The 4 scores + a `fallback` boolean. No raw response text, no per-sentence groundedness breakdown — just the aggregated numbers, which is what feeds the 5 PRD §7d charts Phase 3 wires in.
 
+---
+
+## Phase 2: Streamlit App + ADR-008
+
+- **Built.** `streamlit_app.py`:1-203 — 10-section Streamlit app (page_config, sidebar_visualizations, query_input, render_score_breakdown, render_fallback_card, render_response_card, render_single, render_compare, dispatch, footer). `docs/adr/ADR-008-hexagonal-adapters.md` — 5-section ADR documenting the hexagonal ports-and-adapters pattern visible across both CLI and Streamlit adapters.
+- **Why.** PRD §7c requires a Streamlit UI with query input, leader dropdown (Torvalds / Kroah-Hartman / Compare Both), score breakdown, and fallback display. Architecture Rule requires no direct LiteLLM/FAISS/Cohere imports from adapter code — both adapters speak only to `DigitalCloneFlow.kickoff` and `compare_leaders`.
+- **Surprising.** Helper functions (render_response_card, render_fallback_card, render_score_breakdown) must be defined before the dispatch block that calls them — Streamlit re-runs the entire script top-to-bottom on each interaction, so Python's definition-before-use rule applies normally. The plan's section ordering (dispatch listed before render helpers) would have caused NameErrors at runtime. Fixed by defining all render_ helpers before the dispatch block, preserving the section comment names.
+- **Deferred.** `st.cache_resource` caching of `DigitalCloneFlow` deferred — every Streamlit rerun reinitializes FAISS + profiles. Latency penalty only, not correctness. Captured in ADR-008 Consequences. Ruby owns the Post-Portfolio Followups Notion page entry.
+- **ADR candidate.** ADR-008 written: hexagonal architecture (ports-and-adapters) for CLI + Streamlit over `DigitalCloneFlow`. Decision: both adapters import only from `src/flow.py` façade + narrow style/RAG façades for `learn`/`index` commands. Verified by grep. Three alternatives considered: direct internal imports (rejected — breaks test isolation), shared adapter base class (rejected — premature abstraction given different output primitives), session_state caching (deferred per above).
+
+### Phase 2 stop gate output
+
+```
+$ grep -nE "DigitalCloneFlow|compare_leaders" streamlit_app.py
+3:All heavy I/O routes through DigitalCloneFlow (single-leader) or
+4:compare_leaders (dual-leader). No direct LiteLLM / FAISS / Cohere imports.
+14:from src.flow import DigitalCloneFlow
+15:from src.flow import compare_leaders as _compare_leaders
+182:            result = _compare_leaders(query_text.strip())
+187:            flow = DigitalCloneFlow()
+
+$ grep -E "^## (Context|Decision|Alternatives Considered|Quantified Validation|Consequences)" docs/adr/ADR-008-hexagonal-adapters.md
+## Context
+## Decision
+## Alternatives Considered
+## Quantified Validation
+## Consequences
+
+$ uv run streamlit run streamlit_app.py --server.headless true
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://10.0.0.132:8501
+  External URL: http://73.143.108.98:8501
+
+  [No exceptions — clean startup, page renders OK]
+```
+
+---
+
 ### What it does **not** evaluate
 
 - **Factual accuracy** vs. ground truth — there's no expected-answer field; groundedness measures evidence-overlap, not correctness.
