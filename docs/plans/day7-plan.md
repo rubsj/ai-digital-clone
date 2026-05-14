@@ -317,6 +317,7 @@ A4 cross-references `src/schemas.py` verbatim — no new model names introduced.
 
 - **Streamlit re-entrancy.** `DigitalCloneFlow` is stateful; without caching (Resolved Decision 6), each rerun instantiates fresh state — slow but correct. If re-entrancy still bites in practice (e.g. shared FAISS file lock), Phase 2 eats into Phase 4 budget — Phase 4 is the buffer.
 - **Phase 3 expansion (1.5h → 4h).** Adding 5 chart functions + runtime wiring + directory split pushed Phase 3 from a doc-only phase to a coding+docs phase. The 8-hour day budget is tight. Phase 4 (A2/A3) remains required and is **not cuttable** per Ruby's decision; if Phase 3 overruns significantly, surface for replanning rather than absorbing into Phase 4.
+- **Latency data gap for `plot_latency_distribution`.** `cli evaluate` does not currently capture per-query wall time — `EvaluationResult` has no latency field and the evaluate loop does not time `DigitalCloneFlow.kickoff`. Two options at Phase 3 implementation time: (a) wrap each `kickoff` call with `time.perf_counter()` and add a `latency_ms` field to each JSON record (adds ~5 lines to `cli evaluate`, no schema change since records are dict-typed in the report), or (b) stub `plot_latency_distribution` with a "no data" placeholder PNG and a TODO. Recommend (a) — it's cheap and produces a real chart. Decision deferred to executor at Phase 3 start; if (a) reveals unexpected scope, escalate per the Phase 3 overrun rule above.
 
 ---
 
