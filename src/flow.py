@@ -199,9 +199,7 @@ def compare_leaders(query: str) -> LeaderComparison:
     t_out = flow_t.state.final_output
     kh_out = flow_kh.state.final_output
 
-    if not isinstance(t_out, StyledResponse):
-        raise ValueError(f"Torvalds pipeline did not produce a StyledResponse: {type(t_out)}")
-    if not isinstance(kh_out, StyledResponse):
-        raise ValueError(f"Kroah-Hartman pipeline did not produce a StyledResponse: {type(kh_out)}")
+    if t_out is None or kh_out is None:
+        raise ValueError(f"Pipeline produced no output — t={type(t_out)}, kh={type(kh_out)}")
 
     return LeaderComparison(query=query, torvalds=t_out, kroah_hartman=kh_out)
