@@ -244,7 +244,14 @@ class TestEvaluateCommand:
         mock_flow = MagicMock()
         mock_flow.state.final_output = _make_styled_response()
 
-        with patch("src.cli.DigitalCloneFlow", return_value=mock_flow):
+        with (
+            patch("src.cli.DigitalCloneFlow", return_value=mock_flow),
+            patch("src.cli.plot_style_distribution"),
+            patch("src.cli.plot_groundedness_distribution"),
+            patch("src.cli.plot_score_breakdown"),
+            patch("src.cli.plot_fallback_rate"),
+            patch("src.cli.plot_latency_distribution"),
+        ):
             result = runner.invoke(
                 cli,
                 [
@@ -265,6 +272,7 @@ class TestEvaluateCommand:
         assert len(records) == 2  # one query × two leaders
         assert records[0]["leader"] == "torvalds"
         assert records[0]["final_score"] == 0.84
+        assert "latency_ms" in records[0]
 
     def test_fallback_recorded(self, runner: CliRunner, tmp_path: Path) -> None:
         queries_file = tmp_path / "queries.json"
@@ -277,7 +285,14 @@ class TestEvaluateCommand:
         mock_flow = MagicMock()
         mock_flow.state.final_output = _make_fallback_response()
 
-        with patch("src.cli.DigitalCloneFlow", return_value=mock_flow):
+        with (
+            patch("src.cli.DigitalCloneFlow", return_value=mock_flow),
+            patch("src.cli.plot_style_distribution"),
+            patch("src.cli.plot_groundedness_distribution"),
+            patch("src.cli.plot_score_breakdown"),
+            patch("src.cli.plot_fallback_rate"),
+            patch("src.cli.plot_latency_distribution"),
+        ):
             result = runner.invoke(
                 cli,
                 ["evaluate", "--queries", str(queries_file), "--output-dir", str(out_dir)],
@@ -287,6 +302,7 @@ class TestEvaluateCommand:
         import json
         records = json.loads(list(out_dir.glob("evaluation_*.json"))[0].read_text())
         assert all(r["fallback"] for r in records)
+        assert all("latency_ms" in r for r in records)
 
     def test_missing_queries_file(self, runner: CliRunner) -> None:
         result = runner.invoke(cli, ["evaluate", "--queries", "/nonexistent/queries.json"])

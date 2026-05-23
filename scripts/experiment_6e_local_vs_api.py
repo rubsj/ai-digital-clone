@@ -70,7 +70,7 @@ from src.style.style_scorer import score_style
 QUERIES_PATH = Path("data/eval/queries_v1.json")
 INDEX_DIR = Path("data/rag/faiss_index")
 PROFILE_PATH = Path("data/models/torvalds_profile.json")
-CHART_PATH = Path("docs/images/6e-local-vs-api.png")
+CHART_PATH = Path("docs/images/6e-local-vs-api.png")  # output moved to docs/experiments/charts/6e-local-vs-api.png (Day 7 gallery split)
 
 RETRIEVAL_TOP_N = 20
 RERANK_TOP_N = 5

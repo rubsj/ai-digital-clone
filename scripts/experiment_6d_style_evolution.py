@@ -46,7 +46,7 @@ from src.schemas import StyleFeatures
 # ---------------------------------------------------------------------------
 
 MBOX_PATH = Path("data/emails/torvalds.mbox")
-CHART_PATH = Path("docs/images/6d-style-evolution.png")
+CHART_PATH = Path("docs/images/6d-style-evolution.png")  # output moved to results/charts/07-style-evolution.png (Day 7 gallery split)
 
 CUTOFF = datetime(2018, 9, 1, tzinfo=timezone.utc)
 SENDER_FILTER = "torvalds@"

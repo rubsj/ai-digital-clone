@@ -89,6 +89,30 @@ $ uv run streamlit run streamlit_app.py --server.headless true
 ### What it does **not** evaluate
 
 - **Factual accuracy** vs. ground truth — there's no expected-answer field; groundedness measures evidence-overlap, not correctness.
-- **Latency** — the JSON does not currently capture per-query wall time. Phase 3 implication: `plot_latency_distribution` either requires adding timing wraps to the evaluate loop, or must be stubbed with a note. **Open question for Phase 3 — surface for replanning if it adds scope.**
+- **Latency** — captured in Phase 3 via `time.perf_counter()` wrapping `flow.kickoff`; `latency_ms` added to both fallback and scored records.
 - **Human style judgment** — `style_score` is vector cosine, not a human rating.
 - **Query-set difficulty calibration** — `expected_groundedness_band` in `queries_v1.json` is metadata only; nothing currently checks predicted vs. expected band.
+
+---
+
+## Phase 3: A1/A4/A5 diagrams + 5 chart functions + gallery split
+
+- **Built.**
+  - `docs/architecture/system-architecture.md` (A1, `graph TB`) — nodes for `DigitalCloneFlow`, `RAGAgent`, `StyleCrew`, `EvaluatorAgent`, `FallbackAgent` + all 5 externals.
+  - `docs/architecture/data-models.md` (A4, `classDiagram`) — all 11 `src/schemas.py` Pydantic models with composition arrows.
+  - `docs/architecture/data-flow.md` (A5, `graph LR`) — Offline (mbox→profile, corpus→FAISS) and Online (query→RAGAgent→StyleCrew→EvaluatorAgent→router→deliver|fallback) subgraphs.
+  - 5 new chart functions in `src/visualization.py`: `plot_style_distribution`, `plot_groundedness_distribution`, `plot_score_breakdown`, `plot_fallback_rate`, `plot_latency_distribution` — all taking `list[dict]`, using matplotlib Agg, `dpi=150, bbox_inches="tight"`.
+  - `src/cli.py::evaluate` wired: `time.perf_counter()` wraps each `flow.kickoff`; `latency_ms` added to both fallback and scored `records.append` dicts; 5 chart calls + `charts_dir.mkdir` appended after JSON write.
+  - Gallery split: `results/charts/` renamed `style_radar.png` → `01-style-radar.png`; `docs/images/6d-style-evolution.png` → `results/charts/07-style-evolution.png`; 6 Day 6 exhibits → `docs/experiments/charts/`; `docs/images/` removed.
+  - `results/charts/` gitignore line removed so charts can be committed.
+  - Reference updates: ADR-006, `docs/iteration-log.md`, `docs/learning-journal.md`, `docs/plans/day6-plan.md`, `CLAUDE.md`, all 6 experiment scripts (one-line comment redirect per script; savefig paths untouched).
+  - `tests/test_visualization.py` — 16 new tests covering all 6 chart functions (edge cases: empty records, all-fallback, no latency field).
+  - `tests/test_cli.py` — evaluate tests updated to mock 5 chart functions and assert `latency_ms` in records.
+
+- **Why.** PRD §7b requires `cli evaluate` to produce "scores + charts"; no chart scope existed in Day 8. PRD §7d specifies exactly 7 charts in `results/charts/` (radar, 5 evaluation charts, style evolution). The plan grew from 1.5h to 4h when Phase 1 surfaced that chart generation was silently deferred and that `docs/images/` conflated PRD deliverables with Day 6 methodology exhibits.
+
+- **Surprising.** `results/charts/` was in `.gitignore` as "Generated artifacts — reproducible from source." The 2 manually moved PNGs (`01-style-radar`, `07-style-evolution`) could not be `git mv`d from their untracked locations. Removed the gitignore line to allow the full chart set to be committed — portfolio reviewers should see the charts without running `cli evaluate`. The latency question from Phase 2 ("no per-query wall time") resolved trivially: `time.perf_counter()` around `flow.kickoff` at `src/cli.py:264`, ~2 lines, no schema change.
+
+- **Deferred.** Nothing new. `cli evaluate` docstring still references Phase 3 chart generation as complete; no follow-on items.
+
+- **ADR candidate.** No new decision. The gallery split and gitignore removal are straightforward consequences of PRD §7d ownership. Latency capture is implementation detail, not an architectural decision.

@@ -503,7 +503,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 2 — Experiment 6a: Embedding comparison OpenAI vs MiniLM
 
-**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/images/6a-embeddings.png`.
+**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/experiments/charts/6a-embeddings.png`.
 
 **What surprised me.**
 - The groundedness delta between OpenAI and MiniLM was +1.9% — far below both the P5 prior (+26% Recall@5) and the H2 prediction (10–18%). The 98% programming-subfield corpus is so homogeneous that both models retrieve essentially equivalent chunks. The direction held (OpenAI > MiniLM) but the magnitude essentially vanished.
@@ -534,7 +534,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 3 — Experiment 6b: Chunking comparison (fixed vs semantic)
 
-**What I built.** `scripts/experiment_6b_chunking.py` — runs 10 queries through two chunking strategies on the same 5-doc corpus: `RecursiveCharacterTextSplitter` 500/50 (baseline, cached index) vs `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic, new index at `data/rag/faiss_index_semantic/`). Measures post-rerank groundedness, pre-rerank groundedness, and chunk-relevance (mean top-5 Cohere score per query). Generated `docs/images/6b-chunking.png`.
+**What I built.** `scripts/experiment_6b_chunking.py` — runs 10 queries through two chunking strategies on the same 5-doc corpus: `RecursiveCharacterTextSplitter` 500/50 (baseline, cached index) vs `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic, new index at `data/rag/faiss_index_semantic/`). Measures post-rerank groundedness, pre-rerank groundedness, and chunk-relevance (mean top-5 Cohere score per query). Generated `docs/experiments/charts/6b-chunking.png`.
 
 **What surprised me.**
 - The aggregate delta was essentially zero: post_G Δ = +0.0002 (0.0%), chunk_rel Δ = −0.0006. Both strategies perform identically on this corpus.
@@ -545,7 +545,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 4 — Experiment 6c: Scoring weight sensitivity
 
-**What I built.** `scripts/experiment_6c_weight_sensitivity.py` — retrieves and Cohere-reranks once per query (10 calls), computes (style, groundedness, confidence) component scores from the same top-5 chunks, then applies three weight configs (default 0.4/0.4/0.2, style-heavy 0.5/0.3/0.2, ground-heavy 0.3/0.5/0.2) to the same numbers without additional API calls. Generated `docs/images/6c-weight-sensitivity.png`.
+**What I built.** `scripts/experiment_6c_weight_sensitivity.py` — retrieves and Cohere-reranks once per query (10 calls), computes (style, groundedness, confidence) component scores from the same top-5 chunks, then applies three weight configs (default 0.4/0.4/0.2, style-heavy 0.5/0.3/0.2, ground-heavy 0.3/0.5/0.2) to the same numbers without additional API calls. Generated `docs/experiments/charts/6c-weight-sensitivity.png`.
 
 **What surprised me.**
 - All three configs produce 100% fallback rate — every query falls below the 0.75 threshold. This is a proxy artifact: using query text as a style-response proxy gives style ≈ 0.50 for all queries (std=0.0101, nearly constant) because short CS queries bear no resemblance to Torvalds' verbose kernel emails. The style dimension was expected to be low, but I didn't anticipate it being this uniform — style ends up contributing a near-constant offset to all three configs, which makes the weight perturbations nearly invisible (Δ ≤ ±0.004).
@@ -558,7 +558,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 5 — Experiment 6d: Pre/post-2018 Torvalds style evolution
 
-**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `docs/images/6d-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
+**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `results/charts/07-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
 
 **What surprised me.**
 - The null result: none of the four features cleared the 2σ significance threshold. The 2018 behavioral change (public apology, leave) was expected to produce at least a formality or sentiment signal — formality did move in the expected direction (+0.017, post > pre) but at 8% of the 2σ band it's completely buried in noise.
@@ -571,7 +571,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 6 — Experiment 6e: GPT-4o-mini vs local Ollama qwen3:8b for evaluation scoring
 
-**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/images/6e-local-vs-api.png` (scatter plot + latency bar chart).
+**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/experiments/charts/6e-local-vs-api.png` (scatter plot + latency bar chart).
 
 **What surprised me.**
 - Ollama qwen3:8b is faster than GPT-4o-mini on this task: mean 739ms vs 1570ms (0.47x the latency, 2.1x faster). On a local M5 Max with the 8b Q4_K_M quant, the explanation call completes in under 1 second consistently (std=59ms vs GPT std=640ms). GPT latency variance was higher than expected (range: 904ms–3030ms), driven by network jitter.

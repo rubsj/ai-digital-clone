@@ -91,7 +91,7 @@ CHUNK_CONFIGS: dict[str, dict] = {
 }
 
 QUERIES_PATH = Path("data/eval/queries_v1.json")
-CHART_PATH = Path("docs/images/6b-chunking.png")
+CHART_PATH = Path("docs/images/6b-chunking.png")  # output moved to docs/experiments/charts/6b-chunking.png (Day 7 gallery split)
 
 # Cohere trial key: 10 calls/min. 21 calls (1 pre-check + 20 per query×config).
 COHERE_INTER_QUERY_SLEEP = 7.0

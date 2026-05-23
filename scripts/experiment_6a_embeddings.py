@@ -96,7 +96,7 @@ EMBED_CONFIGS: dict[str, dict] = {
 }
 
 QUERIES_PATH = Path("data/eval/queries_v1.json")
-CHART_PATH = Path("docs/images/6a-embeddings-run2.png")
+CHART_PATH = Path("docs/images/6a-embeddings-run2.png")  # output moved to docs/experiments/charts/6a-embeddings-run2.png (Day 7 gallery split)
 
 
 # ---------------------------------------------------------------------------

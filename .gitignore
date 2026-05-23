@@ -10,7 +10,6 @@ data/rag/faiss_index/
 data/cache/
 data/evaluations/
 data/fallback_logs/
-results/charts/
 
 # Python
 __pycache__/

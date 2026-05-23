@@ -7,6 +7,7 @@ All commands wrap existing facades — no direct LiteLLM/FAISS/Cohere imports.
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +23,13 @@ from src.schemas import FallbackResponse
 from src.style.email_parser import parse_mbox
 from src.style.feature_extractor import extract_features
 from src.style.profile_builder import build_profile_batch, save_profile
+from src.visualization import (
+    plot_fallback_rate,
+    plot_groundedness_distribution,
+    plot_latency_distribution,
+    plot_score_breakdown,
+    plot_style_distribution,
+)
 
 _LEADER_DISPLAY: dict[str, str] = {
     "torvalds": "Linus Torvalds",
@@ -267,10 +275,12 @@ def evaluate(queries: Path, output_dir: Path) -> None:
             ("kroah_hartman", "Greg Kroah-Hartman"),
         ]:
             flow = DigitalCloneFlow()
+            t0 = time.perf_counter()
             flow.kickoff(inputs={"query": q, "leader": display_name})
+            latency_ms = (time.perf_counter() - t0) * 1000
             out = flow.state.final_output
             if isinstance(out, FallbackResponse):
-                records.append({"id": item["id"], "leader": cfg_key, "fallback": True})
+                records.append({"id": item["id"], "leader": cfg_key, "fallback": True, "latency_ms": latency_ms})
             else:
                 ev = out.evaluation
                 records.append(
@@ -282,6 +292,7 @@ def evaluate(queries: Path, output_dir: Path) -> None:
                         "groundedness_score": ev.groundedness_score,
                         "confidence_score": ev.confidence_score,
                         "final_score": ev.final_score,
+                        "latency_ms": latency_ms,
                     }
                 )
 
@@ -292,6 +303,16 @@ def evaluate(queries: Path, output_dir: Path) -> None:
     with open(out_path, "w") as f:
         json.dump(records, f, indent=2)
     click.echo(f"\nResults written to {out_path}")
+
+    charts_dir = out_dir / "charts"
+    charts_dir.mkdir(parents=True, exist_ok=True)
+    click.echo("Generating charts…")
+    plot_style_distribution(records, charts_dir / "02-style-distribution.png")
+    plot_groundedness_distribution(records, charts_dir / "03-groundedness-distribution.png")
+    plot_score_breakdown(records, charts_dir / "04-score-breakdown.png")
+    plot_fallback_rate(records, charts_dir / "05-fallback-rate.png")
+    plot_latency_distribution(records, charts_dir / "06-latency-distribution.png")
+    click.echo(f"Charts written to {charts_dir}/")
 
 
 if __name__ == "__main__":
