@@ -152,12 +152,19 @@ Phase 3 grew from 1.5h to 4h after Phase 1 surfaced two gaps: (a) `cli evaluate`
 *5 new chart function signatures in `src/visualization.py`* (signatures only — bodies authored in this phase, but plan does not pre-solve them). Each follows the existing `plot_style_radar` contract: matplotlib Agg backend, `savefig(..., dpi=150, bbox_inches="tight")`, no display.
 
 ```python
-def plot_style_distribution(eval_results: list[EvaluationResult], output_path: Path) -> None: ...
-def plot_groundedness_distribution(eval_results: list[EvaluationResult], output_path: Path) -> None: ...
-def plot_score_breakdown(eval_results: list[EvaluationResult], output_path: Path) -> None: ...
-def plot_fallback_rate(eval_results: list[EvaluationResult], output_path: Path) -> None: ...
-def plot_latency_distribution(eval_results: list[EvaluationResult], output_path: Path) -> None: ...
+def plot_style_distribution(records: list[dict], output_path: Path) -> None: ...
+def plot_groundedness_distribution(records: list[dict], output_path: Path) -> None: ...
+def plot_score_breakdown(records: list[dict], output_path: Path) -> None: ...
+def plot_fallback_rate(records: list[dict], output_path: Path) -> None: ...
+def plot_latency_distribution(records: list[dict], output_path: Path) -> None: ...
 ```
+
+Each function reads the field names it needs from the dict records (the same list written to the JSON report) and handles missing fields appropriately:
+- `plot_style_distribution`: reads `style_score`; skips records where `fallback` is True (no `style_score` on fallback path).
+- `plot_groundedness_distribution`: reads `groundedness_score`; same fallback skip.
+- `plot_score_breakdown`: reads `style_score`, `groundedness_score`, `confidence_score`, `final_score`; same fallback skip.
+- `plot_fallback_rate`: reads `fallback` boolean; works on all records.
+- `plot_latency_distribution`: reads `latency_ms`; works on all records (both fallback and scored have latency).
 
 *`src/cli.py::evaluate` wiring* (~10 new lines): after the existing `EvaluationResult` aggregation, call the 5 new functions and write directly to `results/charts/02-...` through `results/charts/06-...` (overwriting on each run).
 
@@ -305,7 +312,7 @@ git rev-parse HEAD
 | `index` | `src/rag/corpus_loader.py::load_corpus` → `src/rag/chunker.py::chunk_documents` → `src/agents/rag_agent.py::RAGAgent.build` (calls `src/rag/indexer.py::build_index` + `save_index`) |
 | `query` | `src/flow.py::DigitalCloneFlow.kickoff(inputs={"query": q, "leader": L})` → read `flow.state.final_output` |
 | `compare` | `src/flow.py::compare_leaders(query: str) -> LeaderComparison` |
-| `evaluate` | iterate queries from JSON → `DigitalCloneFlow.kickoff` per query → aggregate `EvaluationResult` fields → write `results/evaluation_<timestamp>.json` → calls 5 chart functions in `src/visualization.py` (newly implemented in Phase 3: `plot_style_distribution`, `plot_groundedness_distribution`, `plot_score_breakdown`, `plot_fallback_rate`, `plot_latency_distribution`), writing PNGs to `results/charts/02-...06-...` |
+| `evaluate` | iterate queries from JSON → `time.perf_counter()` wrap of `DigitalCloneFlow.kickoff` per query → aggregate `EvaluationResult` fields + `latency_ms` into dict records → write `results/evaluation_<timestamp>.json` → pass the same `list[dict]` to 5 chart functions in `src/visualization.py` (newly implemented in Phase 3: `plot_style_distribution`, `plot_groundedness_distribution`, `plot_score_breakdown`, `plot_fallback_rate`, `plot_latency_distribution`), writing PNGs to `results/charts/02-...06-...` |
 
 Streamlit reuse: `src/flow.py::DigitalCloneFlow`, `src/flow.py::compare_leaders`, `src/schemas.py::{StyledResponse, FallbackResponse, LeaderComparison, EvaluationResult}`. Sidebar images: static load from `results/charts/`.
 
@@ -317,7 +324,7 @@ A4 cross-references `src/schemas.py` verbatim — no new model names introduced.
 
 - **Streamlit re-entrancy.** `DigitalCloneFlow` is stateful; without caching (Resolved Decision 6), each rerun instantiates fresh state — slow but correct. If re-entrancy still bites in practice (e.g. shared FAISS file lock), Phase 2 eats into Phase 4 budget — Phase 4 is the buffer.
 - **Phase 3 expansion (1.5h → 4h).** Adding 5 chart functions + runtime wiring + directory split pushed Phase 3 from a doc-only phase to a coding+docs phase. The 8-hour day budget is tight. Phase 4 (A2/A3) remains required and is **not cuttable** per Ruby's decision; if Phase 3 overruns significantly, surface for replanning rather than absorbing into Phase 4.
-- **Latency data gap for `plot_latency_distribution`.** `cli evaluate` does not currently capture per-query wall time — `EvaluationResult` has no latency field and the evaluate loop does not time `DigitalCloneFlow.kickoff`. Two options at Phase 3 implementation time: (a) wrap each `kickoff` call with `time.perf_counter()` and add a `latency_ms` field to each JSON record (adds ~5 lines to `cli evaluate`, no schema change since records are dict-typed in the report), or (b) stub `plot_latency_distribution` with a "no data" placeholder PNG and a TODO. Recommend (a) — it's cheap and produces a real chart. Decision deferred to executor at Phase 3 start; if (a) reveals unexpected scope, escalate per the Phase 3 overrun rule above.
+- **Latency data captured by `cli evaluate` on both response paths.** In Phase 3, `cli evaluate` wraps `flow.kickoff(...)` at `src/cli.py:264` with `time.perf_counter()` and appends `latency_ms` to BOTH records.append blocks (`src/cli.py:267` for fallback path and `src/cli.py:270-279` for scored path). Timing both paths prevents survivor bias in the latency chart. No Pydantic schema change required since records are dict-typed before JSON write. `plot_latency_distribution` reads the `latency_ms` field from the dict records.
 
 ---
 

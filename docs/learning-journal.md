@@ -609,3 +609,30 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - The quantization caveat (±0.05 noise from the calibration anchor artifact) needed to be in ADR-007's Quantified Validation. Without it, the 0.82 / 0.68 / 0.80 correlations could be read as more precise than they are. Ruby flagged this before ADR writing began — the right habit is to document known measurement artifacts in the same section as the numbers they affect.
 
 **What I'd do differently.** When a reviewer rejects a framing recommendation before ADR writing begins, treat the rejection as the primary input for the ADR structure — not as a correction to a draft. Here, the two-ADR split was settled in review; writing the ADRs afterward was clean. In a case where I draft first and receive corrections after, I risk anchoring the structure on the wrong framing and patching it, rather than rebuilding it cleanly.
+
+# Day 7 - May 12 , 13 
+## Phase 1: Click CLI + tests
+Phase 1 built the Click CLI as the first external adapter over `DigitalCloneFlow`. Five commands cover the lifecycle: profile building, index building, single query, leader comparison, and batch evaluation.
+
+The architecture follows hexagonal / ports-and-adapters: `DigitalCloneFlow` is the core and CLI is the adapter. The core doesn't know which adapter called it. This isolation matters because adding a third adapter later (MCP server, webhook, batch job) requires no changes to the core.
+
+Phase 2 applies the same pattern with Streamlit, validating that the abstraction holds when a second adapter appears. The test of an architectural decision isn't whether it works once; it's whether the second use case fits without contortions.
+
+The lesson from P5: a single-entry-point system can call the pipeline directly without harm. But that pattern doesn't generalize. The moment a second entry point appears, every internal change requires updating two call sites. P6 fixed this preemptively.
+
+Phase 1 surfaced two process gaps. A planning gap: chart generation for `cli evaluate` was silently deferred to Day 8 even though Day 8 had no scope for it. A protocol gap: no PRD coverage check between Opus's plan and Sonnet's execution. Both closed today: plan rewritten to absorb chart work into Phase 3, Prompt Discipline Protocol updated with a new component (PRD Coverage Check) and a new failure mode (Silent deferral in the plan).
+
+Evaluation produces four scores per (query, leader) pair: style cosine, groundedness via per-sentence retrieval support, confidence as a 3-factor heuristic blend, and a combined verdict with weights 0.4/0.4/0.2 against a 0.75 deliver threshold (ADR-005).
+
+## Phase 2 : Streamlit App + ADR 008 HExagonal Architecture
+Phase 2 built the Streamlit app as the second external adapter over `DigitalCloneFlow`. Streamlit app gives user an input box to ask question and can select one of three modes — Torvalds, Kroah-Hartman, Compare Both. On asking a question for one individual the user sees the response card and a card with score breakdown. In comparison mode the user sees the same things for both the leaders side by side on the screen.
+
+Phase 1 named the hexagonal architectural pattern and in Phase 2 we continued to build on that pattern and tested it. Streamlit wrapping DigitalCloneFlow without any core changes means the pattern actually held. The CLI and Streamlit both wrap DigitalCloneFlow without interacting with each other and with neither knowing the other's existence. ADR-008 captures hexagonal architecture (ports-and-adapters) as the project-level design decision.
+
+Streamlit reruns the entire script on every interaction. I could cache FAISS and profile load so that even when the script is rerun for every query, these two heavy operations can be reused. These two objects don't change per query. However the current DigitalCloneFlow builds these two objects inside the Flow instance and uses them as state passed between steps. To cache these objects I would have to refactor the Flow and make it accept these two objects as input params. After the refactor, each query gets a fresh Flow instance built around shared cached components. No state leakage between queries because no state is shared.
+
+The refactor is its own piece of work. Doing it under Day 7's time budget would have eaten into Phase 3 or Phase 4. The portfolio demo runs maybe 5 queries during a Loom, so the "slow but correct" version is acceptable for now. The deferral lives as a documented item to do post-June-13 (or in P7's setup if relevant).
+
+I found a bug during manual testing of Compare Both mode. When one leader hit the fallback path, the comparison rendering threw an error. This error was present in both Streamlit and CLI. Unit tests from neither app caught it because they tested individual leader paths, not the comparison path. The lesson: unit tests at the command layer don't substitute for integration testing at the UI layer.
+
+For the same query I get different responses every single time. The reason is LLM non-determinism. I would need to set temperature=0 plus seed control to get determinism. When building the defense I incorrectly attributed this to lack of caching. Caching is only an optimization for response time; it does not affect determinism.

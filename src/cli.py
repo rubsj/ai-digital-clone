@@ -206,12 +206,18 @@ def compare_cmd(query_text: str) -> None:
         ("Greg Kroah-Hartman", result.kroah_hartman),
     ]:
         click.echo(f"\n{'=' * 60}\n{label}\n{'=' * 60}")
-        click.echo(resp.response)
-        ev = resp.evaluation
-        click.echo(
-            f"style: {ev.style_score:.2f}  groundedness: {ev.groundedness_score:.2f}  "
-            f"confidence: {ev.confidence_score:.2f}  final: {ev.final_score:.2f}"
-        )
+        if isinstance(resp, FallbackResponse):
+            click.echo("[FALLBACK TRIGGERED]")
+            click.echo(f"Reason  : {resp.trigger_reason}")
+            click.echo(f"Summary : {resp.context_summary}")
+            click.echo(f"Calendar: {resp.calendar_link}")
+        else:
+            click.echo(resp.response)
+            ev = resp.evaluation
+            click.echo(
+                f"style: {ev.style_score:.2f}  groundedness: {ev.groundedness_score:.2f}  "
+                f"confidence: {ev.confidence_score:.2f}  final: {ev.final_score:.2f}"
+            )
 
 
 @cli.command()
