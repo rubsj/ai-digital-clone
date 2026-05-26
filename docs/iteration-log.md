@@ -90,7 +90,7 @@ This finding clusters with Phase 2 (Cohere bimodal on this corpus), Phase 4 (pro
 
 **Formality measurement note.** `formality_level` is a weighted mean of five sub-signals (`src/style/feature_extractor.py:_formality_level`): `0.25 × formal_word_rate + 0.20 × (1 − contraction_rate) + 0.20 × avg_sent_len_norm + 0.20 × (1 − profanity_rate) + 0.15 × (1 − first_person_rate)`. It is not a simple formal/informal word count. The +0.017 post-2018 shift is therefore directionally consistent with slightly longer sentences, fewer contractions, or reduced first-person usage — all plausible post-apology behavioral changes — but none of these sub-signals can be isolated without a sub-signal breakdown per partition. The measurement is reasonable but composite; any claim that "Torvalds became more formal post-2018" should cite the composite score and this limitation.
 
-**PRD §8 note:** The exit criterion ("style evolution chart shows measurable shift") is not met on these four features. The null result is documented honestly per day6-plan.md §Phase 5: "A null result is a valid finding and goes into the handover honestly." The chart at `docs/images/6d-style-evolution.png` shows monthly-bucketed time series with partition means and ±2σ bands.
+**PRD §8 note:** The exit criterion ("style evolution chart shows measurable shift") is not met on these four features. The null result is documented honestly per day6-plan.md §Phase 5: "A null result is a valid finding and goes into the handover honestly." The chart at `results/charts/07-style-evolution.png` shows monthly-bucketed time series with partition means and ±2σ bands.
 
 ---
 

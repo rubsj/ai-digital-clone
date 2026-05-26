@@ -172,7 +172,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Outputs.**
 - `scripts/experiment_6a_embeddings.py` (deterministic, all knobs in-source).
-- `docs/images/6a-embeddings.png` — a chart with two side-by-side panels: (left) per-query final-score for each config, (right) groundedness mean ± stdev for each config. Style consistent with existing P6 charts (matplotlib, dpi=150, Agg backend).
+- `docs/experiments/charts/6a-embeddings.png` — a chart with two side-by-side panels: (left) per-query final-score for each config, (right) groundedness mean ± stdev for each config. Style consistent with existing P6 charts (matplotlib, dpi=150, Agg backend).
 - One iteration-log entry under Day 6, H3 `### 6a — Embedding comparison: OpenAI vs MiniLM`, with the six PRD §7g fields populated:
   - **Change:** swap OpenAI text-embedding-3-small for all-MiniLM-L6-v2.
   - **Reason:** verify P2's 26% Recall@5 lift on this corpus; ground ADR-002's claim in P6 data.
@@ -183,7 +183,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Stop gate.**
 - `python scripts/experiment_6a_embeddings.py` runs to completion and prints the metrics table. Stdout must include the `cohere quota pre-check OK` line (per the shared pre-flight rule).
-- `docs/images/6a-embeddings.png` exists and is non-empty.
+- `docs/experiments/charts/6a-embeddings.png` exists and is non-empty.
 - Iteration-log entry rendered (paste the entry's markdown into the gate).
 - `pytest tests/ -q` still green at the post-Phase-1 baseline; no new tests expected in this phase.
 - (Per-phase cadence) Commit SHA and the rendered Phase 2 learning-journal H3 entry.
@@ -200,7 +200,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Outputs.**
 - `scripts/experiment_6b_chunking.py`.
-- `docs/images/6b-chunking.png` — paired bar or grouped bar of groundedness + chunk-relevance for each config across 10 queries.
+- `docs/experiments/charts/6b-chunking.png` — paired bar or grouped bar of groundedness + chunk-relevance for each config across 10 queries.
 - Iteration-log entry `### 6b — Chunking comparison: fixed 500/50 vs semantic markdown`, six fields per Phase 1 spec.
 
 **Stop gate.**
@@ -228,7 +228,7 @@ This shape gives Phases 2/3/4/6 a canonical ID to key off when reporting per-que
 
 **Outputs.**
 - `scripts/experiment_6c_weight_sensitivity.py`.
-- `docs/images/6c-weight-sensitivity.png` — sensitivity plot. Suggested form: x-axis = the 10 queries, y-axis = final score, three lines (one per config), with a horizontal 0.75 threshold line marked. Per-config fallback rates printed in the legend or a small subplot.
+- `docs/experiments/charts/6c-weight-sensitivity.png` — sensitivity plot. Suggested form: x-axis = the 10 queries, y-axis = final score, three lines (one per config), with a horizontal 0.75 threshold line marked. Per-config fallback rates printed in the legend or a small subplot.
 - Iteration-log entry `### 6c — Scoring weight sensitivity (3 configs × 10 queries)`, six fields. **Metric Before** = default config numbers; **Metric After** = the chosen optimal config; **Delta** = changes; **Keep?** = decision on whether to update the production weights.
 
 **ADR-006 trigger check (note, not action).** If the chosen optimal config differs materially from default (delta in mean final > 0.05, OR fallback rate moves outside the 30–40% band in a way default does not), this is a candidate trigger for ADR-006. **Do not write the ADR yet** — Phase 6e may also trigger it, and one ADR can cover both. The Phase 7 decision point consolidates.
@@ -256,7 +256,7 @@ The PRD §8 exit criterion ("style evolution chart shows measurable shift") is s
 
 **Outputs.**
 - `scripts/experiment_6d_style_evolution.py`.
-- `docs/images/6d-style-evolution.png` — time-series. X-axis = email timestamp (or year-bucketed), Y-axis = the four chosen features (one line per feature, OR four small multiples — executor picks the cleaner one). Vertical dashed line at 2018-09-01 with a small label.
+- `results/charts/07-style-evolution.png` — time-series. X-axis = email timestamp (or year-bucketed), Y-axis = the four chosen features (one line per feature, OR four small multiples — executor picks the cleaner one). Vertical dashed line at 2018-09-01 with a small label.
 - Iteration-log entry `### 6d — Pre/post-2018 Torvalds style evolution`. Six fields. **Metric Before** = pre-2018 feature values; **Metric After** = post-2018; **Delta** = absolute changes, with each row marked `(measurable shift)` or `(within noise)` per the significance criterion above; **Keep?** = `n/a — diagnostic, not a config change` if at least one feature cleared the threshold, or `n/a — no measurable shift detected at the 2σ threshold` if none did.
 
 **Stop gate.**
@@ -297,7 +297,7 @@ The PRD §8 exit criterion ("style evolution chart shows measurable shift") is s
 
 **Outputs.**
 - `scripts/experiment_6e_local_vs_api.py`.
-- `docs/images/6e-local-vs-api.png` — scatter plot of GPT-4o-mini final score vs Ollama final score across the 10 queries, with the y=x reference line and Pearson correlation in the title. If Ollama was skipped, write a placeholder PNG with the skip reason as text — keeps the artifact set complete.
+- `docs/experiments/charts/6e-local-vs-api.png` — scatter plot of GPT-4o-mini final score vs Ollama final score across the 10 queries, with the y=x reference line and Pearson correlation in the title. If Ollama was skipped, write a placeholder PNG with the skip reason as text — keeps the artifact set complete.
 - Iteration-log entry `### 6e — GPT-4o-mini vs local Ollama (qwen3:8b) for evaluation`, six fields, ending with the chosen recommendation per the framing above.
 
 **Stop gate.**
@@ -396,11 +396,11 @@ The handover note lives **outside the repo** (it is pasted into Notion). The pha
 |------|--------|-------|
 | `data/eval/queries_v1.json` | Create | 1 |
 | `docs/iteration-log.md` | Create + append entries | 1, 2, 3, 4, 5, 6 |
-| `docs/images/6a-embeddings.png` | Create | 2 |
-| `docs/images/6b-chunking.png` | Create | 3 |
-| `docs/images/6c-weight-sensitivity.png` | Create | 4 |
-| `docs/images/6d-style-evolution.png` | Create | 5 |
-| `docs/images/6e-local-vs-api.png` | Create | 6 |
+| `docs/experiments/charts/6a-embeddings.png` | Create | 2 |
+| `docs/experiments/charts/6b-chunking.png` | Create | 3 |
+| `docs/experiments/charts/6c-weight-sensitivity.png` | Create | 4 |
+| `results/charts/07-style-evolution.png` | Create | 5 |
+| `docs/experiments/charts/6e-local-vs-api.png` | Create | 6 |
 | `scripts/experiment_6a_embeddings.py` | Create | 2 |
 | `scripts/experiment_6b_chunking.py` | Create | 3 |
 | `scripts/experiment_6c_weight_sensitivity.py` | Create | 4 |
@@ -437,7 +437,7 @@ A reviewer should be able to run, in order:
 
 1. `pytest tests/ -v` → all green; count ≥ Day 5 baseline of 433; src/ coverage still ≥ 90%.
 2. Open `docs/iteration-log.md` → 5 H3 entries under the Day 6 H2, each with the six PRD §7g fields populated.
-3. Open `docs/images/` → 5 PNGs (6a, 6b, 6c, 6d, 6e), all rendering.
+3. Open `docs/experiments/charts/` → 6 PNGs (6a-embeddings, 6a-embeddings-run2, 6b, 6c, 6e, 6e-run2) and `results/charts/07-style-evolution.png`, all rendering.
 4. Open `docs/adr/ADR-006-...md` if it exists → 5 H2 sections matching ADR-005's structure; Quantified Validation numbers trace to specific iteration-log entries.
 5. CLAUDE.md "Current State" reflects Day 6 complete with the new test count.
 6. The handover note is pasted into Notion (outside-repo deliverable, not verifiable from the repo alone — the PR description should link to the Notion page).

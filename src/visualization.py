@@ -82,3 +82,127 @@ def plot_style_radar(
     plt.tight_layout()
     plt.savefig(str(output_path), dpi=dpi, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_style_distribution(records: list[dict], output_path: Path) -> None:
+    """Histogram of style_score across all non-fallback evaluation records."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    scores = [r["style_score"] for r in records if not r.get("fallback", True)]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    if scores:
+        ax.hist(scores, bins=10, range=(0, 1), color=_COLORS[0], edgecolor="white", alpha=0.85)
+    ax.axvline(0.75, color="red", linestyle="--", linewidth=1.2, label="threshold 0.75")
+    ax.set_xlabel("Style Score")
+    ax.set_ylabel("Count")
+    ax.set_title("Style Score Distribution")
+    ax.set_xlim(0, 1)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_groundedness_distribution(records: list[dict], output_path: Path) -> None:
+    """Histogram of groundedness_score across all non-fallback evaluation records."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    scores = [r["groundedness_score"] for r in records if not r.get("fallback", True)]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    if scores:
+        ax.hist(scores, bins=10, range=(0, 1), color=_COLORS[1], edgecolor="white", alpha=0.85)
+    ax.axvline(0.60, color="red", linestyle="--", linewidth=1.2, label="target 0.60")
+    ax.set_xlabel("Groundedness Score")
+    ax.set_ylabel("Count")
+    ax.set_title("Groundedness Score Distribution")
+    ax.set_xlim(0, 1)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_score_breakdown(records: list[dict], output_path: Path) -> None:
+    """Grouped bar chart: mean style / groundedness / confidence / final per leader."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    leaders = ["torvalds", "kroah_hartman"]
+    labels = ["Linus Torvalds", "Greg Kroah-Hartman"]
+    score_keys = ["style_score", "groundedness_score", "confidence_score", "final_score"]
+    score_labels = ["Style", "Groundedness", "Confidence", "Final"]
+
+    means: dict[str, list[float]] = {}
+    for ldr in leaders:
+        scored = [r for r in records if r.get("leader") == ldr and not r.get("fallback", True)]
+        means[ldr] = [
+            float(sum(r[k] for r in scored) / len(scored)) if scored else 0.0
+            for k in score_keys
+        ]
+
+    x = np.arange(len(score_labels))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(x - width / 2, means[leaders[0]], width, label=labels[0], color=_COLORS[0], alpha=0.85)
+    ax.bar(x + width / 2, means[leaders[1]], width, label=labels[1], color=_COLORS[1], alpha=0.85)
+    ax.axhline(0.75, color="red", linestyle="--", linewidth=1.2, label="threshold 0.75")
+    ax.set_xticks(x)
+    ax.set_xticklabels(score_labels)
+    ax.set_ylabel("Mean Score")
+    ax.set_ylim(0, 1)
+    ax.set_title("Score Breakdown by Leader")
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_fallback_rate(records: list[dict], output_path: Path) -> None:
+    """Bar chart of fallback rate (fraction of queries that triggered fallback) per leader."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    leaders = ["torvalds", "kroah_hartman"]
+    labels = ["Linus Torvalds", "Greg Kroah-Hartman"]
+    rates: list[float] = []
+    for ldr in leaders:
+        ldr_recs = [r for r in records if r.get("leader") == ldr]
+        rate = sum(1 for r in ldr_recs if r.get("fallback", False)) / len(ldr_recs) if ldr_recs else 0.0
+        rates.append(rate)
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    bars = ax.bar(labels, rates, color=[_COLORS[0], _COLORS[1]], alpha=0.85)
+    for bar, rate in zip(bars, rates):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
+                f"{rate:.0%}", ha="center", va="bottom", fontsize=11)
+    ax.set_ylabel("Fallback Rate")
+    ax.set_ylim(0, 1)
+    ax.set_title("Fallback Rate by Leader")
+    plt.tight_layout()
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_latency_distribution(records: list[dict], output_path: Path) -> None:
+    """Histogram of latency_ms across all evaluation records (fallback + scored)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    latencies = [r["latency_ms"] for r in records if "latency_ms" in r]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    if latencies:
+        ax.hist(latencies, bins=15, color=_COLORS[2], edgecolor="white", alpha=0.85)
+    ax.set_xlabel("Latency (ms)")
+    ax.set_ylabel("Count")
+    ax.set_title("Query Latency Distribution")
+    plt.tight_layout()
+    plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
+    plt.close(fig)

@@ -503,7 +503,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 2 — Experiment 6a: Embedding comparison OpenAI vs MiniLM
 
-**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/images/6a-embeddings.png`.
+**What I built.** `scripts/experiment_6a_embeddings.py` — runs 10 queries through OpenAI (text-embedding-3-small, 1536d) and MiniLM (all-MiniLM-L6-v2, 384d) FAISS indices built from the same 1476-chunk corpus (1 CS textbook, max_docs=1), measuring groundedness, final score, and retrieve+rerank latency. Fixed a LiteLLM response-format regression (`item.embedding` → `item["embedding"]`) in `src/rag/embedder.py` with a matching mock update in `tests/test_embedder.py`. Generated `docs/experiments/charts/6a-embeddings.png`.
 
 **What surprised me.**
 - The groundedness delta between OpenAI and MiniLM was +1.9% — far below both the P5 prior (+26% Recall@5) and the H2 prediction (10–18%). The 98% programming-subfield corpus is so homogeneous that both models retrieve essentially equivalent chunks. The direction held (OpenAI > MiniLM) but the magnitude essentially vanished.
@@ -534,7 +534,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 3 — Experiment 6b: Chunking comparison (fixed vs semantic)
 
-**What I built.** `scripts/experiment_6b_chunking.py` — runs 10 queries through two chunking strategies on the same 5-doc corpus: `RecursiveCharacterTextSplitter` 500/50 (baseline, cached index) vs `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic, new index at `data/rag/faiss_index_semantic/`). Measures post-rerank groundedness, pre-rerank groundedness, and chunk-relevance (mean top-5 Cohere score per query). Generated `docs/images/6b-chunking.png`.
+**What I built.** `scripts/experiment_6b_chunking.py` — runs 10 queries through two chunking strategies on the same 5-doc corpus: `RecursiveCharacterTextSplitter` 500/50 (baseline, cached index) vs `MarkdownHeaderTextSplitter` → `RecursiveCharacterTextSplitter` 500/50 (semantic, new index at `data/rag/faiss_index_semantic/`). Measures post-rerank groundedness, pre-rerank groundedness, and chunk-relevance (mean top-5 Cohere score per query). Generated `docs/experiments/charts/6b-chunking.png`.
 
 **What surprised me.**
 - The aggregate delta was essentially zero: post_G Δ = +0.0002 (0.0%), chunk_rel Δ = −0.0006. Both strategies perform identically on this corpus.
@@ -545,7 +545,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 4 — Experiment 6c: Scoring weight sensitivity
 
-**What I built.** `scripts/experiment_6c_weight_sensitivity.py` — retrieves and Cohere-reranks once per query (10 calls), computes (style, groundedness, confidence) component scores from the same top-5 chunks, then applies three weight configs (default 0.4/0.4/0.2, style-heavy 0.5/0.3/0.2, ground-heavy 0.3/0.5/0.2) to the same numbers without additional API calls. Generated `docs/images/6c-weight-sensitivity.png`.
+**What I built.** `scripts/experiment_6c_weight_sensitivity.py` — retrieves and Cohere-reranks once per query (10 calls), computes (style, groundedness, confidence) component scores from the same top-5 chunks, then applies three weight configs (default 0.4/0.4/0.2, style-heavy 0.5/0.3/0.2, ground-heavy 0.3/0.5/0.2) to the same numbers without additional API calls. Generated `docs/experiments/charts/6c-weight-sensitivity.png`.
 
 **What surprised me.**
 - All three configs produce 100% fallback rate — every query falls below the 0.75 threshold. This is a proxy artifact: using query text as a style-response proxy gives style ≈ 0.50 for all queries (std=0.0101, nearly constant) because short CS queries bear no resemblance to Torvalds' verbose kernel emails. The style dimension was expected to be low, but I didn't anticipate it being this uniform — style ends up contributing a near-constant offset to all three configs, which makes the weight perturbations nearly invisible (Δ ≤ ±0.004).
@@ -558,7 +558,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 5 — Experiment 6d: Pre/post-2018 Torvalds style evolution
 
-**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `docs/images/6d-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
+**What I built.** `scripts/experiment_6d_style_evolution.py` — parses 11,052 Torvalds emails, extracts four features per email (sentiment, capitalization, exclamations, formality) using the unmodified `extract_features()`, partitions at 2018-09-01, and generates `results/charts/07-style-evolution.png` (2×2 monthly time-series grid with ±2σ bands and partition boundary).
 
 **What surprised me.**
 - The null result: none of the four features cleared the 2σ significance threshold. The 2018 behavioral change (public apology, leave) was expected to produce at least a formality or sentiment signal — formality did move in the expected direction (+0.017, post > pre) but at 8% of the 2σ band it's completely buried in noise.
@@ -571,7 +571,7 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 
 ### Phase 6 — Experiment 6e: GPT-4o-mini vs local Ollama qwen3:8b for evaluation scoring
 
-**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/images/6e-local-vs-api.png` (scatter plot + latency bar chart).
+**What I built.** `scripts/experiment_6e_local_vs_api.py` — retrieves and Cohere-reranks once per query (10 calls), computes component scores once, then calls the explanation-generation path twice per query: once via GPT-4o-mini and once via Ollama qwen3:8b (both through `instructor.from_litellm`). Timed each explanation call. Generated `docs/experiments/charts/6e-local-vs-api.png` (scatter plot + latency bar chart).
 
 **What surprised me.**
 - Ollama qwen3:8b is faster than GPT-4o-mini on this task: mean 739ms vs 1570ms (0.47x the latency, 2.1x faster). On a local M5 Max with the 8b Q4_K_M quant, the explanation call completes in under 1 second consistently (std=59ms vs GPT std=640ms). GPT latency variance was higher than expected (range: 904ms–3030ms), driven by network jitter.
@@ -609,3 +609,73 @@ _H3 entries appended per phase per the Day 6 plan (`docs/plans/day6-plan.md`). E
 - The quantization caveat (±0.05 noise from the calibration anchor artifact) needed to be in ADR-007's Quantified Validation. Without it, the 0.82 / 0.68 / 0.80 correlations could be read as more precise than they are. Ruby flagged this before ADR writing began — the right habit is to document known measurement artifacts in the same section as the numbers they affect.
 
 **What I'd do differently.** When a reviewer rejects a framing recommendation before ADR writing begins, treat the rejection as the primary input for the ADR structure — not as a correction to a draft. Here, the two-ADR split was settled in review; writing the ADRs afterward was clean. In a case where I draft first and receive corrections after, I risk anchoring the structure on the wrong framing and patching it, rather than rebuilding it cleanly.
+
+# Day 7 - May 12 , 13 
+## Phase 1: Click CLI + tests
+Phase 1 built the Click CLI as the first external adapter over `DigitalCloneFlow`. Five commands cover the lifecycle: profile building, index building, single query, leader comparison, and batch evaluation.
+
+The architecture follows hexagonal / ports-and-adapters: `DigitalCloneFlow` is the core and CLI is the adapter. The core doesn't know which adapter called it. This isolation matters because adding a third adapter later (MCP server, webhook, batch job) requires no changes to the core.
+
+Phase 2 applies the same pattern with Streamlit, validating that the abstraction holds when a second adapter appears. The test of an architectural decision isn't whether it works once; it's whether the second use case fits without contortions.
+
+The lesson from P5: a single-entry-point system can call the pipeline directly without harm. But that pattern doesn't generalize. The moment a second entry point appears, every internal change requires updating two call sites. P6 fixed this preemptively.
+
+Phase 1 surfaced two process gaps. A planning gap: chart generation for `cli evaluate` was silently deferred to Day 8 even though Day 8 had no scope for it. A protocol gap: no PRD coverage check between Opus's plan and Sonnet's execution. Both closed today: plan rewritten to absorb chart work into Phase 3, Prompt Discipline Protocol updated with a new component (PRD Coverage Check) and a new failure mode (Silent deferral in the plan).
+
+Evaluation produces four scores per (query, leader) pair: style cosine, groundedness via per-sentence retrieval support, confidence as a 3-factor heuristic blend, and a combined verdict with weights 0.4/0.4/0.2 against a 0.75 deliver threshold (ADR-005).
+
+## Phase 2 : Streamlit App + ADR 008 HExagonal Architecture
+Phase 2 built the Streamlit app as the second external adapter over `DigitalCloneFlow`. Streamlit app gives user an input box to ask question and can select one of three modes — Torvalds, Kroah-Hartman, Compare Both. On asking a question for one individual the user sees the response card and a card with score breakdown. In comparison mode the user sees the same things for both the leaders side by side on the screen.
+
+Phase 1 named the hexagonal architectural pattern and in Phase 2 we continued to build on that pattern and tested it. Streamlit wrapping DigitalCloneFlow without any core changes means the pattern actually held. The CLI and Streamlit both wrap DigitalCloneFlow without interacting with each other and with neither knowing the other's existence. ADR-008 captures hexagonal architecture (ports-and-adapters) as the project-level design decision.
+
+Streamlit reruns the entire script on every interaction. I could cache FAISS and profile load so that even when the script is rerun for every query, these two heavy operations can be reused. These two objects don't change per query. However the current DigitalCloneFlow builds these two objects inside the Flow instance and uses them as state passed between steps. To cache these objects I would have to refactor the Flow and make it accept these two objects as input params. After the refactor, each query gets a fresh Flow instance built around shared cached components. No state leakage between queries because no state is shared.
+
+The refactor is its own piece of work. Doing it under Day 7's time budget would have eaten into Phase 3 or Phase 4. The portfolio demo runs maybe 5 queries during a Loom, so the "slow but correct" version is acceptable for now. The deferral lives as a documented item to do post-June-13 (or in P7's setup if relevant).
+
+I found a bug during manual testing of Compare Both mode. When one leader hit the fallback path, the comparison rendering threw an error. This error was present in both Streamlit and CLI. Unit tests from neither app caught it because they tested individual leader paths, not the comparison path. The lesson: unit tests at the command layer don't substitute for integration testing at the UI layer.
+
+For the same query I get different responses every single time. The reason is LLM non-determinism. I would need to set temperature=0 plus seed control to get determinism. When building the defense I incorrectly attributed this to lack of caching. Caching is only an optimization for response time; it does not affect determinism.
+
+## Phase 3 : A1/A4/A5 Architectural Diagrams and 5 New chart functions
+in phase 3 I built visualization.py file which generated charts by running 10 queries defined in data/eval/queries_v1.json through the live pipeline. The piepline results into scores/latencies which are then fed into visualization.py to generate 5 charts. These charts represents a snapshot of how the current end-to-end system performed on that specific query set at the time cli evaluate was run.
+
+The flow is:
+cli evaluate runs queries, builds records list[dict], writes JSON report
+cli evaluate then calls the 5 chart functions in visualization.py with the records list
+Chart functions write PNGs
+
+built system-architecture.md - this file depics the DigitalCLoneFlow , RAGAgent , StyleCrew , FallbackAgent and evaluator agents and their relationship with FAISS , Cohere Rerank , OpenAI Embeddings , LLM[LiteLLM / GPT-4o-mini] ,MBOX[LKML mbox] , StyleProfile
+built data-models architecture diagram and data flow architecture diagram
+All 5 chart function takes list[dict] and not list[EvaluationResult] because evaluation result does not contain information for fallback case , having list[dict] makes sense for assymetric data where I need all kinds of properties that can not be handled by single result type
+Moved experiment exhibits to experiments folder as those charts were related to data experiment only and does not represent the evaluation result
+I did not add latency_ms into EvaluationResult schema and kept it only in CLI-layer dict , this prevented need to refactor schemas.py and other places that read EvaluationResult saving time for refactor however this tradeoff meant latency value is not visible to rest of the system and if I want to enhance them in future to use latency I would need to refactor it at that time , this also meant having to use list[dict] to pass to generate charts. 
+The practical consequence: latency data exists only in the CLI evaluation report. It can't flow anywhere else in the system without a schema change later.
+time.perf_counter() wraps the Python call to flow.kickoff — it measures total wall time from call to return. 
+What it misses:
+Network queuing before the call - Any time spent waiting for a FAISS index to load, profile JSON to deserialize, or connection pool to become available before kickoff actually starts executing.
+Intra-flow breakdown- You get one number for the entire pipeline — RAGAgent retrieval + Cohere rerank + StyleCrew LLM call + EvaluatorAgent LLM call all collapse into a single ms value. You can't tell whether a slow query was slow because retrieval was expensive or because the LLM was slow.
+LLM token generation time vs. time-to-first-token - The wall clock captures total generation time, not when the first token arrived. For streaming UIs these are very different user-experience signals
+Concurrency effects - If two queries ran concurrently (they don't here — the evaluate loop is sequential), wall time would include waiting for shared resources. Not a current problem, but wall time is not CPU time.
+Cohere rerank network latency specifically - Bundled into the total. If Cohere's API is slow on a given run, every query's latency inflates uniformly — you'd see a shift in the histogram but wouldn't know the cause.
+Cold vs. warm run distinction - The first flow.kickoff call may load FAISS from disk; subsequent calls hit an already-loaded index. The latency histogram mixes cold and warm observations without flagging which is which.
+So the latency chart shows "how long did the Python process block on this call" — useful as a rough SLA proxy, but not actionable for optimization without per-stage instrumentation.
+
+what would I see in the histogram if the first run is significantly slower than the others?
+The answer: a bimodal latency distribution with a long-right-tail outlier at query 1, then a tight cluster for queries 2-10. If you saw this in production data, you'd know cold-start is a real cost worth amortizing (lazy-load vs eager-load, connection pool warming, etc).
+
+## phase 4  A2/A3 sequence diagrams
+phase defecnce - Built sequence diagrams  single-query-sequence.md and dual-leader-sequence.md , created sequence diagram to map the runtime call sequence that is not visible in static component diagram or data-flow diagram. The sequence diagram shows visibly the action that is taking place and who is calling whom and what is passed between them. 
+I don't know why single query sequence diagram named ADR005 specially given ADR 005 is talking about dual comparision , can you explain it to me
+Retrieve once and style twice optimization deserves its own diagram as its key difference and optimization for dual leader comparision functionality , having this diagram shows the system level thinking and optimization
+Given I am naming 0.75 threshold explicitly in A2 if I change this value , the diagram will need to be updated at 3 places
+I am not sure how is concurrency handled here , explain that to me
+A1 is system architecture diagram that shows the shape of the application and A2 /A3 are sequence diagrams that shows how the components interacts with each other in the context of time flow
+A2 and A3 represent sequence diagram which is behavior of the system and can be explained much easily with picture than with words . A2 and A3 diagrams are intended for hiring managers as these are more technically nuanced
+learning journal entry - 
+Created two sequence diagrams ingle-query-sequence.md and dual-leader-sequence.md , Both these diagrams depict runtime behavior which complements A1- System Architecture's structural view. Recruiters would see system architecture diagram whereas the hiring managers would see sequence diagrams for deeper review
+System-architecture and Data flow diagrams are structural diagrams showing shape and flow of the application. Sequence diagrams - single and dual leader comparision , are behavioral diagrams showing time-ordered interaction. The five architectural diagrams tell the system story at multiple resolutions and from different angles.
+single-query-sequence.md file originally poiunted to ADR 005 for threshold value decision , however on checking I realized that I never created an ADR document on why I chose 0.75 as theshold and I have noted it as work to be done post all projects are complete. From the diagram I removed the ADR reference for now , it will be updated after writing the ADR in future.
+The dual leader comparision sequence diagram shows retrieve onc and style twice optimization with par/and notation. This is logically parallel in diagram , at implementation level it can be done in sequence or in parallel or concurrently . I have chosen to do it in sequence for simplicity , if required it can be done concurrently using asyncio.gather approach. Sequence diagram describe the intent not enforcement.
+
+

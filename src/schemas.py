@@ -239,8 +239,8 @@ class LeaderComparison(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     query: str
-    torvalds: StyledResponse
-    kroah_hartman: StyledResponse
+    torvalds: Union[StyledResponse, FallbackResponse]
+    kroah_hartman: Union[StyledResponse, FallbackResponse]
 
 
 # ---------------------------------------------------------------------------

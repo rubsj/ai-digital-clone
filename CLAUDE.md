@@ -459,7 +459,7 @@ Claude Code does not write journal entries. Claude Code does not write the hando
 - [x] scripts/experiment_6d_style_evolution.py — pre/post-2018 Torvalds style evolution (null result at per-email resolution)
 - [x] scripts/experiment_6e_local_vs_api.py — Run 1 explanation-generation latency comparison (degenerate Pearson=1.0; preserved as audit trail)
 - [x] scripts/experiment_6e_run2_groundedness_agreement.py — Run 2 independent groundedness scoring (Pearson(GPT,baseline)=0.82)
-- [x] docs/images/6a-embeddings.png, 6b-chunking.png, 6c-weight-sensitivity.png, 6d-style-evolution.png, 6e-local-vs-api.png, 6e-run2-groundedness-agreement.png
+- [x] docs/experiments/charts/6a-embeddings.png, 6b-chunking.png, 6c-weight-sensitivity.png, 6e-local-vs-api.png, 6e-run2-groundedness-agreement.png; results/charts/07-style-evolution.png
 - [x] src/eval/query_loader.py + tests/test_query_loader.py (loader reused across ≥2 experiment scripts)
 - [x] docs/adr/ADR-006-day6-methodology-and-corpus-shape-limits.md — three methodology-limit findings clustered
 - [x] docs/adr/ADR-007-llm-evaluation-scoring-viability.md — GPT-4o-mini validated at Pearson=0.82; Ollama for explanation only
