@@ -8,7 +8,7 @@
 
 ## Executive summary
 
-End-to-end evaluation on a corpus-appropriate query set surfaced leader-asymmetric behavior in style scoring: Torvalds scores 0.067 higher than Kroah-Hartman on average across the 11 records that reached the evaluator (T mean 0.9025, KH mean 0.8355). The 15-dim feature vector is derived from Schneider et al. (2016) on Torvalds-specific LKML signals and applied uniformly to both leaders; per-leader feature extraction is the natural next iteration. Two infrastructure corrections also surfaced during Day 8 verification — the Cohere reranker had silently fallen back to vector-only since Day 3 (env-var name bug), and the original v1 eval query set was scoped outside the indexed corpus. Both were corrected, and the v2 run delivers groundedness mean 0.626 (up from 0.517 broken-Cohere), zero hallucinations on out-of-domain queries, and a 72.5% overall fallback rate driven by the corpus's deliver-path ceiling rather than by infrastructure failures.
+End-to-end evaluation on a corpus-appropriate query set surfaced leader-asymmetric behavior in style scoring: Torvalds scores 0.067 higher than Kroah-Hartman on average across the 11 records that reached the evaluator (T mean 0.9025, KH mean 0.8355). The 15-dim feature vector is derived from Schneider et al. (2016) on Torvalds-specific LKML signals and applied uniformly to both leaders; per-leader feature extraction is the natural next iteration. Two infrastructure corrections also surfaced during Day 8 verification — the Cohere reranker had silently fallen back to vector-only since Day 3 (env-var name bug), and the original v1 eval query set was scoped outside the indexed corpus. The binary-search regression on the q12 anchor traced back to corpus shape rather than to either infrastructure correction, lining up with ADR-006's existing finding that two-clause questions need two well-aligned chunks to ground reliably. Both corrections held, and the v2 run delivers groundedness mean 0.626 (up from 0.517 broken-Cohere), zero hallucinations on out-of-domain queries, and a 72.5% overall fallback rate driven by the corpus's deliver-path ceiling rather than by infrastructure failures.
 
 ---
 
@@ -126,7 +126,7 @@ This is corpus-shape-dependent, not a Cohere regression. The right framing is "t
 |---|---|---|---|---|
 | §2a — Style score | > 0.90 on scored responses | 4/11 cleared, T mean 0.9025, KH mean 0.8355 | **PARTIAL** | Target met by Torvalds in aggregate, not by KH. Re-derive per leader once per-leader feature extraction lands. |
 | §2b — Groundedness | > 0.60 on in-domain queries | 7/11 cleared, scored mean 0.6258 | **HIT** | First run where the production embedding-cosine scorer measurably operates against in-domain content. |
-| §2c — Final score | > 0.75 on delivered responses | 11/11 cleared (= deliver definition) | **HIT** | This is the threshold itself; gates deliver/fallback. |
+| §2c — Final score | > 0.75 on delivered responses | 11/11 cleared (= deliver definition) | **TAUTOLOGY** | Final > 0.75 is the deliver criterion by definition. The meaningful underlying questions are measured by §2a, §2b, and §2d. |
 | §2d — Fallback rate | 30–40% | 72.5% overall, 60.7% in-domain | **MISS** | The 30–40% band assumed an in-domain deliver rate near 100%. Measured in-domain deliver rate is 39% (full matrix); the corpus + per-leader-asymmetric style scoring caps this. Per spec A8, the target needs re-derivation from measured evidence, not retroactive query-set adjustment. |
 | §2e — Orchestration (5-agent CrewAI Flow with @router branching) | Implemented + tested | All Day 5 deliverables shipped; 464 tests pass | **HIT** | Met since Day 5. |
 | §2f — Test coverage | src/ ≥ 90% | src/ 94% on Day 7 baseline, holds | **HIT** | Holds. Reranker fix didn't add code; throttle is a 5-line env-var-gated branch with no new public surface. |
@@ -175,12 +175,12 @@ The other anchor (q03 binary search → q12) gives no signal because both runs f
 
 ## Follow-ups
 
-### Documentation corrections
+### Documentation corrections (this week)
 
 - **ADR-002 (RAG config: embeddings + reranking + chunking).** ADR-002 documents Cohere reranking as part of the production config. From Day 3 through Day 7, the reranker was silently bypassed; the Day 6 reranking-related metrics in `docs/experiments/` (specifically Phase 2 Run 1 and Run 2 embedding comparison experiments that touched the rerank path) executed without Cohere. Add a correction note to ADR-002 acknowledging the gap and pointing at the Day 8 measurements as the first run with Cohere actually engaged.
 - **Day 6 experiment scripts (`scripts/experiment_6a*`).** Any chart or table that claims a Cohere-related metric needs a footnote noting the broken-Cohere baseline. The experiment outputs in `docs/experiments/charts/` may need a "measured pre-Cohere-fix" caption.
 
-### Engineering Protocols Verification Protocol additions
+### Engineering Protocols additions (this week)
 
 The silent-failure-as-fallback pattern is the lesson worth promoting upstream into the Engineering Protocols. Two concrete additions:
 
