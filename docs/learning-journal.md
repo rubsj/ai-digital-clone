@@ -636,3 +636,46 @@ The refactor is its own piece of work. Doing it under Day 7's time budget would 
 I found a bug during manual testing of Compare Both mode. When one leader hit the fallback path, the comparison rendering threw an error. This error was present in both Streamlit and CLI. Unit tests from neither app caught it because they tested individual leader paths, not the comparison path. The lesson: unit tests at the command layer don't substitute for integration testing at the UI layer.
 
 For the same query I get different responses every single time. The reason is LLM non-determinism. I would need to set temperature=0 plus seed control to get determinism. When building the defense I incorrectly attributed this to lack of caching. Caching is only an optimization for response time; it does not affect determinism.
+
+## Phase 3 : A1/A4/A5 Architectural Diagrams and 5 New chart functions
+in phase 3 I built visualization.py file which generated charts by running 10 queries defined in data/eval/queries_v1.json through the live pipeline. The piepline results into scores/latencies which are then fed into visualization.py to generate 5 charts. These charts represents a snapshot of how the current end-to-end system performed on that specific query set at the time cli evaluate was run.
+
+The flow is:
+cli evaluate runs queries, builds records list[dict], writes JSON report
+cli evaluate then calls the 5 chart functions in visualization.py with the records list
+Chart functions write PNGs
+
+built system-architecture.md - this file depics the DigitalCLoneFlow , RAGAgent , StyleCrew , FallbackAgent and evaluator agents and their relationship with FAISS , Cohere Rerank , OpenAI Embeddings , LLM[LiteLLM / GPT-4o-mini] ,MBOX[LKML mbox] , StyleProfile
+built data-models architecture diagram and data flow architecture diagram
+All 5 chart function takes list[dict] and not list[EvaluationResult] because evaluation result does not contain information for fallback case , having list[dict] makes sense for assymetric data where I need all kinds of properties that can not be handled by single result type
+Moved experiment exhibits to experiments folder as those charts were related to data experiment only and does not represent the evaluation result
+I did not add latency_ms into EvaluationResult schema and kept it only in CLI-layer dict , this prevented need to refactor schemas.py and other places that read EvaluationResult saving time for refactor however this tradeoff meant latency value is not visible to rest of the system and if I want to enhance them in future to use latency I would need to refactor it at that time , this also meant having to use list[dict] to pass to generate charts. 
+The practical consequence: latency data exists only in the CLI evaluation report. It can't flow anywhere else in the system without a schema change later.
+time.perf_counter() wraps the Python call to flow.kickoff — it measures total wall time from call to return. 
+What it misses:
+Network queuing before the call - Any time spent waiting for a FAISS index to load, profile JSON to deserialize, or connection pool to become available before kickoff actually starts executing.
+Intra-flow breakdown- You get one number for the entire pipeline — RAGAgent retrieval + Cohere rerank + StyleCrew LLM call + EvaluatorAgent LLM call all collapse into a single ms value. You can't tell whether a slow query was slow because retrieval was expensive or because the LLM was slow.
+LLM token generation time vs. time-to-first-token - The wall clock captures total generation time, not when the first token arrived. For streaming UIs these are very different user-experience signals
+Concurrency effects - If two queries ran concurrently (they don't here — the evaluate loop is sequential), wall time would include waiting for shared resources. Not a current problem, but wall time is not CPU time.
+Cohere rerank network latency specifically - Bundled into the total. If Cohere's API is slow on a given run, every query's latency inflates uniformly — you'd see a shift in the histogram but wouldn't know the cause.
+Cold vs. warm run distinction - The first flow.kickoff call may load FAISS from disk; subsequent calls hit an already-loaded index. The latency histogram mixes cold and warm observations without flagging which is which.
+So the latency chart shows "how long did the Python process block on this call" — useful as a rough SLA proxy, but not actionable for optimization without per-stage instrumentation.
+
+what would I see in the histogram if the first run is significantly slower than the others?
+The answer: a bimodal latency distribution with a long-right-tail outlier at query 1, then a tight cluster for queries 2-10. If you saw this in production data, you'd know cold-start is a real cost worth amortizing (lazy-load vs eager-load, connection pool warming, etc).
+
+## phase 4  A2/A3 sequence diagrams
+phase defecnce - Built sequence diagrams  single-query-sequence.md and dual-leader-sequence.md , created sequence diagram to map the runtime call sequence that is not visible in static component diagram or data-flow diagram. The sequence diagram shows visibly the action that is taking place and who is calling whom and what is passed between them. 
+I don't know why single query sequence diagram named ADR005 specially given ADR 005 is talking about dual comparision , can you explain it to me
+Retrieve once and style twice optimization deserves its own diagram as its key difference and optimization for dual leader comparision functionality , having this diagram shows the system level thinking and optimization
+Given I am naming 0.75 threshold explicitly in A2 if I change this value , the diagram will need to be updated at 3 places
+I am not sure how is concurrency handled here , explain that to me
+A1 is system architecture diagram that shows the shape of the application and A2 /A3 are sequence diagrams that shows how the components interacts with each other in the context of time flow
+A2 and A3 represent sequence diagram which is behavior of the system and can be explained much easily with picture than with words . A2 and A3 diagrams are intended for hiring managers as these are more technically nuanced
+learning journal entry - 
+Created two sequence diagrams ingle-query-sequence.md and dual-leader-sequence.md , Both these diagrams depict runtime behavior which complements A1- System Architecture's structural view. Recruiters would see system architecture diagram whereas the hiring managers would see sequence diagrams for deeper review
+System-architecture and Data flow diagrams are structural diagrams showing shape and flow of the application. Sequence diagrams - single and dual leader comparision , are behavioral diagrams showing time-ordered interaction. The five architectural diagrams tell the system story at multiple resolutions and from different angles.
+single-query-sequence.md file originally poiunted to ADR 005 for threshold value decision , however on checking I realized that I never created an ADR document on why I chose 0.75 as theshold and I have noted it as work to be done post all projects are complete. From the diagram I removed the ADR reference for now , it will be updated after writing the ADR in future.
+The dual leader comparision sequence diagram shows retrieve onc and style twice optimization with par/and notation. This is logically parallel in diagram , at implementation level it can be done in sequence or in parallel or concurrently . I have chosen to do it in sequence for simplicity , if required it can be done concurrently using asyncio.gather approach. Sequence diagram describe the intent not enforcement.
+
+
