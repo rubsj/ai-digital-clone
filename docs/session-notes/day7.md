@@ -116,3 +116,19 @@ $ uv run streamlit run streamlit_app.py --server.headless true
 - **Deferred.** Nothing new. `cli evaluate` docstring still references Phase 3 chart generation as complete; no follow-on items.
 
 - **ADR candidate.** No new decision. The gallery split and gitignore removal are straightforward consequences of PRD §7d ownership. Latency capture is implementation detail, not an architectural decision.
+
+---
+
+## Phase 4: A2/A3 sequence diagrams
+
+- **Built.**
+  - `docs/architecture/single-query-sequence.md` (A2, `sequenceDiagram`) — actors: User, DigitalCloneFlow, RAGAgent, StyleCrew, EvaluatorAgent, FallbackAgent. `@router` branch on `final_score >= 0.75`; threshold sourced to ADR-005 via `Note over DCF` rather than inlined.
+  - `docs/architecture/dual-leader-sequence.md` (A3, `sequenceDiagram`) — single `retrieve(query)` call to RAGAgent; shared chunks passed to both Torvalds and Kroah-Hartman style+evaluate branches via Mermaid `par`/`and` block; merge into `LeaderComparison`.
+
+- **Why.** PRD §7f requires all 5 architecture diagrams (A1–A5). A2 and A3 document the runtime call sequence that is not visible in the static component (A1) or data-flow (A5) diagrams — specifically the `@router` fallback branch and the retrieve-once optimization in compare mode.
+
+- **Surprising.** Nothing — pure documentation phase. The "retrieve once, style twice" structure was already locked in `src/flow.py`; A3 is a faithful transcription, not a design decision.
+
+- **Deferred.** Nothing. All 5 PRD §7f diagrams now exist (`system-architecture.md`, `data-models.md`, `data-flow.md`, `single-query-sequence.md`, `dual-leader-sequence.md`).
+
+- **ADR candidate.** No new decision surfaced.
