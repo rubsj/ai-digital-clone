@@ -1,0 +1,126 @@
+[
+  {
+    "id": "q01",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 10481.893917080015
+  },
+  {
+    "id": "q01",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 9853.763374965638
+  },
+  {
+    "id": "q02",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 14236.745541915298
+  },
+  {
+    "id": "q02",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 9089.767874917015
+  },
+  {
+    "id": "q03",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 9190.732458024286
+  },
+  {
+    "id": "q03",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 11036.995082977228
+  },
+  {
+    "id": "q04",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 11240.219375002198
+  },
+  {
+    "id": "q04",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.9018219516742852,
+    "groundedness_score": 0.602881908416748,
+    "confidence_score": 0.8594074088888889,
+    "final_score": 0.773763,
+    "latency_ms": 7629.519583075307
+  },
+  {
+    "id": "q05",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 11570.757124922238
+  },
+  {
+    "id": "q05",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 11344.58525001537
+  },
+  {
+    "id": "q06",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 12529.512500041164
+  },
+  {
+    "id": "q06",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 9926.79508391302
+  },
+  {
+    "id": "q07",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 9729.363958002068
+  },
+  {
+    "id": "q07",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 9600.23233294487
+  },
+  {
+    "id": "q08",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 10523.2316670008
+  },
+  {
+    "id": "q08",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 8806.81058310438
+  },
+  {
+    "id": "q09",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 8892.68966706004
+  },
+  {
+    "id": "q09",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 17865.267500048503
+  },
+  {
+    "id": "q10",
+    "leader": "torvalds",
+    "fallback": true,
+    "latency_ms": 9397.364959004335
+  },
+  {
+    "id": "q10",
+    "leader": "kroah_hartman",
+    "fallback": true,
+    "latency_ms": 11548.645125003532
+  }
+]

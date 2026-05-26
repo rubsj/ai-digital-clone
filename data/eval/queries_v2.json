@@ -1,0 +1,162 @@
+[
+  {
+    "id": "q01",
+    "leader": "torvalds",
+    "category": "statistical_learning_ml",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "Why does L2 regularization tend to spread weight magnitudes more evenly than L1, and when would you actually prefer L1?"
+  },
+  {
+    "id": "q02",
+    "leader": "torvalds",
+    "category": "statistical_learning_ml",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "What is actually happening when an SVM uses a kernel function instead of explicitly mapping data into a higher-dimensional space?"
+  },
+  {
+    "id": "q03",
+    "leader": "kroah_hartman",
+    "category": "statistical_learning_ml",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "How does the bias-variance tradeoff change as you add hidden layers to a neural network?"
+  },
+  {
+    "id": "q04",
+    "leader": "kroah_hartman",
+    "category": "statistical_learning_ml",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "Why do we use cross-validation instead of just splitting the data once into a train set and a test set?"
+  },
+  {
+    "id": "q05",
+    "leader": "torvalds",
+    "category": "data_mining",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "Why does k-nearest-neighbors fall apart in high-dimensional spaces, and what does the curse of dimensionality actually mean for it?"
+  },
+  {
+    "id": "q06",
+    "leader": "torvalds",
+    "category": "data_mining",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "What is the difference between forward selection and backward selection for feature selection, and when does one beat the other?"
+  },
+  {
+    "id": "q07",
+    "leader": "kroah_hartman",
+    "category": "data_mining",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "How does a confusion matrix help you tell the difference between a model that is biased toward one class and a model that is just bad overall?"
+  },
+  {
+    "id": "q08",
+    "leader": "kroah_hartman",
+    "category": "data_mining",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "What makes user-based collaborative filtering different from item-based collaborative filtering, and why does one usually scale better?"
+  },
+  {
+    "id": "q09",
+    "leader": "torvalds",
+    "category": "numerical_methods",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "When does the trapezoidal rule give you a reasonable answer for numerical integration, and when do you need Simpson's rule or something fancier?"
+  },
+  {
+    "id": "q10",
+    "leader": "torvalds",
+    "category": "numerical_methods",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "How does fixed-point iteration work as a method for solving nonlinear equations, and what determines whether it converges?"
+  },
+  {
+    "id": "q11",
+    "leader": "kroah_hartman",
+    "category": "numerical_methods",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "Why do sparse matrix representations make Gaussian elimination practical for systems with thousands of variables?"
+  },
+  {
+    "id": "q12",
+    "leader": "torvalds",
+    "category": "programming_fundamentals",
+    "expected_behavior": "deliver",
+    "regression_anchor": true,
+    "query": "How does binary search work and what is its time complexity?"
+  },
+  {
+    "id": "q13",
+    "leader": "kroah_hartman",
+    "category": "programming_fundamentals",
+    "expected_behavior": "deliver",
+    "regression_anchor": true,
+    "query": "What is the difference between a stack and a queue, and when is each used?"
+  },
+  {
+    "id": "q14",
+    "leader": "kroah_hartman",
+    "category": "programming_fundamentals",
+    "expected_behavior": "deliver",
+    "regression_anchor": false,
+    "query": "When would you reach for recursion over an iterative loop, and what is the actual cost in practice?"
+  },
+  {
+    "id": "q15",
+    "leader": "torvalds",
+    "category": "systems_absent_from_corpus",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "What is the real cost of a context switch in a modern kernel, and where does most of that time actually go?"
+  },
+  {
+    "id": "q16",
+    "leader": "torvalds",
+    "category": "systems_absent_from_corpus",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "How does TCP's congestion control actually decide when to back off, and why does the Linux implementation differ from the textbook algorithm?"
+  },
+  {
+    "id": "q17",
+    "leader": "kroah_hartman",
+    "category": "systems_absent_from_corpus",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "Why is a virtual memory page-table walk so expensive, and what does the TLB actually buy you in practice?"
+  },
+  {
+    "id": "q18",
+    "leader": "kroah_hartman",
+    "category": "systems_absent_from_corpus",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "How do stack canaries detect a buffer overflow, and what kind of overflows do they miss?"
+  },
+  {
+    "id": "q19",
+    "leader": "torvalds",
+    "category": "off_topic_technical",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "What are the real-world tradeoffs between writing bare-metal embedded firmware and running a small RTOS on the same microcontroller?"
+  },
+  {
+    "id": "q20",
+    "leader": "kroah_hartman",
+    "category": "off_topic_technical",
+    "expected_behavior": "fallback",
+    "regression_anchor": false,
+    "query": "When you are picking a microcontroller for a battery-powered sensor that wakes up once an hour, which specs actually matter?"
+  }
+]
