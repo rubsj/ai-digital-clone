@@ -1,7 +1,7 @@
 # A2 — Single-Query Sequence
 
 Runtime path for one query against one leader.
-The delivery threshold (0.75) is an Architecture Rule locked in ADR-004.
+The delivery threshold (0.75) is an Architecture Rule; no ADR has been written for it yet.
 
 ```mermaid
 sequenceDiagram
@@ -22,7 +22,7 @@ sequenceDiagram
     DCF->>EA: evaluate(draft, leader, chunks)
     EA-->>DCF: EvaluationResult(style, groundedness, confidence, final)
 
-    Note over DCF: @router — final_score vs 0.75 threshold (ADR-004)
+    Note over DCF: @router — final_score vs 0.75 threshold
 
     alt final_score >= 0.75
         DCF-->>User: StyledResponse
