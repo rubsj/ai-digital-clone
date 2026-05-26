@@ -1,0 +1,222 @@
+[
+  {
+    "id": "q01",
+    "leader": "torvalds",
+    "category": "statistical_learning_ml",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9267028,
+    "top5_mean": 0.2730001184,
+    "top1_snippet": "The most commonly used regularization techniques are L1 and L2 regularization. L1 regulari",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q02",
+    "leader": "torvalds",
+    "category": "statistical_learning_ml",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.99987173,
+    "top5_mean": 0.9980608599999999,
+    "top1_snippet": "By using a kernel function, the data is mapped into a higher dimensional space where it be",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q03",
+    "leader": "kroah_hartman",
+    "category": "statistical_learning_ml",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9730877,
+    "top5_mean": 0.95606616,
+    "top1_snippet": "$$    From this equation, we can see that as we increase the complexity of our model, the ",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q04",
+    "leader": "kroah_hartman",
+    "category": "statistical_learning_ml",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9993068,
+    "top5_mean": 0.99877191,
+    "top1_snippet": "Cross-validation is a technique used to evaluate the performance of a model. It involves s",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q05",
+    "leader": "torvalds",
+    "category": "data_mining",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.90481883,
+    "top5_mean": 0.182026430814,
+    "top1_snippet": "#### Exercise 2  Explain the concept of the \"curse of dimensionality\" and how it can affec",
+    "top1_topic": "Data Mining."
+  },
+  {
+    "id": "q06",
+    "leader": "torvalds",
+    "category": "data_mining",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.99630713,
+    "top5_mean": 0.9819615939999999,
+    "top1_snippet": "#### 10.3b Backward Selection    Backward selection is the opposite of forward selection, ",
+    "top1_topic": "Data Mining."
+  },
+  {
+    "id": "q07",
+    "leader": "kroah_hartman",
+    "category": "data_mining",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.8697146,
+    "top5_mean": 0.636695852,
+    "top1_snippet": "#### 9.2a: Confusion Matrix    The confusion matrix is a table that summarizes the perform",
+    "top1_topic": "Data Mining."
+  },
+  {
+    "id": "q08",
+    "leader": "kroah_hartman",
+    "category": "data_mining",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9979966,
+    "top5_mean": 0.9935212720000001,
+    "top1_snippet": "3. Generating recommendations: After finding similar items, the system recommends these it",
+    "top1_topic": "Data Mining."
+  },
+  {
+    "id": "q09",
+    "leader": "torvalds",
+    "category": "numerical_methods",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9969126,
+    "top5_mean": 0.98412018,
+    "top1_snippet": "Both the trapezoidal rule and Simpson's rule can be used to approximate definite integrals",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  },
+  {
+    "id": "q10",
+    "leader": "torvalds",
+    "category": "numerical_methods",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.9982039,
+    "top5_mean": 0.9979485800000001,
+    "top1_snippet": "#### 3.2a: Fixed-Point Iteration    Fixed-point iteration is a method of computing fixed p",
+    "top1_topic": "Numerical Methods Applied to Chemical Engineering."
+  },
+  {
+    "id": "q11",
+    "leader": "kroah_hartman",
+    "category": "numerical_methods",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.6904547,
+    "top5_mean": 0.2294283892,
+    "top1_snippet": "Sparse matrices require specialized algorithms for efficient computation. One such algorit",
+    "top1_topic": "Numerical Methods Applied to Chemical Engineering."
+  },
+  {
+    "id": "q12",
+    "leader": "torvalds",
+    "category": "programming_fundamentals",
+    "expected": "deliver",
+    "anchor": true,
+    "top1_score": 0.7512834,
+    "top5_mean": 0.15779983064,
+    "top1_snippet": "Linear search involves sequentially checking each item in a list until the desired item is",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  },
+  {
+    "id": "q13",
+    "leader": "kroah_hartman",
+    "category": "programming_fundamentals",
+    "expected": "deliver",
+    "anchor": true,
+    "top1_score": 0.9991541,
+    "top5_mean": 0.91155556,
+    "top1_snippet": "Another application is in memory management, where stacks and queues are used to allocate ",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  },
+  {
+    "id": "q14",
+    "leader": "kroah_hartman",
+    "category": "programming_fundamentals",
+    "expected": "deliver",
+    "anchor": false,
+    "top1_score": 0.32359383,
+    "top5_mean": 0.1918959146,
+    "top1_snippet": "One of the key differences between recursion and iteration is that recursion involves solv",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  },
+  {
+    "id": "q15",
+    "leader": "torvalds",
+    "category": "systems_absent_from_corpus",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 2.0623422e-05,
+    "top5_mean": 8.31006862e-06,
+    "top1_snippet": "This has significant implications for the use of kernel methods in large-scale application",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q16",
+    "leader": "torvalds",
+    "category": "systems_absent_from_corpus",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 0.0002216781,
+    "top5_mean": 7.11815282e-05,
+    "top1_snippet": "the use of adaptive learning rates to improve the efficiency of the algorithm.",
+    "top1_topic": "Data Mining."
+  },
+  {
+    "id": "q17",
+    "leader": "kroah_hartman",
+    "category": "systems_absent_from_corpus",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 1.2679283e-06,
+    "top5_mean": 5.45988692e-07,
+    "top1_snippet": "space without actually computing the mapping, making computations more efficient.",
+    "top1_topic": "Statistical Learning Theory and Applications."
+  },
+  {
+    "id": "q18",
+    "leader": "kroah_hartman",
+    "category": "systems_absent_from_corpus",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 0.0013458604,
+    "top5_mean": 0.000490384702,
+    "top1_snippet": "in programming, such as race conditions and deadlocks.",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  },
+  {
+    "id": "q19",
+    "leader": "torvalds",
+    "category": "off_topic_technical",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 0.00047470425,
+    "top5_mean": 0.000143901728,
+    "top1_snippet": "shared and distributed memory systems to take advantage of their individual strengths.",
+    "top1_topic": "Numerical Methods Applied to Chemical Engineering."
+  },
+  {
+    "id": "q20",
+    "leader": "kroah_hartman",
+    "category": "off_topic_technical",
+    "expected": "fallback",
+    "anchor": false,
+    "top1_score": 0.0013250224,
+    "top5_mean": 0.001020082194,
+    "top1_snippet": "The accuracy and precision of a sensor depend on its design and the quality of its compone",
+    "top1_topic": "Introduction to Computers and Engineering Problem Solving copy."
+  }
+]

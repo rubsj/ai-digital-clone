@@ -1,0 +1,202 @@
+[
+  {
+    "id": "q01",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.6864801836476496,
+    "groundedness_score": 0.36350350081920624,
+    "confidence_score": 0.6943286538124084,
+    "final_score": 0.558859,
+    "latency_ms": 12744.747707969509
+  },
+  {
+    "id": "q01",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.8685692927167606,
+    "groundedness_score": 0.40921415761113167,
+    "confidence_score": 0.7776619871457418,
+    "final_score": 0.666646,
+    "latency_ms": 11948.760292027146
+  },
+  {
+    "id": "q02",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.7014618121923968,
+    "groundedness_score": 0.5069274492561817,
+    "confidence_score": 0.8031086146831513,
+    "final_score": 0.643977,
+    "latency_ms": 12059.543500072323
+  },
+  {
+    "id": "q02",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.6959694479921474,
+    "groundedness_score": 0.5168818136056265,
+    "confidence_score": 0.7364419480164845,
+    "final_score": 0.632429,
+    "latency_ms": 8473.590917070396
+  },
+  {
+    "id": "q03",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.9500606879125811,
+    "groundedness_score": 0.5266671478748322,
+    "confidence_score": 0.8286952435970306,
+    "final_score": 0.75643,
+    "latency_ms": 9293.55912504252
+  },
+  {
+    "id": "q03",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.8455931011939469,
+    "groundedness_score": 0.6113534825188773,
+    "confidence_score": 0.762028576930364,
+    "final_score": 0.735184,
+    "latency_ms": 9398.360042017885
+  },
+  {
+    "id": "q04",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.9161946602280756,
+    "groundedness_score": 0.5104288889302148,
+    "confidence_score": 0.8193536427285936,
+    "final_score": 0.73452,
+    "latency_ms": 10625.277832965367
+  },
+  {
+    "id": "q04",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.90679990014852,
+    "groundedness_score": 0.5988839507102967,
+    "confidence_score": 0.7082425316174824,
+    "final_score": 0.743922,
+    "latency_ms": 9779.113125056028
+  },
+  {
+    "id": "q05",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.8904779125129691,
+    "groundedness_score": 0.38622553511099383,
+    "confidence_score": 0.7464949839644962,
+    "final_score": 0.65998,
+    "latency_ms": 9936.195750022307
+  },
+  {
+    "id": "q05",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.7594638786882888,
+    "groundedness_score": 0.42624089419841765,
+    "confidence_score": 0.7687172061867185,
+    "final_score": 0.628025,
+    "latency_ms": 10445.411624968983
+  },
+  {
+    "id": "q06",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.852959083861939,
+    "groundedness_score": 0.3353962630033493,
+    "confidence_score": 0.7837729136149089,
+    "final_score": 0.632097,
+    "latency_ms": 9661.468124948442
+  },
+  {
+    "id": "q06",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.8677234953983864,
+    "groundedness_score": 0.3202881718223745,
+    "confidence_score": 0.7837729136149089,
+    "final_score": 0.631959,
+    "latency_ms": 13405.507415998727
+  },
+  {
+    "id": "q07",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.9387251167659499,
+    "groundedness_score": 0.3669171644882722,
+    "confidence_score": 0.7149480090852368,
+    "final_score": 0.665247,
+    "latency_ms": 10163.39375008829
+  },
+  {
+    "id": "q07",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.8481781694669854,
+    "groundedness_score": 0.43009408935904503,
+    "confidence_score": 0.6974041494361142,
+    "final_score": 0.65079,
+    "latency_ms": 10986.836457974277
+  },
+  {
+    "id": "q08",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.8329786496450394,
+    "groundedness_score": 0.48414630591869356,
+    "confidence_score": 0.7867996374766032,
+    "final_score": 0.68421,
+    "latency_ms": 10727.659625001252
+  },
+  {
+    "id": "q08",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.7354892170701383,
+    "groundedness_score": 0.5353214405477047,
+    "confidence_score": 0.7617996374766033,
+    "final_score": 0.660684,
+    "latency_ms": 7553.200584021397
+  },
+  {
+    "id": "q09",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.6633300376409154,
+    "groundedness_score": 0.42654695361852646,
+    "confidence_score": 0.6991896159721144,
+    "final_score": 0.575789,
+    "latency_ms": 8276.302083046176
+  },
+  {
+    "id": "q09",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.7386864233251517,
+    "groundedness_score": 0.4555826253361172,
+    "confidence_score": 0.7597956765781749,
+    "final_score": 0.629667,
+    "latency_ms": 8574.36387508642
+  },
+  {
+    "id": "q10",
+    "leader": "torvalds",
+    "fallback": false,
+    "style_score": 0.8227035706424317,
+    "groundedness_score": 0.46882880181074144,
+    "confidence_score": 0.7955491169905051,
+    "final_score": 0.675723,
+    "latency_ms": 11439.985541976057
+  },
+  {
+    "id": "q10",
+    "leader": "kroah_hartman",
+    "fallback": false,
+    "style_score": 0.7884315553278937,
+    "groundedness_score": 0.4914267559846242,
+    "confidence_score": 0.7032414246828128,
+    "final_score": 0.652592,
+    "latency_ms": 10217.071791063063
+  }
+]
