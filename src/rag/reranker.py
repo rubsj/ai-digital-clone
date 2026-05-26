@@ -33,7 +33,7 @@ def rerank(
     effective_n = min(top_n, len(results))
 
     try:
-        client = cohere.ClientV2(api_key=os.environ.get("CO_API_KEY", ""))
+        client = cohere.ClientV2(api_key=os.environ.get("COHERE_API_KEY", ""))
         documents = [r.chunk.content for r in results]
         response = client.rerank(
             model=model,
