@@ -25,3 +25,14 @@
 - Surprising: nothing. Confirmed the no-parenthetical and no-scaffolding-note instructions per the plan.
 - Deferred: ADR-012 (Phase 4).
 - ADR candidate: no, this phase is the ADR.
+
+## Phase 4: ADR-012 LLM-Driven FallbackAgent with Templated Failsafe
+
+- Built: `docs/adr/ADR-012-fallback-agent-with-failsafe.md`. 5 H2 sections. Decision verbatim from the plan; Context as three prose paragraphs; Alternatives keep the v1-templated-fallback reference; Quantified Validation transcribes the four-item evidence list. resilience4j/Hystrix circuit-breaker parenthetical inline at the end of Consequences.
+- Why: documents the LLM-driven fallback with a 5-line templated failsafe. The dominant-path framing (60-75% of in-domain experience) is what justifies an Agent here rather than a template.
+- Verified against day8-findings.md: fallback 95% / 90% / 72.5% (Three-run comparison); in-domain 60.7% = 17/28 (scorecard §2d + 2×2 matrix); per-leader Torvalds 14/20 70.0%, KH 15/20 75.0% (Three-run); mean fallback latency 11,445 ms (Three-run). All four numbers match source.
+- Surprising: nothing. No conflicts between plan and CLAUDE.md format rules.
+- Deferred: none. ADR batch A (009-012) complete.
+- ADR candidate: no, this phase is the ADR.
+
+End of session: all four Day 9 ADRs (009-012) written. 009-011 committed (3244295, 325a489, c7c62f7); 012 awaiting review.
