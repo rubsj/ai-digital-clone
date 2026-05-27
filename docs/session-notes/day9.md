@@ -16,3 +16,12 @@
 - Surprising: nothing. No conflicts between plan and CLAUDE.md format rules.
 - Deferred: ADR-011 (Phase 3), ADR-012 (Phase 4).
 - ADR candidate: no, this phase is the ADR.
+
+## Phase 3: ADR-011 EvaluatorAgent Hybrid Design
+
+- Built: `docs/adr/ADR-011-evaluator-agent-hybrid-design.md`. 5 H2 sections. Decision verbatim from the plan; Context as three prose paragraphs; Alternatives keep the v1-design reference on the pure-Component option; Quantified Validation transcribes the three-item evidence list. No Java/TS parenthetical, and the plan's editorial scaffolding note explaining the omission was left out of the ADR (it is plan-file material, not ADR content). Consequences ends at the last bullet.
+- Why: documents the hybrid Agent that delegates numerical scoring to ScoringEngine and uses the LLM only for explanation and flags. The hybrid pattern is the case ADR-009 flagged as needing its own treatment.
+- Verified: Pearson 0.82 against PRD §10.5 ("GPT-4o-mini correlated Pearson 0.82 with cosine baseline on groundedness scoring") — matches. Finding 1 numbers (style 0.9025, groundedness 0.6258, 0.28 gap) consistent with day8-findings.md.
+- Surprising: nothing. Confirmed the no-parenthetical and no-scaffolding-note instructions per the plan.
+- Deferred: ADR-012 (Phase 4).
+- ADR candidate: no, this phase is the ADR.
