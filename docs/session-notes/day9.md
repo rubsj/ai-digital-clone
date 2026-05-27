@@ -7,3 +7,12 @@
 - Surprising: the input path in the execution prompt was `docs/plans/day9-adr-batch-a-plan.md`, but the file on disk is `docs/plans/day9-plan.md`. Same content. Flagged the naming mismatch and proceeded with the on-disk file as the contract.
 - Deferred: ADR-010, ADR-011, ADR-012 — Phases 2-4 of this session, each behind its own stop gate.
 - ADR candidate: no, this phase is the ADR.
+
+## Phase 2: ADR-010 LLM-Driven Routing via GatekeeperAgent
+
+- Built: `docs/adr/ADR-010-llm-driven-routing-gatekeeper.md`. 5 H2 sections. Decision verbatim from the plan; Context rewritten as three prose paragraphs from the outline; Alternatives keep the v1 weighted-formula and threshold references; Quantified Validation transcribes the seven-item evidence list; Drools rule-engine parenthetical inline at the end of Consequences.
+- Why: documents the replacement of v1's `0.4×style + 0.4×ground + 0.2×conf` formula and 0.75 threshold with LLM-driven routing. Matched ADR-009's edited house style (no bold lead-ins in Alternatives, `Positive:`/`Negative:` retained in Consequences).
+- Verified against day8-findings.md before transcribing: 95.0% / 90.0% / 72.5% fallback (Three-run comparison 19/20, 18/20, 29/40); style means T 0.9025 / KH 0.8355, Δ +0.067 (Finding 1); groundedness 0.6258 up from 0.5173 (Three-run); OOD 12/12 100% zero hallucinations (2×2 matrix); q12 v1 May-23 delivered at final=0.7525, both fall back post-Cohere-fix (Verification 2). All seven numbers match source.
+- Surprising: nothing. No conflicts between plan and CLAUDE.md format rules.
+- Deferred: ADR-011 (Phase 3), ADR-012 (Phase 4).
+- ADR candidate: no, this phase is the ADR.
