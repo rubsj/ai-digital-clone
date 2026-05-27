@@ -8,12 +8,18 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 
 import cohere
 
 from src.schemas import RetrievalResult
 
 logger = logging.getLogger(__name__)
+
+# Module-level last-call timestamp for COHERE_THROTTLE_SECONDS support.
+# Cohere's free/trial tier caps at 10 calls/minute; set the env var to e.g.
+# "7" to space calls and avoid silent rate-limit fallbacks during eval runs.
+_last_call_t: float = 0.0
 
 
 def rerank(
@@ -32,8 +38,16 @@ def rerank(
 
     effective_n = min(top_n, len(results))
 
+    global _last_call_t
+    throttle_s = float(os.environ.get("COHERE_THROTTLE_SECONDS", "0") or "0")
+    if throttle_s > 0:
+        wait = throttle_s - (time.monotonic() - _last_call_t)
+        if wait > 0:
+            time.sleep(wait)
+    _last_call_t = time.monotonic()
+
     try:
-        client = cohere.ClientV2(api_key=os.environ.get("CO_API_KEY", ""))
+        client = cohere.ClientV2(api_key=os.environ.get("COHERE_API_KEY", ""))
         documents = [r.chunk.content for r in results]
         response = client.rerank(
             model=model,
