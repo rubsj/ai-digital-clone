@@ -21,7 +21,7 @@ I had two serious options:
 
 ## Decision
 
-Hand-crafted 15-dim feature vectors (`StyleFeatures.to_vector()`), computed by `feature_extractor.py`.
+Hand-crafted 15-dim feature vectors (`StyleFeatures.to_vector()`), computed by `feature_extractor.py`. This follows Schneider et al. (2016) (OpenSym), whose stylometric study of LKML identified Torvalds-specific authorial signals, the published precedent for deriving named features rather than opaque embeddings.
 
 In v2 the StyleProfileBuilder Component owns profile construction (PRD §5.2.2): it wraps `feature_extractor.py` and the email pipeline to build the per-leader profile, and those modules persist as low-level helpers rather than as directly-imported entry points (PRD §12.2). The cosine similarity between a response's feature vector and the leader profile is computed by the ScoringEngine Component (PRD §5.2.3), so the style score is a ScoringEngine output in v2 and no LLM touches the number (ADR-007).
 
