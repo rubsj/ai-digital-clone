@@ -1,69 +1,52 @@
-# ADR-001: CrewAI Flow over Sequential and Hierarchical Patterns
+# ADR-001: CrewAI Flow with Real Agents at Each Step
 
 **Project:** P6: Torvalds Digital Clone
-**Category:** Orchestration
-**Status:** Accepted
+**Category:** Architecture
+**Status:** Accepted (rewritten for v2, 2026-05-26)
 **Date:** 2026-04-03
 
 ---
 
 ## Context
 
-P6 needs an orchestrator that can do three things I couldn't work around:
+CrewAI offers three orchestration approaches. Two are Crews, Sequential and Hierarchical; the third is Flows. v1's ADR-001 chose Flow and that choice still holds. What v1 got wrong was the layer below the choice: every Flow step was wired as a Python function calling deterministic pipeline code, and four of those functions were labeled "agents" in the documentation.
 
-1. After EvaluatorAgent scores a response, the system routes to one of two paths: deliver a styled response, or trigger fallback. There's no way to express "if score < 0.75, go here instead" without real branching.
+The v2 question is not which orchestration pattern to use. The answer is still Flow. The question is what runs at each Flow step. The v2 PRD defines what the system has to be: §2 sets the acceptance criteria, including the routing-correctness headline and the multi-agent orchestration goal, and §3 sets the architectural intent of four LLM-driven Agents over three deterministic Components. Measuring the v1 implementation against those requirements showed it did not meet them. The multi-agent claim was directory-deep rather than execution-deep: only one of five "agents" used the CrewAI Agent abstraction, while the other four were Python functions with the vocabulary applied as a label rather than as structure.
 
-2. Five agents share data: the query, retrieved chunks, the styled response, the evaluation scores. Without typed state management, you're threading dicts through function calls and losing the safety guarantees Pydantic gives you.
-
-3. Running Torvalds and Kroah-Hartman on the same query means retrieve once (expensive), style twice (cheap). The orchestrator needs to support a "reuse chunks from the first run" pattern cleanly.
-
-CrewAI offers three orchestration patterns. I had to pick one.
+The architecture had to change because the requirements were not being met, not because an audit produced a finding. Day 8 verification is the date the gap was measured, not the reason for the rework. The evidence is the v1 ADR's own Decision section, which states that only ChatStyleAgent used the Agent abstraction and that "the other four agents are just functions." The v1 code says the same thing. `src/agents/style_crew.py` is the only file that imports `from crewai import Agent, Crew, LLM, Task` and constructs an `Agent(role, goal, backstory)`. Alongside it, `rag_agent.py` and `evaluator_steps.py` are plain Python classes and `fallback_steps.py` is a plain function, none of them touching CrewAI.
 
 ---
 
 ## Decision
 
-CrewAI Flow (`DigitalCloneFlow(Flow[CloneState])`) with `@start`, `@listen`, and `@router` decorators. The Flow IS the PlannerAgent: it defines step order, state management, and conditional routing. A single-agent Crew handles only the ChatStyleAgent step, where LLM role/goal/backstory prompting adds real value. The other four "agents" (RAGAgent, EvaluatorAgent, FallbackAgent, and the PlannerAgent itself) are direct function calls within Flow steps.
+CrewAI Flow stays as the deterministic orchestrator backbone. Each Flow step calls either a real CrewAI Agent (CloneAgent, EvaluatorAgent, GatekeeperAgent, FallbackAgent) or a real Component (Retriever). The Flow is the orchestration and there is no separate PlannerAgent. State is managed through `Flow[CloneState]`, a Pydantic `BaseModel` that CrewAI populates incrementally as each step completes. Conditional branching happens through the `@router` decorator on the GatekeeperAgent step, which returns the string `"deliver"` or `"fallback"`.
 
-```mermaid
-graph LR
-    A["@start: receive_query"] --> B["@listen: retrieve_knowledge"]
-    B --> C["@listen: style_response (Crew)"]
-    C --> D["@router: evaluate"]
-    D -- "deliver" --> E["@listen: deliver_response"]
-    D -- "fallback" --> F["@listen: fallback_response"]
-```
-
-`CloneState` is a Pydantic `BaseModel` that gets passed between all steps automatically. CrewAI populates it incrementally as each step completes, so there's no manual threading of state.
-
-The `@router()` decorator makes branching explicit: the evaluation step returns either `"deliver"` or `"fallback"` as a string, and downstream `@listen("deliver")` and `@listen("fallback")` steps wire to those values. One wrong value (returning `True` instead of `"deliver"`, for example) and nothing routes. The pattern enforces correctness by failing loudly.
+This is the central architectural correction in v2. The Flow shell is unchanged from v1: the same Flow decorators (`@start`, `@listen`, `@router`) define the same step order. What changes is what runs inside each step, moving from Python functions to real Agents and Components. v1 named the Flow itself "the PlannerAgent" and ran its evaluator and fallback steps as direct function calls. v2 keeps the Flow as plain orchestration. It promotes the steps where LLM reasoning is the work into real Agents and reclassifies the retrieval step as the deterministic Retriever Component.
 
 ---
 
 ## Alternatives Considered
 
-**Sequential Crew (process=Process.sequential)** - A list of Tasks runs in order, each Agent picking up context from the previous one. Can't branch. There's no way to say "skip the delivery step and run fallback instead" based on an intermediate result. I'd have to run both paths and pick one after the fact, which doubles latency.
-
-**Hierarchical Crew (process=Process.hierarchical)** - A manager Agent decides at runtime which worker Agents to delegate to. On paper this looks like it handles branching, but in practice it doesn't. The manager calls LLM inference to pick which agent to call next, adding 1-2 seconds of latency with an LLM-as-router that can hallucinate wrong delegation. The Towards Data Science November 2025 analysis of CrewAI patterns documented production deployments where hierarchical Crews looped indefinitely instead of delegating. For a system where the routing condition is a deterministic number comparison (`score >= 0.75`), adding an LLM to make that decision is both slower and less reliable.
-
-**Raw Python orchestration** - Skip CrewAI entirely and write a plain Python function that calls each step in sequence. Full control, no framework overhead. But I'd lose `@router` conditional branching (would have to implement it manually) and the typed `FlowState` passed between steps (would fall back to dicts or shared objects). The decorator-based routing and typed state justified the framework dependency.
+- **Sequential Crew.** Rejected. Tasks run in a fixed order with no native conditional branching, so skipping FallbackAgent when GatekeeperAgent decides to deliver would need a no-op task or post-hoc filtering. The pipeline requires real branching and Sequential cannot express it.
+- **Hierarchical Crew.** Rejected. A Manager Agent making an LLM-based delegation decision on every step adds one to two seconds of latency per step with no autonomy benefit, because the pipeline order is already fixed. Hierarchical Crews are also documented as fragile in production, with the Towards Data Science analysis from November 2025 recording deployments where they looped instead of delegating.
+- **Flow with Python-function steps (the v1 pattern).** Rejected for v2. It forfeits the Agent abstraction benefits that matter for an LLM step, like role/goal/backstory prompt scaffolding and Instructor-validated structured output with automatic retry. It is also the exact shape that made v1's multi-agent claim directory-deep rather than execution-deep.
 
 ---
 
 ## Quantified Validation
 
-The Lead Score Flow example in the CrewAI docs uses `@router` to branch a high-score lead vs a low-score lead into different nurture paths. Same pattern as DigitalCloneFlow's deliver/fallback branch.
-
-The DocuSign case study (CrewAI blog, December 2025) migrated from Sequential Crews to Flows specifically because Sequential couldn't express conditional logic with typed state. Same constraint I hit.
-
-In my POC (`scratch/flow_poc.py`), I validated all four decorator patterns in isolation: `@start()`, `@listen(method_ref)`, `@listen("string")`, `@router()`. The router correctly routes to `"deliver"` when score >= 0.75 and to `"fallback"` when below. All state fields persist across steps via `PocState`. Runs cleanly with `uv run python scratch/flow_poc.py`.
+- The bar the v1 system was measured against is the v2 requirements set, not a separate audit. PRD §2 fixes the acceptance criteria, including routing-correctness as the headline metric and multi-agent orchestration as a goal, and PRD §3 fixes the four-Agent-plus-three-Component architecture. The Day 8 verification run is the empirical anchor that exposed the gap against that bar.
+- Of five units called "agent," exactly one was real: ChatStyleAgent in `src/agents/style_crew.py`, which wraps an `Agent` plus a `Task` in a single-agent `Crew`. The other four were Python functions or classes wrapped in Flow decorators. PRD §12.2 records the same mapping, and the v1 ADR-001 Decision text being replaced says it outright.
+- CrewAI's own engineering guidance backs the v2 shape. The December 2025 CrewAI blog recommends a deterministic Flow backbone whose individual steps lean on different levels of agent autonomy, and the DocuSign case study migrated from Sequential Crews to Flows to get conditional logic with typed state. Both points carried the v1 decision and carry forward, reframed for the real-Agents-at-each-step pattern.
+- The concrete v2 shape is four real Agents at the four steps where LLM reasoning is the work, plus one Component step for retrieval. PRD §5.5 gives the Flow code skeleton: the retrieve step runs the Retriever Component, each LLM-reasoning step runs its Agent, and the `@router` step calls GatekeeperAgent to return the deliver-or-fallback string.
+- The v1 decorator POC (`scratch/flow_poc.py`) validated the decorator wiring in isolation and nothing more. Its routing test is not the v2 routing path; routing is now GatekeeperAgent's string decision rather than a numeric threshold (ADR-010).
 
 ---
 
 ## Consequences
 
-The Flow architecture is lighter than expected. Since only ChatStyleAgent needs the LLM role/goal/backstory that CrewAI's `Agent` abstraction provides, the other four "agents" are just functions. I only have one `Crew` in the entire system. The CrewAI dependency is real but the coupling surface is small: if the Flows API changes, it's isolated to `src/flow.py` and `src/agents/style_crew.py`.
+This is the decision the rest of the v2 ADRs build on. The Flow shell stays, and what runs inside it moves from Python functions carrying multi-agent vocabulary to real Agents where LLM reasoning lives and real Components where determinism lives. The visible artifact of that move is the `src/agents/` versus `src/components/` split that ADR-009 defines and ADR-014 inventories.
 
-The risk is that CrewAI Flows is relatively new (introduced mid-2024). The API has changed between minor versions, which is why `pyproject.toml` pins `crewai>=0.108.0`. If a future version breaks `@router` semantics, I'd need to update `flow.py` but nothing else.
+The CrewAI dependency surface stays small and isolated to `src/flow.py` and the Agent classes, so a future Flows API change is contained to those files rather than spreading across the pipeline. The `crewai>=0.108.0` pin in `pyproject.toml` carries forward from v1, where it was set because the CrewAI API changed between minor versions.
 
-Dual-leader mode works cleanly: run `DigitalCloneFlow` once with `leader="torvalds"`, capture `state.retrieved_chunks`, then run again with `leader="kroah_hartman"` and inject the cached chunks. The `retrieve_knowledge` step checks `len(self.state.retrieved_chunks) > 0` and skips retrieval if chunks are already present. RAG retrieval (the expensive step) runs exactly once per query pair.
+The dual-leader comparison still runs two Flow instances over one query, retrieving once and styling twice. The detail now lives in ADR-005 rather than here, including the `CloneState.chunks` early-exit that lets the second leader's retrieve step skip the embed-and-rerank path. (In Java terms this is closer to Spring Integration flow definitions calling typed beans than to a saga orchestrator, where the Flow is structure and the Agents and Components are behavior.)
