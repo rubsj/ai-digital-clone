@@ -9,7 +9,7 @@
 
 ## Context
 
-The evaluation pipeline needs to score whether a generated response is grounded in the retrieved knowledge chunks. Groundedness is 40% of the final quality score (`final = 0.4*style + 0.4*groundedness + 0.2*confidence`) and determines whether the system delivers a styled response or routes to fallback.
+The evaluation pipeline needs to score whether a generated response is grounded in the retrieved knowledge chunks. Groundedness is one of the three scores the evaluator produces for a response, alongside style and confidence. v1 combined the three into a weighted `final = 0.4*style + 0.4*groundedness + 0.2*confidence` and routed against a 0.75 threshold; v2 drops the weighted formula and the threshold (ADR-010, Architecture Rule 3), and GatekeeperAgent reasons over the three individual scores instead. Either way groundedness has to be measured per response, and it is the signal for whether the response is actually supported by the retrieved chunks.
 
 Style and confidence are cheap: cosine similarity on numerical features and rule-based heuristics, respectively. Groundedness is not. It requires checking whether factual claims in the response actually appear in the source material, which is a reading comprehension problem. I had to decide between an LLM judge per evaluation or a heuristic cheap enough to run on every query.
 
@@ -30,6 +30,8 @@ def score_groundedness(response, chunks, top_k=5) -> float:
     per_sentence_max = [max(_cosine(sv, cv) for cv in chunk_vecs) for sv in sentence_vecs]
     return float(np.mean(per_sentence_max))
 ```
+
+In v2 this is a method on the ScoringEngine Component (`src/components/scoring_engine.py`), which wraps the existing `src/evaluation/` helper rather than reimplementing the math (PRD §12.2). The computation stays deterministic and LLM-free, since v2 uses no LLM for any numerical score (ADR-007). Any LLM interpretation of groundedness happens later, in EvaluatorAgent's explanation generation (ADR-011), not inside the scorer.
 
 ---
 

@@ -23,6 +23,8 @@ I had two serious options:
 
 Hand-crafted 15-dim feature vectors (`StyleFeatures.to_vector()`), computed by `feature_extractor.py`.
 
+In v2 the StyleProfileBuilder Component owns profile construction (PRD §5.2.2): it wraps `feature_extractor.py` and the email pipeline to build the per-leader profile, and those modules persist as low-level helpers rather than as directly-imported entry points (PRD §12.2). The cosine similarity between a response's feature vector and the leader profile is computed by the ScoringEngine Component (PRD §5.2.3), so the style score is a ScoringEngine output in v2 and no LLM touches the number (ADR-007).
+
 ---
 
 ## Alternatives Considered
@@ -68,5 +70,7 @@ When self-similarity drops below 0.70, I check the variance table for which feat
 The tradeoff is coverage. The system only captures patterns I explicitly coded into the 15 features. If Torvalds develops a new stylistic habit outside these features, the profile misses it. Adding a dimension requires a code change, a profile rebuild, and a re-validation pass. There's no automatic adaptation.
 
 I also avoid the model version drift problem. Embedding models update silently, and the distance between two vectors can shift when the underlying model changes version. The hand-crafted features compute identically on the same email regardless of when they run, so there's no reproducibility risk from upstream model changes.
+
+The 15 features and the profiles they build are frozen during the v2 rework and re-measured on Day 11 under the new architecture (ADR-013), which is where the Day 8 style-asymmetry finding and the freeze-and-remeasure plan live.
 
 The 15 features are LKML-tuned (patch_language, code_snippet_freq, quote_reply_ratio). Porting this system to a different domain like Slack messages or academic papers would require redesigning 4-6 features. The architecture (extract, aggregate, cosine similarity) transfers cleanly; the feature definitions don't. (Same tradeoff as extracting code quality metrics like cyclomatic complexity and comment density into a comparable vector vs running source files through CodeBERT: the named dimensions tell you what differs, while the embedding just tells you they're both Java web services.)
