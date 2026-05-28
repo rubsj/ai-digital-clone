@@ -36,3 +36,14 @@
 - ADR candidate: no, this phase is the ADR.
 
 End of session: all four Day 9 ADRs (009-012) written. 009-011 committed (3244295, 325a489, c7c62f7); 012 awaiting review.
+
+## Batch B Phase 1: six ADR light edits and PRD title fixes
+
+- Built: light edits to the six surviving v1 ADRs (`ADR-002` through `ADR-006`, `ADR-008`) and five title fixes in `docs/PRD.md` §7.5.2 and §12.3, committed as d756fea. ADR-002 took a Cohere correction (the silent CO_API_KEY/COHERE_API_KEY failure and the 0.89 measured top-1 relevance after fix 206c232); ADR-003 took v2 vocabulary plus an ADR-013 freeze pointer; ADR-004 reframed groundedness off the dead weighted formula; ADR-005 rebuilt both sequence diagrams to the v2 pipeline and renamed `CloneState.retrieved_chunks` to `chunks`; ADR-006 was retitled "Corpus-Shape Limits on Retrieval" with the Day 6 experiment prose moved to past tense; ADR-008 took five vocabulary renames.
+- Why: surgical alignment per the locked `docs/plans/day9-batch-b-plan.md`, not rewrites. The substance check held additions to material that strengthens an argument already in the ADR, such as the verified env var name and the real v2 schema field `chunks`, and anything that would have contradicted the on-disk file was surfaced rather than silently rewritten.
+- Reviewed and corrected: a read-through after d756fea caught AI-cadence and v2 leaks the first pass left in, fixed across ADR-002/003/004. The ADR-002 amendment paragraph narrated the Cohere incident as operational history and was deleted down to the 0.89 architectural evidence; ADR-003's Context still called 0.70 a "quality gate before delivery" (a v1 routing claim) and was reframed as feature-design validation citing ADR-010; ADR-004 still had a future-tense Day 6 sweep sentence and "0.60 threshold" language, both reframed to past tense and to a calibration point. The bold-label-dash pattern (`**X** -`) in Alternatives was converted to plain sentence-starters per the CLAUDE.md ban. ADR-005 also dropped a stale "Phase 3 error-recovery" reference during review.
+- Surprising: the first humanization pass reintroduced the exact constructions the Writing Rules ban, bold-dash labels and an incident-narrative amendment. The substance-check additions need the same banned-construction sweep the rest of the ADR gets.
+- Deferred: Batch B Phase 2 (ADR-001 and ADR-007 rewrites) and Phase 3 (new ADR-013 through ADR-016), each behind its own stop gate.
+- ADR candidate: no. These edits maintain existing ADRs and the PRD inventory; no new decision surfaced.
+
+End of Batch B Phase 1: six light-edited ADRs and the PRD title fixes committed (d756fea); review corrections to ADR-002/003/004 and ADR-005's stale-reference cleanup in the follow-up commit. Phases 2 and 3 await review gates.

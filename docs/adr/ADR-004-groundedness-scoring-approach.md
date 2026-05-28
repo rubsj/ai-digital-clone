@@ -37,19 +37,19 @@ In v2 this is a method on the ScoringEngine Component (`src/components/scoring_e
 
 ## Alternatives Considered
 
-**Pure LLM judge per response** - ~$0.002/call, so 1,000 evals costs $2. The cost is manageable but the latency isn't. The system already calls LiteLLM for style generation and the explanation string; a third LLM call in the hot path pushes end-to-end latency over 3s. The PRD doesn't require a judge at inference time, just for one-time threshold calibration.
+**Pure LLM judge per response.** ~$0.002/call, so 1,000 evals costs $2. The cost is manageable but the latency isn't. The system already calls LiteLLM for style generation and the explanation string; a third LLM call in the hot path pushes end-to-end latency over 3s. The PRD doesn't require a judge at inference time, just for one-time calibration.
 
-**Token overlap (BLEU/ROUGE)** - Fast and free, but semantically blind. A response saying "the operating system allocates pages using a buddy system" scores near zero against a chunk containing "Linux uses zone-based page frame allocation": same factual claim, no token overlap. I already chose `text-embedding-3-small` for the RAG layer specifically to get semantic matching. Using token overlap for groundedness would undo that choice.
+**Token overlap (BLEU/ROUGE).** Fast and free, but semantically blind. A response saying "the operating system allocates pages using a buddy system" scores near zero against a chunk containing "Linux uses zone-based page frame allocation": same factual claim, no token overlap. I already chose `text-embedding-3-small` for the RAG layer specifically to get semantic matching. Using token overlap for groundedness would undo that choice.
 
-**BERTScore** - Better than BLEU/ROUGE because it uses contextual token embeddings, but requires loading a BERT model locally (~400MB dependency) and doesn't naturally handle one-response-against-five-chunks structure. The sentence-level max-cosine approach is semantically similar but reuses the embedding model already cached, with no extra dependency.
+**BERTScore.** Better than BLEU/ROUGE because it uses contextual token embeddings, but requires loading a BERT model locally (~400MB dependency) and doesn't naturally handle one-response-against-five-chunks structure. The sentence-level max-cosine approach is semantically similar but reuses the embedding model already cached, with no extra dependency.
 
-**Per-sentence LLM judge** - Reduces per-call cost by batching sentences into one prompt, but the latency problem remains and cost scales with sentence count. A 5-sentence response at $0.002/call is $0.01/query at full evals.
+**Per-sentence LLM judge.** Reduces per-call cost by batching sentences into one prompt, but the latency problem remains and cost scales with sentence count. A 5-sentence response at $0.002/call is $0.01/query at full evals.
 
 ---
 
 ## Quantified Validation
 
-The 0.60 threshold was calibrated against a 5-sample LLM judge comparison: three in-domain queries (memory management, scheduler, filesystem) and two out-of-domain (networking, compilers).
+The heuristic was calibrated against a 5-sample LLM judge comparison at the 0.60 agreement level: three in-domain queries (memory management, scheduler, filesystem) and two out-of-domain (networking, compilers).
 
 | Query | LLM judge | Heuristic | Agreement |
 |---|---|---|---|
@@ -69,6 +69,6 @@ By the time a response is being scored, the top-5 chunks already have embeddings
 
 The per-sentence structure makes scores attributable. "Sentence 3 had max cosine similarity 0.42 against the top 5 chunks" points at the specific ungrounded claim. An LLM judge returns a single number with no way to trace it back to a sentence.
 
-The failure mode is semantic similarity, not factual verification. A response that contradicts a source but uses similar vocabulary can score higher than it should. For LKML-domain queries where terminology is precise ("slab allocator," "rcu_read_lock," "CFS scheduler") this risk is low. The compiler disagreement in the calibration sample is the clearest example. The Day 6 weight sensitivity sweep will test whether the groundedness threshold needs domain-specific adjustment.
+The failure mode is semantic similarity, not factual verification. A response that contradicts a source but uses similar vocabulary can score higher than it should. For LKML-domain queries where terminology is precise ("slab allocator," "rcu_read_lock," "CFS scheduler") this risk is low. The compiler disagreement in the calibration sample is the clearest example. The Day 6 weight sensitivity sweep tested whether the groundedness threshold needed domain-specific adjustment and produced null results as a proxy-regime artifact (ADR-006, PRD §10.3). In v2 there is no fixed threshold to tune; GatekeeperAgent reasons over groundedness qualitatively (ADR-010).
 
-The 0.60 threshold is LKML-calibrated. A new domain would need its own judge comparison before trusting the boundary.
+The 0.60 calibration is LKML-specific. A new domain would need its own judge comparison to validate the heuristic on that vocabulary.

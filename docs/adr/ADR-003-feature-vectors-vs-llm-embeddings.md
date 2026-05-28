@@ -9,7 +9,7 @@
 
 ## Context
 
-Building a profile that captures a specific leader's writing style requires a numerical representation of that style. The system scores every generated response against this profile using cosine similarity, and the threshold (>= 0.70 self-similarity on real LKML data) is the quality gate before a response is delivered. The original plan targeted 0.90, but that was calibrated on synthetic data; full-corpus validation landed at 0.70.
+Building a profile that captures a specific leader's writing style requires a numerical representation of that style. The system scores every generated response against this profile using cosine similarity. The 0.70 self-similarity benchmark on real LKML data (originally calibrated against a 0.90 target on synthetic data, with full-corpus validation landing at 0.70) is the validation pass that confirms the feature design captures genuine leader voice. In v2, GatekeeperAgent reasons over the resulting style score qualitatively rather than against a fixed routing threshold (ADR-010).
 
 I had two serious options:
 
@@ -29,11 +29,11 @@ In v2 the StyleProfileBuilder Component owns profile construction (PRD §5.2.2):
 
 ## Alternatives Considered
 
-**LLM embeddings (`all-MiniLM-L6-v2`, 384-dim)** - The architectural problem is clear without a head-to-head comparison. The embedding model was trained on general English text and treats "nak" (kernel NAK, "not acknowledged") as a neutral word with no patch-review semantic. The model can't tell whether high similarity means "wrote like Torvalds" or "wrote about kernel things," because all LKML emails are about kernels. Embedding self-similarity is inflated by topic overlap, not authorial voice. The feature vector separates those: `technical_terminology` captures vocabulary, `patch_language` captures review signals, `capitalization_ratio` captures Torvalds' distinctive ALLCAPS emphasis.
+**LLM embeddings (`all-MiniLM-L6-v2`, 384-dim).** The architectural problem is clear without a head-to-head comparison. The embedding model was trained on general English text and treats "nak" (kernel NAK, "not acknowledged") as a neutral word with no patch-review semantic. The model can't tell whether high similarity means "wrote like Torvalds" or "wrote about kernel things," because all LKML emails are about kernels. Embedding self-similarity is inflated by topic overlap, not authorial voice. The feature vector separates those: `technical_terminology` captures vocabulary, `patch_language` captures review signals, `capitalization_ratio` captures Torvalds' distinctive ALLCAPS emphasis.
 
-**OpenAI `text-embedding-3-small` (1536-dim)** - Better general quality, but the problem isn't general quality. It's LKML-specific style discrimination. The embedding still can't natively separate "writes like Torvalds" from "writes about kernels." It also adds an API dependency and network call to a step that runs thousands of times during profile building. `extract_features` runs in < 2ms per email with no I/O.
+**OpenAI `text-embedding-3-small` (1536-dim).** Better general quality, but the problem isn't general quality. It's LKML-specific style discrimination. The embedding still can't natively separate "writes like Torvalds" from "writes about kernels." It also adds an API dependency and network call to a step that runs thousands of times during profile building. `extract_features` runs in < 2ms per email with no I/O.
 
-**Hybrid (embeddings + hand-crafted)** - Concatenate the two vectors for a 1551-dim representation. Dimensionality mismatch makes cosine similarity pathological: the 1536 embedding dimensions dominate numerically, drowning out the 15 interpretable ones. Would require weighting or PCA to balance, adding complexity with unclear benefit.
+**Hybrid (embeddings + hand-crafted).** Concatenate the two vectors for a 1551-dim representation. Dimensionality mismatch makes cosine similarity pathological: the 1536 embedding dimensions dominate numerically, drowning out the 15 interpretable ones. Would require weighting or PCA to balance, adding complexity with unclear benefit.
 
 ---
 
