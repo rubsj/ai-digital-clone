@@ -875,7 +875,7 @@ Single-file Streamlit app at the repo root. Imports only from `src.flow`, `src.s
 | ADR-003 | Hand-Crafted Feature Vectors over LLM Embeddings | Light edit — naming aligned with v2 vocabulary |
 | ADR-004 | Groundedness Scoring via Cosine Similarity | Light edit — scope clarified (used by ScoringEngine Component, not LLM) |
 | ADR-005 | Shared RAG Retrieval for Dual-Leader Mode | Light edit — Agent names updated (CloneAgent, not ChatStyleAgent) |
-| ADR-006 | Day 6 Methodology and Corpus-Shape Limits | Light edit — Day 8 confirmation of corpus-shape findings; §10 notes which experiments are obsolete |
+| ADR-006 | Corpus-Shape Limits on Retrieval | Light edit — Day 8 confirmation of corpus-shape findings; §10 notes which experiments are obsolete |
 | ADR-007 | LLM Roles in the Pipeline | Rewritten — supersedes v1's LLM-scoring-viability ADR. Documents where LLMs are used (4 Agents) and where they are deliberately not (3 Components) |
 | ADR-008 | Hexagonal Adapters for CLI and Streamlit | Kept as-is — boundary rule unchanged; CI grep checks added |
 | ADR-009 | Agent vs Component Distinction | New — central v2 vocabulary decision; criteria for what is an Agent vs a Component |
@@ -885,7 +885,7 @@ Single-file Streamlit app at the repo root. Imports only from `src.flow`, `src.s
 | ADR-013 | Style Profile Frozen, Re-Measured Day 11 | New — freeze during rework; per-leader weighting only if KH deliver >20% below Torvalds |
 | ADR-014 | Agent and Component Inventory | New — explicit list of 4 Agents + 3 Components + Flow; documents why no PlannerAgent in v2 |
 | ADR-015 | Post-Rework Evaluation Acceptance Criteria | New — E2 target ≥55% in-domain deliver, E1 floor ≥39%, OOD fallback = 100% |
-| ADR-016 | Evaluation Methodology — Three-Layer Approach | New — locks unit/integration/system structure and role of each layer |
+| ADR-016 | Evaluation Methodology, Three-Layer Approach | New — locks unit/integration/system structure and role of each layer |
 
 #### §7.5.3 Architecture Diagrams (6 in `docs/architecture/`)
 
@@ -1152,17 +1152,17 @@ Files to keep: `docs/day8-findings.md`, `docs/eval-query-set-spec.md`, `data/rag
 | ADR-003 | Hand-Crafted Feature Vectors over LLM Embeddings | Light edit (naming) |
 | ADR-004 | Groundedness Scoring via Cosine Similarity | Light edit (scope clarified) |
 | ADR-005 | Shared RAG Retrieval for Dual-Leader Mode | Light edit (agent names) |
-| ADR-006 | Day 6 Methodology and Corpus-Shape Limits | Light edit (Day 8 confirmation) |
+| ADR-006 | Corpus-Shape Limits on Retrieval | Light edit (Day 8 confirmation) |
 | ADR-007 | LLM Roles in the Pipeline | Rewritten in place |
 | ADR-008 | Hexagonal Adapters for CLI and Streamlit | Kept as-is |
 | ADR-009 | Agent vs Component Distinction | New |
 | ADR-010 | LLM-Driven Routing via GatekeeperAgent | New |
 | ADR-011 | EvaluatorAgent Hybrid Design | New |
 | ADR-012 | LLM-Driven FallbackAgent with Templated Failsafe | New |
-| ADR-013 | Style Profile Asymmetry — Frozen, Re-Measured Day 11 | New |
+| ADR-013 | Style Profile Frozen, Re-Measured Day 11 | New |
 | ADR-014 | Agent and Component Inventory | New |
 | ADR-015 | Post-Rework Evaluation Acceptance Criteria | New |
-| ADR-016 | Evaluation Methodology — Three-Layer Approach | New |
+| ADR-016 | Evaluation Methodology, Three-Layer Approach | New |
 
 ### §12.4 Customized Requirements Traceability
 

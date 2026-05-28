@@ -1,4 +1,4 @@
-# ADR-006: Day 6 Methodology and Corpus-Shape Limits
+# ADR-006: Corpus-Shape Limits on Retrieval
 
 **Project:** P6: Torvalds Digital Clone
 **Category:** Evaluation
@@ -9,13 +9,13 @@
 
 ## Context
 
-Three Day 6 experiments returned what looks like absence-of-effect. After working through the numbers I think all three are measurement artifacts, not real null results. Worth writing down before they get cited as evidence the underlying effects don't exist.
+Three Day 6 experiments returned what looked like absence-of-effect. Working through the numbers, all three were measurement artifacts rather than real null results. Worth writing down before they get cited as evidence the underlying effects don't exist.
 
-The first is the Cohere reranker. ADR-002 carries forward a P5 finding that Cohere gives roughly a 20% Recall@5 lift, and I assumed that would transfer to P6. On the `open-phi/textbooks` CS corpus it doesn't, or at least not as a smooth percentage. The reranker scores split bimodally: 4 queries land high (q03 binary search max=0.751, q04 stacks/queues max=0.999, q06 routing protocols max=0.372–0.421) and 6 queries land near zero (q01 TCP, q05 isolation levels, q07 page replacement, q08 DP/greedy, q09 buffer overflow, q10 cache coherence). Nothing in the middle. On the 6 near-zero queries, both OpenAI and MiniLM embeddings collapse to nearly identical post-rerank groundedness regardless of which 20 candidate chunks came in. The reranker is giving binary verdicts on this corpus, not a percentage lift. Programming textbooks plus broad CS queries seems to be the wrong shape for the lift behavior P5 saw on financial reports.
+The first was the Cohere reranker. ADR-002 carried forward a P5 finding that Cohere gave roughly a 20% Recall@5 lift, and I assumed that would transfer to P6. On the `open-phi/textbooks` CS corpus it didn't, or at least not as a smooth percentage. The reranker scores split bimodally: 4 queries landed high (q03 binary search max=0.751, q04 stacks/queues max=0.999, q06 routing protocols max=0.372–0.421) and 6 queries landed near zero (q01 TCP, q05 isolation levels, q07 page replacement, q08 DP/greedy, q09 buffer overflow, q10 cache coherence). Nothing in the middle. On the 6 near-zero queries, both OpenAI and MiniLM embeddings collapsed to nearly identical post-rerank groundedness regardless of which 20 candidate chunks came in. The reranker gave binary verdicts on this corpus, not a percentage lift. Programming textbooks plus broad CS queries are the wrong shape for the lift behavior P5 saw on financial reports.
 
-The second is the weight-sensitivity sweep. The production scorer combines style, groundedness, and confidence with weights 0.4/0.4/0.2, and I wanted to see whether those weights actually matter. The problem is that I used queries as the input proxy for the scoring, and CS queries are 10–15 words of textbook prose, nothing like Torvalds' verbose kernel emails. The style component scored at ≈0.50 across all 10 queries (mean=0.5023, std=0.0101) instead of the production range of 0.80–0.95. With style structurally pinned, sweeping the weights produced Δ(style_heavy − default) = +0.0039 and Δ(ground_heavy − default) = −0.0038. Both well below noise. The confidence scorer has the same proxy artifact: `completeness` and `uncertainty_penalty` are mathematically pinned at 1.0 under the proxy regime, biasing confidence_mean to 0.7070. The production weights are still in place because nothing has actually been measured against them, not because Day 6 confirmed them.
+The second was the weight-sensitivity sweep. The production scorer combined style, groundedness, and confidence with weights 0.4/0.4/0.2, and I wanted to see whether those weights actually mattered. The problem was that I used queries as the input proxy for the scoring, and CS queries are 10–15 words of textbook prose, nothing like Torvalds' verbose kernel emails. The style component scored at ≈0.50 across all 10 queries (mean=0.5023, std=0.0101) instead of the production range of 0.80–0.95. With style structurally pinned, sweeping the weights produced Δ(style_heavy − default) = +0.0039 and Δ(ground_heavy − default) = −0.0038. Both well below noise. The confidence scorer had the same proxy artifact: `completeness` and `uncertainty_penalty` were mathematically pinned at 1.0 under the proxy regime, biasing confidence_mean to 0.7070. The production weights stayed in place because nothing had actually been measured against them, not because Day 6 confirmed them.
 
-The third is Torvalds' style evolution around the 2018-09 apology and leave. I expected a detectable tone shift at individual-email resolution. Using |pre_mean − post_mean| > 2 × std on the larger partition as the threshold, no feature clears it across 11,052 emails: sentiment Δ = −0.00437 (2σ = 0.197), capitalization Δ = −0.00150 (2σ = 0.034), exclamations Δ = +0.00019 (2σ = 0.050), formality Δ = +0.01680 (2σ = 0.212). The biggest signal, formality, is 8% of its 2σ band. Within-email variance (std ≈ 0.10–0.21 for sentiment and formality) swamps the inter-period mean shifts (|Δ| = 0.0002–0.017). That's a measurement-resolution problem, not evidence the behavioral shift didn't happen.
+The third was Torvalds' style evolution around the 2018-09 apology and leave. I expected a detectable tone shift at individual-email resolution. Using |pre_mean − post_mean| > 2 × std on the larger partition as the threshold, no feature cleared it across 11,052 emails: sentiment Δ = −0.00437 (2σ = 0.197), capitalization Δ = −0.00150 (2σ = 0.034), exclamations Δ = +0.00019 (2σ = 0.050), formality Δ = +0.01680 (2σ = 0.212). The biggest signal, formality, was 8% of its 2σ band. Within-email variance (std ≈ 0.10–0.21 for sentiment and formality) swamped the inter-period mean shifts (|Δ| = 0.0002–0.017). That is a measurement-resolution problem, not evidence the behavioral shift didn't happen.
 
 All three are the same shape: the experiment got swamped by something about how I set it up rather than by the absence of the effect I was trying to detect. Worth treating corpus shape and input proxy as variables that need to be picked deliberately for this kind of evaluation, not assumptions that hold by default.
 
@@ -23,11 +23,11 @@ All three are the same shape: the experiment got swamped by something about how 
 
 ## Decision
 
-Accept the three findings as documented limits and ship nothing new. Production stays on weights 0.4/0.4/0.2, OpenAI embeddings, and the Cohere reranker, which is the Day 5 configuration.
+Accept the three findings as documented limits and ship nothing new. Production stayed on the Day 5 configuration: OpenAI embeddings and the Cohere reranker, with scoring weights at 0.4/0.4/0.2. The weighted-formula part of that is now historical. v2 drops the 0.4/0.4/0.2 formula and has GatekeeperAgent reason over the individual scores instead (ADR-010; PRD §10.3 marks the weight-sensitivity experiment obsolete). The OpenAI-embedding and Cohere choices carry forward.
 
-Three things go on the followup list. The weight-sensitivity sweep needs to be re-run against actual generated responses rather than queries. When the StyleCrew runs in production, style scores sit in 0.80–0.95, and a sweep on that range would actually tell me something. The Torvalds style evolution needs a population-level test. Monthly rolling means (the chart in `results/charts/07-style-evolution.png` is suggestive) plus a mixed-effects model partitioning within-email vs between-period variance is the right statistical bar; the per-email significance test was the wrong instrument. And the ADR-002 Cohere claim needs an amendment noting that the 20% Recall@5 figure was on P5's financial reports and doesn't transfer cleanly to programming-textbook content with broad queries. The decision to keep Cohere isn't changing; the precision of the claim is.
+Three things went on the followup list. The weight-sensitivity sweep needed to be re-run against actual generated responses rather than queries. When CloneAgent runs in production, style scores sit in 0.80–0.95, and a sweep on that range would actually tell me something. The Torvalds style evolution needed a population-level test. Monthly rolling means (the chart in `results/charts/08-torvalds-style-evolution-pre-post-2018.png` is suggestive, and it carries forward as a v2 deliverable per PRD §10.4) plus a mixed-effects model partitioning within-email vs between-period variance is the right statistical bar; the per-email significance test was the wrong instrument. And the ADR-002 Cohere claim needed an amendment noting that the 20% Recall@5 figure was on P5's financial reports and doesn't transfer cleanly to programming-textbook content with broad queries. The decision to keep Cohere isn't changing; the precision of the claim is.
 
-None of these are inside Day 6 scope.
+None of these were inside Day 6 scope.
 
 ---
 
@@ -74,7 +74,7 @@ Per-email feature resolution for Torvalds 2018-09 shift (Phase 5, 6d):
 | exclamations | 0.0047 | 0.0049 | +0.00019 | 0.050 | 0.4% |
 | formality | 0.4884 | 0.5052 | +0.01680 | 0.212 | 7.9% |
 
-Largest signal (formality, +0.017) is 8% of its 2σ band. Nothing clears the threshold.
+Largest signal (formality, +0.017) was 8% of its 2σ band. Nothing cleared the threshold.
 
 ---
 
@@ -82,10 +82,12 @@ Largest signal (formality, +0.017) is 8% of its 2σ band. Nothing clears the thr
 
 The ADR-002 Cohere claim is directionally right (the reranker helps when it has signal to work with) but the magnitude doesn't generalize. Future corpora that look unlike P5's financial reports need their own reranker validation before borrowing the percentage.
 
-Production weights stay at 0.4/0.4/0.2. There is no Day 6 evidence supporting them and no evidence refuting them, because the experiment that was supposed to test them couldn't actually test them. The sweep gets re-run when generated responses are available as the input.
+Production weights stayed at 0.4/0.4/0.2 in v1. There was no Day 6 evidence supporting them and no evidence refuting them, because the experiment that was supposed to test them couldn't actually test them. v2 removes the weighted formula entirely (ADR-010), so the sweep is moot for production rather than a pending followup.
 
-The PRD §8 exit criterion ("style evolution chart shows measurable shift") is not met at individual-email resolution. The chart shows directional movement at monthly aggregation, but the per-email significance test is the right statistical bar and it didn't clear. That's logged as a null with the resolution explanation, not as evidence the shift didn't happen.
+The PRD §8 exit criterion ("style evolution chart shows measurable shift") was not met at individual-email resolution. The chart shows directional movement at monthly aggregation, but the per-email significance test is the right statistical bar and it didn't clear. That's logged as a null with the resolution explanation, not as evidence the shift didn't happen.
 
 These three limits are about this corpus, this proxy, and this feature resolution. They don't change the pipeline design; they tell me where its measurement layer can produce reliable signal and where it can't.
 
 (Spring analogue: a green test suite where every external dependency is mocked out. Tests pass, but they're not telling you what you wanted to know.)
+
+**Amendment (Day 8, 2026-05-26):** The q12 binary-search query re-confirmed this corpus-shape constraint under the corrected pipeline. The query text and the index were identical and Cohere was working in both runs, yet the result flipped from deliver to fallback, because the corpus holds one substantive binary-search chunk and a two-clause question (mechanism and time complexity) needs two well-aligned chunks to ground reliably (`docs/day8-findings.md` Verification 2). This is the Day 6 corpus-shape limit surfacing on a specific query rather than a Cohere regression, and it is the part of this ADR that carries into v2.

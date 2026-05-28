@@ -43,13 +43,13 @@ reranker:
 
 ## Alternatives Considered
 
-**MiniLM as primary embedding model** - `all-MiniLM-L6-v2` runs locally with no API cost and produces 384-d vectors. In the P2 evaluation grid, MiniLM hit Recall@5 of 0.61 vs OpenAI's 0.87. The gap is largest on technical kernel terminology ("memory-mapped I/O", "scheduler preemption") where OpenAI's training corpus has better coverage.
+**MiniLM as primary embedding model.** `all-MiniLM-L6-v2` runs locally with no API cost and produces 384-d vectors. In the P2 evaluation grid, MiniLM hit Recall@5 of 0.61 vs OpenAI's 0.87. The gap is largest on technical kernel terminology ("memory-mapped I/O", "scheduler preemption") where OpenAI's training corpus has better coverage.
 
-**Larger chunks (1000/100)** - More context per chunk, fewer total chunks. In the P2 grid search, larger chunks improved groundedness scores (less fragmentation) but dropped Recall@5 by ~12% because oversized chunks score lower against short technical queries. 500/50 was the better fit for LKML-style query distribution.
+**Larger chunks (1000/100).** More context per chunk, fewer total chunks. In the P2 grid search, larger chunks improved groundedness scores (less fragmentation) but dropped Recall@5 by ~12% because oversized chunks score lower against short technical queries. 500/50 was the better fit for LKML-style query distribution.
 
-**No reranking (FAISS top-5 directly)** - Removes ~150ms latency and an API dependency. FAISS-only Precision@5 was 0.52; with Cohere reranking it hit 0.74. The 42% improvement at 150ms cost (vs <10ms for FAISS retrieval itself) was a clear win, and the graceful fallback means a Cohere outage degrades precision without crashing.
+**No reranking (FAISS top-5 directly).** Removes ~150ms latency and an API dependency. FAISS-only Precision@5 was 0.52; with Cohere reranking it hit 0.74. The 42% improvement at 150ms cost (vs <10ms for FAISS retrieval itself) was a clear win, and the graceful fallback means a Cohere outage degrades precision without crashing.
 
-**Cohere rerank-multilingual-v3.0** - LKML is English-only, so no benefit over the English model at the same price.
+**Cohere rerank-multilingual-v3.0.** LKML is English-only, so no benefit over the English model at the same price.
 
 ---
 
@@ -64,7 +64,11 @@ From the P2 evaluation grid:
 | OpenAI + Cohere rerank | 0.87 | 0.74 | Selected |
 | OpenAI + larger chunks | 0.76 | 0.61 | Fewer, bigger chunks |
 
+These numbers are from the P2 evaluation on the financial-reports corpus, and they supported the embedding and reranking choice. P6's programming-textbook corpus measures differently in magnitude; see ADR-006 for the corpus-shape reason and the P6 measurement below for the measured Cohere relevance.
+
 Full corpus embedding (1,511 docs, ~755K chunks) costs ~$1.89 one-time with OpenAI text-embedding-3-small, cached after the first run. Cohere rerank is free up to 1,000 calls/month, $2/1K after that. After the initial index build, all retrieval is free since FAISS runs locally.
+
+On the v2 in-domain query set (14 unique queries per leader), top-1 Cohere relevance measured at a mean of 0.89 (`docs/day8-findings.md` Finding 2, Step B verification). This is the P6-specific evidence that the OpenAI plus Cohere configuration earns its cost on the programming-textbook corpus. The graceful-degradation path stays unchanged: on a Cohere failure the Retriever returns FAISS top-5 with a warning log.
 
 ---
 
