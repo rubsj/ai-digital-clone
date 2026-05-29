@@ -11,7 +11,7 @@ P6 v1 claimed "5 agents" but had 1 real LLM agent; v2 (ADR-009) splits work into
 **Out of scope (Day 11+), must not appear:** GatekeeperAgent, FallbackAgent, Flow refactor, `CloneState.routing_decision`, `RoutingDecision` model, integration tests, e2e tests, CLI, Streamlit, §4.8 cleaning-pipeline edits, 15-feature edits.
 
 **Estimated duration:** ~6–8 working hours across 4 phases.
-**Tooling:** Python 3.12+, `uv run`, `ruff` (line 100, double quotes), `mypy` on `src/` + `tests/`.
+**Tooling:** Python 3.12+, `uv run`, `ruff` (line 100, double quotes). mypy aspired-to but not in `pyproject.toml`; deferred to Day 13 polish or P7 standards.
 
 ### Confirmed decisions
 1. **EvaluationResult**: strip `final_score` + `decision` + the formula `@model_validator`; add `flags: list[str]`. v1 `evaluator.py` becomes dead code left on disk until Day 11.
@@ -84,14 +84,14 @@ Per file, the §12.2 disposition:
 
 Re-read this plan from disk before starting. Each Agent = class wrapping a CrewAI `Agent` (role/goal/backstory) + single `Task` + single-agent `Crew` (§5.1). Structured output via Instructor + Pydantic v2 — no raw `json.loads` (Rule 4). Model: gpt-4o-mini via LiteLLM.
 
-1. **`clone_agent.py`** — *rename* v1 `src/agents/style_crew.py` → `clone_agent.py`; stays an Agent. Adapt to §5.1: inputs `query`, `leader`, `style_profile`, `chunks`; output `CloneResponse` (response_text + citations) via Instructor. Reconcile LLM-emitted citations to full `Citation` objects from input chunks (see Phase 1 note). temperature=0.3. Adapt the existing prompt scaffolding — don't rewrite what already works.
+1. **`clone_agent.py`** — *Create fresh* `src/agents/clone_agent.py`; leave v1 `src/agents/style_crew.py` on disk (Stop Gate 1 — no v1 deletions). The §12.2 "renamed" disposition is the end-state after Day 11 retires `style_crew.py`; on Day 10, the two files coexist with `style_crew.py` in the Dead Code Ledger (trigger: Day 11 Flow refactor, when v1 `flow.py` retires). Adapt the v1 role/goal/backstory text into the fresh file; do NOT import anything from `style_crew.py` (verify clean before Phase 3 exit). Adapt to §5.1: inputs `query`, `leader`, `style_profile`, `chunks`; output `CloneResponse` (response_text + citations) via Instructor. Reconcile LLM-emitted citations to full `Citation` objects from input chunks (see Phase 1 note). temperature=0.3. Adapt the existing prompt scaffolding — don't rewrite what already works.
    - **Test focus:** output is styled response + citations; prompt includes leader style features, the 3-5 `style_profile.sample_emails` (in-context style examples, §5.1.1), and chunks; Instructor parses `CloneResponse`; **latency <3s smoke** (real or recorded-replay, per the Phase 2 latency-smoke note).
 
 2. **`evaluator_agent.py`** — *rewrite* (v1 had `evaluator.py` weighted formula + Python functions; no real Agent existed). **STOP gate before implementing the hybrid.** Hybrid call sequence (ADR-011), be explicit:
    - Step 1: call `ScoringEngine.score()` → `style_score`, `groundedness_score`, `confidence_score` (deterministic, no LLM).
-   - Step 2: ONE LLM call (temperature=0, Instructor) reads response + chunks + the three scores → produces `explanation` (references the scores) + `flags: list[str]`.
+   - Step 2: ONE LLM-reasoning step (temperature=0), implemented via the canonical kickoff → Instructor parse pattern from CloneAgent (CLAUDE.md §592). A reviewer CrewAI Agent + `Crew.kickoff()` at temp 0 generates the explanation prose given response + chunks + the three scores; one Instructor parse call at temp 0 structures the output into `explanation` (references the scores) + `flags: list[str]`. Both calls run at temp 0 — EvaluatorAgent has no voice-fidelity concern, so unlike CloneAgent there is no reason for temp 0.3 anywhere here.
    - Assemble `EvaluationResult` (5 fields, no `final_score`).
-   - **Test focus:** calls ScoringEngine; LLM generates explanation referencing scores; `flags` populated correctly; NO `final_score` field present; **latency <2s smoke** (real or recorded-replay, per the Phase 2 latency-smoke note).
+   - **Test focus:** calls ScoringEngine; LLM generates explanation referencing scores; `flags` populated correctly; NO `final_score` field present; kickoff and parse both run at temp 0; **latency <2s smoke** (real or recorded-replay, per the Phase 2 latency-smoke note).
 
 **Constraints:** no GatekeeperAgent/FallbackAgent (Day 11). Adapter boundary holds (no cli/streamlit imports).
 

@@ -92,3 +92,12 @@ The plan's Phase 3 test focus lists latency smokes (CloneAgent <3s, EvaluatorAge
 - [x] `docs/session-notes/day10.md` written.
 - [x] Dead Code Ledger recorded; PRD §12.2 annotated with retire-when triggers.
 - [x] No new ADR needed.
+
+### Plan-of-record alignment (post-execution)
+
+Three precision gaps that surfaced during execution (and were resolved by surfacing, not silently choosing) were back-fixed into `docs/plans/day10-plan.md` so the plan matches what was built:
+- **Phase 1 tooling line** — dropped `mypy` from the active toolchain (not in `pyproject.toml`; adding it trips Stop Gate 2 and surfaces errors across v1 code slated for deletion). Now "aspired-to, deferred to Day 13 / P7."
+- **Phase 3 CloneAgent** — "rename" reworded to "create fresh, leave `style_crew.py` on disk (Stop Gate 1), do not import from it." A literal `git mv` would have broken v1 `flow.py` imports immediately. §12.2 "renamed" is the post-Day-11 end-state.
+- **Phase 3 EvaluatorAgent Step 2** — "ONE LLM call" reworded to "ONE LLM-reasoning step via the canonical kickoff → Instructor parse pattern," both calls at temp 0. The grep-enforced CrewAI-Agent rule makes a single literal Instructor call (no kickoff) a violation; two calls is the resolution.
+
+Why it matters: future re-reads are accurate, the Day 14 audit won't flag these as findings, and Day 11 can use this plan as a clean template.
