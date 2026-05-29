@@ -1,6 +1,6 @@
 """All Pydantic v2 data models for P6 Torvalds Digital Clone.
 
-Includes CloneState (Flow state) and all domain models from PRD Section 5a.
+Includes CloneState (Flow state) and all domain models.
 Models with np.ndarray fields use ConfigDict(arbitrary_types_allowed=True) +
 field_serializer/field_validator for JSON roundtrip compatibility.
 """
@@ -8,10 +8,10 @@ field_serializer/field_validator for JSON roundtrip compatibility.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +111,10 @@ class StyleProfile(BaseModel):
     email_count: int = Field(default=0, ge=0)
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     alpha: float = Field(default=0.3, ge=0.0, le=1.0)
+    sample_emails: list[str] = Field(
+        default_factory=list,
+        description="3-5 cleaned sample emails for CloneAgent in-context style examples",
+    )
 
     @field_serializer("style_vector")
     def serialize_vector(self, v: np.ndarray) -> list[float]:
@@ -171,6 +175,18 @@ class Citation(BaseModel):
     relevance_score: float = Field(ge=0.0, le=1.0)
 
 
+class CloneResponse(BaseModel):
+    """CloneAgent output — the generated response plus the citations it used.
+
+    Instructor response_model for CloneAgent. The LLM emits citations keyed by
+    chunk index; the agent reconciles each index to a full Citation from its
+    input chunks.
+    """
+
+    response_text: str
+    citations: list[Citation] = Field(default_factory=list)
+
+
 # ---------------------------------------------------------------------------
 # Evaluation models
 # ---------------------------------------------------------------------------
@@ -179,30 +195,20 @@ class Citation(BaseModel):
 class EvaluationResult(BaseModel):
     """Quality scores for one generated response across three dimensions.
 
-    final_score = 0.4 * style_score + 0.4 * groundedness_score + 0.2 * confidence_score
+    Three deterministic scores come from ScoringEngine; explanation and flags
+    come from one LLM call (ADR-011 hybrid). There is no combined final_score —
+    routing is decided by the GatekeeperAgent, not a weighted formula
+    (ADR-010/011). extra="forbid" so any caller still passing final_score or
+    decision fails loudly rather than silently dropping the field.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     style_score: float = Field(ge=0.0, le=1.0)
     groundedness_score: float = Field(ge=0.0, le=1.0)
     confidence_score: float = Field(ge=0.0, le=1.0)
-    final_score: float = Field(ge=0.0, le=1.0)
     explanation: str
-    decision: Literal["deliver", "fallback"]
-
-    @model_validator(mode="after")
-    def validate_formula(self) -> EvaluationResult:
-        expected = (
-            0.4 * self.style_score
-            + 0.4 * self.groundedness_score
-            + 0.2 * self.confidence_score
-        )
-        if abs(self.final_score - expected) > 0.02:
-            raise ValueError(
-                f"final_score {self.final_score:.3f} doesn't match formula "
-                f"(expected {expected:.3f} = 0.4*{self.style_score} + "
-                f"0.4*{self.groundedness_score} + 0.2*{self.confidence_score})"
-            )
-        return self
+    flags: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +217,7 @@ class EvaluationResult(BaseModel):
 
 
 class FallbackResponse(BaseModel):
-    """Output when EvaluatorAgent routes to fallback (final_score < 0.75)."""
+    """Output when the system routes a query to fallback instead of delivering."""
 
     trigger_reason: str
     context_summary: str

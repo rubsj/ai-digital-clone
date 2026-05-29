@@ -1133,14 +1133,14 @@ Files to keep: `docs/day8-findings.md`, `docs/eval-query-set-spec.md`, `data/rag
 
 | v1 location | v2 location | Status |
 |-------------|-------------|--------|
-| `src/agents/rag_agent.py` (façade) | `src/components/retriever.py` | Renamed and reclassified as Component |
-| `src/agents/style_crew.py` (real Agent) | `src/agents/clone_agent.py` | Renamed; stays Agent |
-| `src/agents/evaluator_steps.py` (Python functions) | `src/agents/evaluator_agent.py` | Rewritten as real CrewAI Agent (hybrid) |
-| `src/agents/fallback_steps.py` (Python functions) | `src/agents/fallback_agent.py` | Rewritten as real CrewAI Agent + templated failsafe |
-| Flow router (Python `@router` returning string) | `src/agents/gatekeeper_agent.py` + Flow @router calling it | Routing decision becomes a real Agent |
+| `src/agents/rag_agent.py` (façade) | `src/components/retriever.py` | Done (Day 10): reclassified as Component. v1 left on disk; retire when the Day 11 Flow imports `Retriever` instead of `RAGAgent`. |
+| `src/agents/style_crew.py` (real Agent) | `src/agents/clone_agent.py` | Done (Day 10): `CloneAgent` created fresh (not `git mv`) per Stop Gate 1, so v1 left on disk; retire when the Day 11 Flow calls `CloneAgent` instead of `generate_styled_response()`. |
+| `src/agents/evaluator_steps.py` (Python functions) | `src/agents/evaluator_agent.py` | Done (Day 10): real CrewAI Agent (hybrid). v1 `evaluator_steps.py` and `src/evaluation/evaluator.py` dead; retire when the Day 11 Flow calls `EvaluatorAgent`. |
+| `src/agents/fallback_steps.py` (Python functions) | `src/agents/fallback_agent.py` | Rewritten as real CrewAI Agent + templated failsafe (Day 11) |
+| Flow router (Python `@router` returning string) | `src/agents/gatekeeper_agent.py` + Flow @router calling it | Routing decision becomes a real Agent (Day 11) |
 | `src/rag/*.py` | Used by `src/components/retriever.py` | Stays as low-level modules; wrapped by Component |
 | `src/style/*.py` | Used by `src/components/style_profile_builder.py` | Stays as low-level modules; wrapped. Email cleaning pipeline (§4.8) preserved. |
-| `src/evaluation/*.py` | Used by `src/components/scoring_engine.py` | Scoring math wrapped by Component |
+| `src/evaluation/*.py` | Used by `src/components/scoring_engine.py` | Scoring sub-modules wrapped by Component (Day 10). `evaluation/evaluator.py` (weighted formula) dead; retire when the Day 11 Flow stops calling `evaluate()`. |
 | `src/fallback/*.py` | Used by `src/agents/fallback_agent.py` | Helper modules; templated failsafe uses them |
 
 ### §12.3 ADR Inventory (16 ADRs)

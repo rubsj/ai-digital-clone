@@ -24,6 +24,12 @@ from src.schemas import (
     StyleProfile,
 )
 
+# EvaluationResult dropped final_score + decision + the weighted formula, and routing
+# moves to the GatekeeperAgent (ADR-010/011). v1 src/flow.py (and these tests, which build
+# the old EvaluationResult shape) are superseded by the Flow refactor. Skip until that
+# lands rather than touch frozen v1 logic.
+pytestmark = pytest.mark.skip(reason="v1 flow.py superseded by the Flow refactor; EvaluationResult contract changed (ADR-010/011)")
+
 _MOCK_FALLBACK = FallbackResponse(
     trigger_reason="low score",
     context_summary="kernel memory",

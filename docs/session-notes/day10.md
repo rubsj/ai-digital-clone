@@ -1,0 +1,103 @@
+# Day 10 Session Notes
+
+Plan: `docs/plans/day10-plan.md`. Scope: 3 Components + 2 Agents + schema updates + unit tests. Phased Schemas → Components → Agents → Wrap, with stop gates between.
+
+## Phase 1: Schema updates (`src/schemas.py`)
+
+- Built: reshaped `EvaluationResult` to the v2 contract — removed `final_score`, `decision`, and the `0.4*style + 0.4*ground + 0.2*conf` `@model_validator`; added `flags: list[str]`; set `model_config = ConfigDict(extra="forbid")`. Final fields: `style_score`, `groundedness_score`, `confidence_score`, `explanation`, `flags`. Added new `CloneResponse` model (`response_text`, `citations: list[Citation]`) as CloneAgent's Instructor response_model. Added `StyleProfile.sample_emails: list[str]` (default `[]`). Dropped now-unused `Literal` and `model_validator` imports.
+- Why: ADR-010/011 remove the weighted-scoring formula — routing moves to GatekeeperAgent (Day 11), so the combined score and deliver/fallback `decision` no longer belong on `EvaluationResult`. `extra="forbid"` makes any v1 caller still passing `final_score`/`decision` fail loudly rather than silently dropping the field (same fail-loudly principle as the Cohere fix).
+- Citation reconciliation (decided, recorded — not a schema change): CloneAgent's LLM emits citations keyed by **chunk index** (0-based position in the input `chunks` list); agent code maps each index → a full `Citation` (`chunk_id`, `source_topic`, `text_snippet`, `relevance_score`) from the corresponding input chunk, and drops out-of-range indices with a log. `Citation` model unchanged.
+- `StyleProfile.sample_emails` — the one sanctioned modification to the ADR-013-frozen StyleProfileBuilder, approved by Ruby this session. Carries 3-5 already-cleaned emails forward for CloneAgent in-context examples (PRD §5.1.1). Does NOT touch the §4.8 cleaning pipeline or the 15 features, so the freeze holds. Builder populates it in Phase 2.
+- §5.1 contract audit: `RetrievalResult`, `Citation`, `KnowledgeChunk` match their Agent input/output contracts as-is. `StyleProfile` was missing the sample-emails field §5.1.1 requires — surfaced to Ruby, resolved by adding the field (above).
+- Tests: rewrote the `EvaluationResult` block in `tests/test_schemas.py` to the v2 contract (5-field construct, `extra="forbid"` rejects `final_score`/`decision`, `flags` default) and added `CloneResponse` round-trip + `StyleProfile.sample_emails` coverage. 43 pass.
+- Surprising: blast radius of the `EvaluationResult` change was wider than the plan's named example (`evaluator.py`). 36 v1 tests broke — `tests/test_evaluator.py` (8) and `tests/test_flow.py` (28) — all from constructing the old shape. Handled per the plan's exit-gate prescription: module-level `pytest.mark.skip` with a Day-11 reason on both files. No v1 logic touched; v1 `evaluator.py` and `flow.py` left untouched on disk.
+- Tooling deviation: `mypy` is listed in the plan's tooling line but is NOT a declared dependency (`pyproject.toml` has only `pytest`, `pytest-cov`, `ruff`). Installing it would trip Stop Gate 2 (no new deps), so Phase 1 verification used `ruff` only (clean). Flag for a future gated dependency decision if mypy is wanted.
+- Pre-existing unrelated failure: `tests/test_query_loader.py::test_load_queries_canonical_file` fails with `FileNotFoundError` (missing canonical query data file). Not caused by Day 10; left untouched (out of scope). Suite after Phase 1: 428 passed, 40 skipped, 1 failed.
+- ADR candidate: no. Schema reshape executes ADR-010/011; no new decision surfaced.
+
+## Phase 2: Components (`src/components/`)
+
+- Built: `src/components/{__init__,retriever,scoring_engine,style_profile_builder}.py` + tests `tests/test_components_{retriever,scoring_engine,style_profile_builder}.py`. 20 new tests, all green. Full suite 448 passed / 40 skipped / 1 pre-existing fail.
+- Analysis-first per-function map (decided against live source):
+  - **Retriever** wraps `src/rag/`: `retrieve()` (FAISS), `embed_chunks/embed_query` (embedder), `build_index/load_index/save_index` (indexer) — all wrapped as-is. `RAGAgent` (`src/agents/rag_agent.py`) reclassified → `Retriever` class with `run()`; `__init__` gained optional `index`/`metadata` injection for testability (structural improvement, behaviour identical).
+  - **ScoringEngine** wraps the three sub-scorers: `score_style` (`src/style/style_scorer.py` — note: plan said `src/evaluation/style_scorer.py`; actual location is `src/style/`), `score_groundedness` + `score_confidence` (`src/evaluation/`). `score()` is self-contained — it extracts response features via the frozen `extract_features` (response wrapped in a minimal `EmailMessage`) then calls the three. Returns a local `Scores` NamedTuple, not a schema. Did NOT wrap `evaluator.py` (formula/LLM moved to EvaluatorAgent).
+  - **StyleProfileBuilder** wraps `src/style/`: `parse_mbox` (§4.8 pipeline), `extract_features` (15 features), `build_profile_batch` — all frozen, wrapped as-is. `sample_emails` populated in the Component via `profile.model_copy(...)`, so frozen `profile_builder.py` stays untouched. Sampling is deterministic: ≤5 → all; else 5 evenly-spaced.
+- Cohere fail-loud (constraint #3): the Day-3 bug was `os.environ.get("COHERE_API_KEY", "")` → empty string → silent generic fallback. Fix in `src/rag/reranker.py` (the Component can't import `cohere`, so the fix lives where the client is): added `rerank_with_status() -> (results, ran)` and a loud, env-var-specific WARNING when the key is missing/empty; refactored `rerank()` to delegate (v1 signature/behaviour preserved — existing `test_reranker.py` still passes). `Retriever.run()` records `last_rerank_ran` and logs an ERROR when reranking didn't run. Verification method: `test_run_cohere_actually_invoked` asserts the mocked `cohere.ClientV2().rerank` was called AND `last_rerank_ran is True` ("assert Cohere ran"); `test_run_missing_key_warns_and_falls_back` asserts the loud warning fires.
+- Decided (not a constraint conflict, documented): `ScoringEngine.score()` is self-contained (extracts features internally) rather than taking pre-extracted `response_features` like v1 `evaluate()` did — gives EvaluatorAgent a single clean call and keeps all deterministic scoring in one Component. `embed_openai` (LiteLLM, via groundedness) is a transitive import, not a direct one — the LLM-free grep targets each component file's own import lines and passes. Embeddings are vector math on the frozen scoring path (ADR-003/004), not LLM reasoning.
+- Latency smokes: Retriever <1s and ScoringEngine <500ms asserted with `time.perf_counter()` on mocked embeddings/Cohere (deterministic portion), per the plan's recorded-replay allowance. StyleProfileBuilder has no per-call budget (offline).
+- Surprising: plan's `style_scorer.py` path was wrong (it's in `src/style/`, not `src/evaluation/`) — wrapped the real location. Also re-confirmed the adapter-boundary grep needs to match import lines, not the substring "cli" inside "client".
+- v1 left in place: no deletions under `src/`. `reranker.py` edited (sanctioned Cohere fix), not deleted.
+- ADR candidate: no. All decisions execute existing ADRs (002/003/004/007/009/011/013).
+
+### Post-Phase-2 cleanups (review feedback, separate commits)
+
+- Code-comment convention (Ruby, this session): comments/docstrings must be self-contained — NO references to external planning artifacts. Two passes:
+  - PRD section numbers (`PRD §5.1.1`, `PRD Section 5a`) removed from Phase 1 `schemas.py` and Phase 2 components/tests.
+  - Project-timeline refs (`Day 11`, `Day-3 bug`, `Phase N`), plan-file pointers (`constraint #3`, `docs/plans/...`, `Dead Code Ledger`) removed from `schemas.py`, `components/{retriever,scoring_engine}.py`, `rag/reranker.py`, and the skip reasons in `test_evaluator.py`/`test_flow.py`. Rephrased to describe architecture/reason structurally (e.g. "retired by the Flow refactor" not "Day 11"). ADR-NNN refs kept. Plan files and these session notes may still cite PRD/Day — the rule is code-only.
+  - Left as-is (flagged): pre-existing `Phase 2/3/4` comments in `test_flow.py` (not authored this session; file is skipped and slated for the Flow refactor — left per the v1-leave-in-place default).
+- Retriever test-seam removal: dropped the test-only `index`/`metadata` kwargs from `Retriever.__init__` (a test seam leaking into production). Tests now persist a small index to a temp dir via `save_index` and load through the real disk path (`Retriever(index_dir=...)`) — cleaner production constructor AND stronger coverage of the genuine load path. Docstring also clarified (write-time `build()` vs query-time `run()`).
+- Commits: Phase 2 `5eebdd1`; PRD-ref cleanup `7fa8a65`; Retriever seam `ed5def4`; timeline-ref cleanup `488a35c`. All on `feat/day10-components-agents` (draft PR #14).
+
+## Phase 3: Agents (`src/agents/`)
+
+- Built: `src/agents/clone_agent.py` (`CloneAgent`) and `src/agents/evaluator_agent.py` (`EvaluatorAgent`) + tests `tests/test_clone_agent.py` (22) and `tests/test_evaluator_agent.py` (11). All 33 green. Full suite 481 passed / 40 skipped / 1 pre-existing fail.
+- **CloneAgent** — real CrewAI Agent (role/goal/backstory adapted from v1 `style_crew.py`, scaffolding kept intact) + single Task + single-agent Crew. `run(query, leader, style_profile, chunks) -> CloneResponse`. Two-call pattern: Crew `kickoff()` at temperature 0.3 produces the styled prose, then one Instructor parse at temperature 0 yields `_CloneDraft(response_text, cited_chunk_indices)`. `_reconcile()` maps each 0-based index to a full `Citation` (`chunk_id=f"chunk_{chunk_index}"` per the v1 `citation_extractor` convention, `text_snippet` = content[:100], `relevance_score` clamped to [0,1]), dropping out-of-range indices with a logged warning and deduping. `StyleProfile.sample_emails` (the Phase 1 field) flow into the Task as in-context style examples, capped at 3.
+- **EvaluatorAgent** — hybrid (ADR-011). `run(query, response, profile, chunks) -> EvaluationResult`. Step 1: `ScoringEngine.score()` returns the three deterministic scores (no LLM). Step 2: a real CrewAI reviewer Agent (role/goal/backstory) reasons about those scores against the response + sources via Crew `kickoff()` (temp 0), then one Instructor parse (temp 0) structures `_ReviewDraft(explanation, flags)`. Step 3: assemble the 5-field `EvaluationResult` (three scores + explanation + flags, no `final_score`). ScoringEngine is constructor-injectable for test isolation.
+- Design tension surfaced and resolved (not silently merged): the plan said Step 2 is "ONE LLM call" but CLAUDE.md requires a real, executed CrewAI Agent (kickoff) AND Instructor-validated output — which is two calls. Ruby chose the two-call pattern (consistent with the just-approved CloneAgent) over a single literal Instructor call that would only construct-but-not-execute the Agent. The deterministic ScoringEngine step (Step 1) stays fully separate from the LLM step — the Day 8 collapse was merging those, and that did not happen here.
+- Temperatures verified distinct: CloneAgent generation `_GEN_TEMPERATURE = 0.3` vs parse `_PARSE_TEMPERATURE = 0`; EvaluatorAgent both steps `_TEMPERATURE = 0` (review is deterministic by design).
+- `clone_agent.py` imports nothing from `style_crew.py`; `evaluator_agent.py` imports nothing from `clone_agent.py`/`style_crew.py` — agents are independent. EvaluatorAgent imports `ScoringEngine` from `src/components/` (sanctioned Agent→Component delegation).
+- Architecture-honesty greps pass: both agents `from crewai import Agent` with role/goal/backstory; Components still import no `litellm/openai/cohere/instructor`; no `final_score` field in `schemas.py` (docstring mention only); no Agent-suffixed functions outside `src/agents/`.
+- v1 left in place: no deletions under `src/`. `style_crew.py` + `test_style_crew.py` added to the Dead Code Ledger below (Day 11 trigger).
+- ADR candidate: no. CloneAgent/EvaluatorAgent execute ADR-009/010/011; the two-call wiring is the established CrewAI kickoff-plus-Instructor-parse pattern, not a new decision.
+
+## Dead Code Ledger
+
+| Item | Status | Safe to delete |
+| --- | --- | --- |
+| `src/evaluation/evaluator.py` | Dead — weighted-formula combination + LLM explanation moving to EvaluatorAgent. `EvaluationResult` change breaks its construction. | After Day 11 Flow refactor stops calling `evaluate()`. |
+| `tests/test_evaluator.py` | Skipped (module-level) — exercises `evaluator.py`. | Remove with `evaluator.py` (Day 11). |
+| `tests/test_flow.py` | Skipped (module-level) — builds old `EvaluationResult` shape, exercises v1 `src/flow.py`. | Re-enable/rewrite at Day 11 Flow refactor. |
+| v1 `final_score`/`decision` reads in `src/flow.py`, `src/cli.py`, `src/visualization.py` | Dead at runtime (not import-time); not imported by Phase 2-3 code. | After Day 11 Flow refactor. |
+| `src/agents/rag_agent.py` | Dead — superseded by `src/components/retriever.py` (same pipeline, now a Component with `run()`). | After Day 11 Flow imports `Retriever` instead of `RAGAgent`. |
+| `src/rag/reranker.py::rerank()` | Live but thin — now delegates to `rerank_with_status()`. Keep until all callers migrate to the status-returning variant (Day 11). | Not before Day 11; v1 callers still use it. |
+| `src/agents/style_crew.py` | Dead — superseded by `src/agents/clone_agent.py` (`CloneAgent`, same styled-generation role/goal/backstory now producing a typed `CloneResponse`). Plan said "rename" but Stop Gate 1 (no v1 deletions) wins; created fresh, left v1 on disk. | After the Day 11 Flow refactor calls `CloneAgent` instead of `generate_styled_response()`. |
+| `tests/test_style_crew.py` | Live but exercises dead `style_crew.py`. | Remove with `style_crew.py` (Day 11). |
+
+## Phase 4: Wrap-up + verification
+
+- **Architecture-honesty greps (CLAUDE.md set) — all pass:**
+  - Agents `from crewai import Agent`: `clone_agent.py`, `evaluator_agent.py` (and dead `style_crew.py`, expected).
+  - role/goal/backstory present in both new agents.
+  - Components have `run()`/`score()` and import no `litellm|openai|cohere|instructor`.
+  - No Agent-suffixed functions outside `src/agents/`.
+  - Adapter boundary holds: no `cli`/`streamlit_app` imports in agents or components.
+- **`final_score` repo-wide grep (`grep -rn "final_score" src/`):** zero matches in any new Day-10 file (Components, `clone_agent.py`, `evaluator_agent.py`). `schemas.py` matches are docstring-only (explaining the field's removal), allowed by the Phase 1 exit gate. All field-level matches are expected v1 leaks already in the Dead Code Ledger: `flow.py`, `cli.py`, `visualization.py`, `evaluation/evaluator.py` (field reads/writes) and `evaluator_steps.py`/`fallback_steps.py` (docstring mentions only). Annotated expected, not a failure — a match in new code would be.
+- **Tests:** full suite 481 passed / 40 skipped / 1 pre-existing fail. The fail is `tests/test_query_loader.py::test_load_queries_canonical_file` (missing canonical data file) — pre-existing, unrelated to Day 10, left untouched.
+- **ruff:** clean on all four new files. **mypy:** still NOT a declared dependency (`pyproject.toml` has pytest/pytest-cov/ruff only); installing it would trip Stop Gate 2, so it was not run — same documented deviation as Phase 1. Flag for a future gated dependency decision.
+- **PRD §12.2** mapping table annotated with per-row "retire when" triggers for the four Day-10-affected rows (rag_agent → retriever, style_crew → clone_agent, evaluator_steps → evaluator_agent, evaluation/evaluator.py). Lightweight annotation only; deletions still pass through Stop Gate 1 on Day 11.
+
+### Deviation flagged: Agent latency smoke checks deferred
+
+The plan's Phase 3 test focus lists latency smokes (CloneAgent <3s, EvaluatorAgent <2s), with the allowance "if a real LLM call is impractical in CI, run latency on a recorded-response replay and assert the deterministic portion is within budget, documenting the split." Both agents' tests mock the LLM (Crew `kickoff` + Instructor) for deterministic CI, so a timed run would measure only prompt assembly + citation reconciliation (sub-millisecond) — not the real budget, which is dominated by the two LLM round-trips. Rather than assert a meaningless near-zero number, the agent latency smokes are deferred to a real-call / recorded-replay context (the Day 12 perf pass). The Phase 2 Components do have real-portion latency smokes (Retriever <1s, ScoringEngine <500ms) since their work is deterministic. This is a documented gap, not a silent skip.
+
+### End-of-day exit criteria
+
+- [x] `schemas.py` updated; no `final_score` field; `flags` added; `CloneResponse` added.
+- [x] 3 Components instantiate and `run()` on smoke input.
+- [x] CloneAgent generates a response from synthetic inputs.
+- [x] EvaluatorAgent produces `EvaluationResult` (3 scores + explanation + flags).
+- [x] Unit tests pass for all five pieces (LLM mocked).
+- [x] Grep: no LLM imports in `src/components/`.
+- [x] Cohere reranking verified to run.
+- [x] `docs/session-notes/day10.md` written.
+- [x] Dead Code Ledger recorded; PRD §12.2 annotated with retire-when triggers.
+- [x] No new ADR needed.
+
+### Plan-of-record alignment (post-execution)
+
+Three precision gaps that surfaced during execution (and were resolved by surfacing, not silently choosing) were back-fixed into `docs/plans/day10-plan.md` so the plan matches what was built:
+- **Phase 1 tooling line** — dropped `mypy` from the active toolchain (not in `pyproject.toml`; adding it trips Stop Gate 2 and surfaces errors across v1 code slated for deletion). Now "aspired-to, deferred to Day 13 / P7."
+- **Phase 3 CloneAgent** — "rename" reworded to "create fresh, leave `style_crew.py` on disk (Stop Gate 1), do not import from it." A literal `git mv` would have broken v1 `flow.py` imports immediately. §12.2 "renamed" is the post-Day-11 end-state.
+- **Phase 3 EvaluatorAgent Step 2** — "ONE LLM call" reworded to "ONE LLM-reasoning step via the canonical kickoff → Instructor parse pattern," both calls at temp 0. The grep-enforced CrewAI-Agent rule makes a single literal Instructor call (no kickoff) a violation; two calls is the resolution.
+
+Why it matters: future re-reads are accurate, the Day 14 audit won't flag these as findings, and Day 11 can use this plan as a clean template.
