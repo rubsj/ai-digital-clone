@@ -62,3 +62,33 @@ Plan: `docs/plans/day10-plan.md`. Scope: 3 Components + 2 Agents + schema update
 | `src/rag/reranker.py::rerank()` | Live but thin — now delegates to `rerank_with_status()`. Keep until all callers migrate to the status-returning variant (Day 11). | Not before Day 11; v1 callers still use it. |
 | `src/agents/style_crew.py` | Dead — superseded by `src/agents/clone_agent.py` (`CloneAgent`, same styled-generation role/goal/backstory now producing a typed `CloneResponse`). Plan said "rename" but Stop Gate 1 (no v1 deletions) wins; created fresh, left v1 on disk. | After the Day 11 Flow refactor calls `CloneAgent` instead of `generate_styled_response()`. |
 | `tests/test_style_crew.py` | Live but exercises dead `style_crew.py`. | Remove with `style_crew.py` (Day 11). |
+
+## Phase 4: Wrap-up + verification
+
+- **Architecture-honesty greps (CLAUDE.md set) — all pass:**
+  - Agents `from crewai import Agent`: `clone_agent.py`, `evaluator_agent.py` (and dead `style_crew.py`, expected).
+  - role/goal/backstory present in both new agents.
+  - Components have `run()`/`score()` and import no `litellm|openai|cohere|instructor`.
+  - No Agent-suffixed functions outside `src/agents/`.
+  - Adapter boundary holds: no `cli`/`streamlit_app` imports in agents or components.
+- **`final_score` repo-wide grep (`grep -rn "final_score" src/`):** zero matches in any new Day-10 file (Components, `clone_agent.py`, `evaluator_agent.py`). `schemas.py` matches are docstring-only (explaining the field's removal), allowed by the Phase 1 exit gate. All field-level matches are expected v1 leaks already in the Dead Code Ledger: `flow.py`, `cli.py`, `visualization.py`, `evaluation/evaluator.py` (field reads/writes) and `evaluator_steps.py`/`fallback_steps.py` (docstring mentions only). Annotated expected, not a failure — a match in new code would be.
+- **Tests:** full suite 481 passed / 40 skipped / 1 pre-existing fail. The fail is `tests/test_query_loader.py::test_load_queries_canonical_file` (missing canonical data file) — pre-existing, unrelated to Day 10, left untouched.
+- **ruff:** clean on all four new files. **mypy:** still NOT a declared dependency (`pyproject.toml` has pytest/pytest-cov/ruff only); installing it would trip Stop Gate 2, so it was not run — same documented deviation as Phase 1. Flag for a future gated dependency decision.
+- **PRD §12.2** mapping table annotated with per-row "retire when" triggers for the four Day-10-affected rows (rag_agent → retriever, style_crew → clone_agent, evaluator_steps → evaluator_agent, evaluation/evaluator.py). Lightweight annotation only; deletions still pass through Stop Gate 1 on Day 11.
+
+### Deviation flagged: Agent latency smoke checks deferred
+
+The plan's Phase 3 test focus lists latency smokes (CloneAgent <3s, EvaluatorAgent <2s), with the allowance "if a real LLM call is impractical in CI, run latency on a recorded-response replay and assert the deterministic portion is within budget, documenting the split." Both agents' tests mock the LLM (Crew `kickoff` + Instructor) for deterministic CI, so a timed run would measure only prompt assembly + citation reconciliation (sub-millisecond) — not the real budget, which is dominated by the two LLM round-trips. Rather than assert a meaningless near-zero number, the agent latency smokes are deferred to a real-call / recorded-replay context (the Day 12 perf pass). The Phase 2 Components do have real-portion latency smokes (Retriever <1s, ScoringEngine <500ms) since their work is deterministic. This is a documented gap, not a silent skip.
+
+### End-of-day exit criteria
+
+- [x] `schemas.py` updated; no `final_score` field; `flags` added; `CloneResponse` added.
+- [x] 3 Components instantiate and `run()` on smoke input.
+- [x] CloneAgent generates a response from synthetic inputs.
+- [x] EvaluatorAgent produces `EvaluationResult` (3 scores + explanation + flags).
+- [x] Unit tests pass for all five pieces (LLM mocked).
+- [x] Grep: no LLM imports in `src/components/`.
+- [x] Cohere reranking verified to run.
+- [x] `docs/session-notes/day10.md` written.
+- [x] Dead Code Ledger recorded; PRD §12.2 annotated with retire-when triggers.
+- [x] No new ADR needed.
