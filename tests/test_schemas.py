@@ -13,6 +13,7 @@ from pydantic import ValidationError
 
 from src.schemas import (
     Citation,
+    CloneResponse,
     CloneState,
     EmailMessage,
     EvaluationResult,
@@ -103,11 +104,18 @@ def _make_eval_result(**kwargs) -> EvaluationResult:
         style_score=0.92,
         groundedness_score=0.75,
         confidence_score=0.80,
-        final_score=round(0.4 * 0.92 + 0.4 * 0.75 + 0.2 * 0.80, 10),
         explanation="Style matches well. Response grounded in 3 chunks.",
-        decision="deliver",
+        flags=[],
     )
     return EvaluationResult(**(defaults | kwargs))
+
+
+def _make_clone_response(**kwargs) -> CloneResponse:
+    defaults = dict(
+        response_text="Look, TCP/IP is basically how machines talk.",
+        citations=[_make_citation()],
+    )
+    return CloneResponse(**(defaults | kwargs))
 
 
 def _make_fallback(**kwargs) -> FallbackResponse:
@@ -270,6 +278,16 @@ def test_style_profile_serialization_roundtrip():
     np.testing.assert_array_almost_equal(profile.style_vector, profile2.style_vector)
 
 
+def test_style_profile_sample_emails_default_empty():
+    profile = _make_style_profile()
+    assert profile.sample_emails == []
+
+
+def test_style_profile_sample_emails_populated():
+    profile = _make_style_profile(sample_emails=["cleaned email one", "cleaned email two"])
+    assert len(profile.sample_emails) == 2
+
+
 def test_style_profile_list_input_coerced_to_ndarray():
     profile = StyleProfile(
         leader_name="Test",
@@ -350,59 +368,72 @@ def test_citation_relevance_out_of_range():
 # ---------------------------------------------------------------------------
 
 
-def test_evaluation_result_deliver():
-    ev = _make_eval_result(decision="deliver")
-    assert ev.decision == "deliver"
+def test_evaluation_result_five_fields():
+    ev = _make_eval_result(flags=["low_groundedness"])
+    assert set(EvaluationResult.model_fields) == {
+        "style_score",
+        "groundedness_score",
+        "confidence_score",
+        "explanation",
+        "flags",
+    }
+    assert ev.flags == ["low_groundedness"]
 
 
-def test_evaluation_result_fallback():
-    style, ground, conf = 0.5, 0.5, 0.5
-    final = round(0.4 * style + 0.4 * ground + 0.2 * conf, 10)
-    ev = EvaluationResult(
-        style_score=style,
-        groundedness_score=ground,
-        confidence_score=conf,
-        final_score=final,
-        explanation="Low scores across all dimensions.",
-        decision="fallback",
-    )
-    assert ev.decision == "fallback"
+def test_evaluation_result_flags_default_empty():
+    ev = _make_eval_result()
+    assert ev.flags == []
 
 
-def test_evaluation_result_invalid_decision():
-    with pytest.raises(ValidationError):
-        EvaluationResult(
-            style_score=0.5,
-            groundedness_score=0.5,
-            confidence_score=0.5,
-            final_score=0.5,
-            explanation="test",
-            decision="maybe",  # not in Literal["deliver", "fallback"]
-        )
-
-
-def test_evaluation_result_formula_mismatch_raises():
+def test_evaluation_result_rejects_final_score():
+    """extra='forbid' — a v1 caller passing final_score fails loudly (ADR-010/011)."""
     with pytest.raises(ValidationError):
         EvaluationResult(
             style_score=0.9,
             groundedness_score=0.8,
             confidence_score=0.7,
-            final_score=0.5,  # wrong — should be 0.4*0.9+0.4*0.8+0.2*0.7 = 0.82
+            explanation="test",
+            final_score=0.82,
+        )
+
+
+def test_evaluation_result_rejects_decision():
+    with pytest.raises(ValidationError):
+        EvaluationResult(
+            style_score=0.9,
+            groundedness_score=0.8,
+            confidence_score=0.7,
             explanation="test",
             decision="deliver",
         )
 
 
-def test_evaluation_result_formula_valid():
-    style, ground, conf = 0.92, 0.75, 0.80
-    final = round(0.4 * style + 0.4 * ground + 0.2 * conf, 10)
-    ev = _make_eval_result(
-        style_score=style,
-        groundedness_score=ground,
-        confidence_score=conf,
-        final_score=final,
-    )
-    assert abs(ev.final_score - 0.828) < 0.001
+def test_evaluation_result_score_out_of_range_raises():
+    with pytest.raises(ValidationError):
+        _make_eval_result(groundedness_score=1.5)
+
+
+# ---------------------------------------------------------------------------
+# CloneResponse
+# ---------------------------------------------------------------------------
+
+
+def test_clone_response_valid():
+    cr = _make_clone_response()
+    assert cr.response_text.startswith("Look")
+    assert len(cr.citations) == 1
+
+
+def test_clone_response_citations_default_empty():
+    cr = CloneResponse(response_text="hi")
+    assert cr.citations == []
+
+
+def test_clone_response_roundtrip():
+    cr = _make_clone_response()
+    cr2 = CloneResponse.model_validate_json(cr.model_dump_json())
+    assert cr2.response_text == cr.response_text
+    assert cr2.citations[0].chunk_id == cr.citations[0].chunk_id
 
 
 # ---------------------------------------------------------------------------
@@ -492,5 +523,5 @@ def test_clone_state_incremental_population():
 
     assert state.query == "What is a kernel?"
     assert len(state.retrieved_chunks) == 1
-    assert state.evaluation.decision == "deliver"
+    assert state.evaluation.style_score == 0.92
     assert isinstance(state.final_output, StyledResponse)

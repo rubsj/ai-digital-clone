@@ -24,6 +24,12 @@ from src.schemas import (
     StyleProfile,
 )
 
+# Day 10 (ADR-010/011): EvaluationResult dropped final_score + decision + the weighted
+# formula, and routing moves to GatekeeperAgent. v1 src/flow.py (and these tests, which
+# build the old EvaluationResult shape) are refactored on Day 11. Skip until then rather
+# than touch frozen v1 logic. See docs/plans/day10-plan.md (Dead Code Ledger).
+pytestmark = pytest.mark.skip(reason="v1 flow.py refactored on Day 11; EvaluationResult contract changed (ADR-010/011)")
+
 _MOCK_FALLBACK = FallbackResponse(
     trigger_reason="low score",
     context_summary="kernel memory",
