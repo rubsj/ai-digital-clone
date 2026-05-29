@@ -1,6 +1,6 @@
 """All Pydantic v2 data models for P6 Torvalds Digital Clone.
 
-Includes CloneState (Flow state) and all domain models from PRD Section 5a.
+Includes CloneState (Flow state) and all domain models.
 Models with np.ndarray fields use ConfigDict(arbitrary_types_allowed=True) +
 field_serializer/field_validator for JSON roundtrip compatibility.
 """
@@ -113,7 +113,7 @@ class StyleProfile(BaseModel):
     alpha: float = Field(default=0.3, ge=0.0, le=1.0)
     sample_emails: list[str] = Field(
         default_factory=list,
-        description="3-5 cleaned sample emails for CloneAgent in-context style examples (PRD §5.1.1)",
+        description="3-5 cleaned sample emails for CloneAgent in-context style examples",
     )
 
     @field_serializer("style_vector")
@@ -180,7 +180,7 @@ class CloneResponse(BaseModel):
 
     Instructor response_model for CloneAgent. The LLM emits citations keyed by
     chunk index; the agent reconciles each index to a full Citation from its
-    input chunks (PRD §5.1.1).
+    input chunks.
     """
 
     response_text: str
