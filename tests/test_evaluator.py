@@ -14,11 +14,11 @@ import pytest
 from src.evaluation.evaluator import _build_explanation_prompt, evaluate
 from src.schemas import EvaluationResult, KnowledgeChunk, RetrievalResult, StyleFeatures, StyleProfile
 
-# Day 10 (ADR-010/011): EvaluationResult dropped final_score + decision + the weighted
-# formula. v1 src/evaluation/evaluator.py still constructs the old shape and is dead code
-# left on disk until the Day 11 Flow refactor retires it. Skip its tests until then rather
-# than touch frozen v1 logic. See docs/plans/day10-plan.md (Dead Code Ledger).
-pytestmark = pytest.mark.skip(reason="v1 evaluator.py retired on Day 11; EvaluationResult contract changed (ADR-010/011)")
+# EvaluationResult dropped final_score + decision + the weighted formula (ADR-010/011).
+# v1 src/evaluation/evaluator.py still constructs the old shape and is dead code, left in
+# place until the Flow refactor retires it. Skip its tests until then rather than touch
+# frozen v1 logic.
+pytestmark = pytest.mark.skip(reason="v1 evaluator.py retired by the Flow refactor; EvaluationResult contract changed (ADR-010/011)")
 
 
 # ---------------------------------------------------------------------------

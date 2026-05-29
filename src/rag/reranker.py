@@ -42,9 +42,10 @@ def rerank_with_status(
     Cohere API call actually succeeded; False on missing key or API error
     (results then fall back to FAISS top-n per ADR-002).
 
-    Fail-loud (constraint #3 / v2 raison d'être): a missing/empty COHERE_API_KEY
-    is the Day-3 silent-failure bug. We log a loud, specific WARNING naming the
-    env var so a misconfigured key can never again degrade precision silently.
+    Fail-loud: a missing/empty COHERE_API_KEY was the original silent-failure
+    bug — it defaulted to an empty string and degraded precision unnoticed. We
+    now log a loud, specific WARNING naming the env var so a misconfigured key
+    can never again degrade precision silently.
     """
     if not results:
         return [], False

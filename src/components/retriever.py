@@ -4,9 +4,10 @@ LLM-free. Wraps the v1 src/rag/ pipeline (embed → FAISS top-20 → Cohere
 rerank top-5). The Cohere client lives in src/rag/reranker.py and is invoked
 through rerank_with_status() — this module never imports cohere directly.
 
-Cohere fail-loud (constraint #3): run() records last_rerank_ran and logs an
-error when reranking did not actually execute, so the Day-3 silent-failure
-bug cannot recur. ADR-002 graceful fallback to FAISS top-5 is preserved.
+Cohere fail-loud: run() records last_rerank_ran and logs an error when
+reranking did not actually execute, so the original silent-failure bug (an
+unset COHERE_API_KEY quietly degrading precision) cannot recur. ADR-002
+graceful fallback to FAISS top-5 is preserved.
 """
 
 from __future__ import annotations
