@@ -1,6 +1,7 @@
 """Tests for src/components/retriever.py.
 
-Uses a small real in-memory FAISS index with synthetic normalized embeddings;
+A small FAISS index with synthetic normalized embeddings is persisted to a temp
+dir and loaded through the real disk path (Retriever has no test-only seams);
 embed_query and cohere.ClientV2 are mocked — never touches the network.
 """
 
@@ -15,6 +16,7 @@ import pytest
 
 from src.components.retriever import Retriever
 from src.config import load_config
+from src.rag.indexer import save_index
 from src.schemas import RetrievalResult
 
 
@@ -60,9 +62,11 @@ def _cohere_response(ranked_indices: list[int], scores: list[float]) -> MagicMoc
     return response
 
 
-def _retriever_with_index(n: int = 20) -> tuple[Retriever, np.ndarray]:
+def _retriever_with_index(index_dir, n: int = 20) -> tuple[Retriever, np.ndarray]:
+    """Persist a small index to index_dir, then load it via the real disk path."""
     index, metadata, embeddings = _small_index(n)
-    r = Retriever(index=index, metadata=metadata)
+    save_index(index, metadata, index_dir=index_dir)
+    r = Retriever(index_dir=index_dir)
     return r, embeddings
 
 
@@ -72,9 +76,9 @@ def _retriever_with_index(n: int = 20) -> tuple[Retriever, np.ndarray]:
 
 
 @patch("src.rag.reranker.cohere.ClientV2")
-def test_run_returns_top_5(mock_client_cls, monkeypatch):
+def test_run_returns_top_5(mock_client_cls, monkeypatch, tmp_path):
     monkeypatch.setenv("COHERE_API_KEY", "test-key")
-    r, embeddings = _retriever_with_index(20)
+    r, embeddings = _retriever_with_index(tmp_path, 20)
     mock_client = MagicMock()
     mock_client.rerank.return_value = _cohere_response(
         list(range(5)), [0.9, 0.8, 0.7, 0.6, 0.5]
@@ -89,10 +93,10 @@ def test_run_returns_top_5(mock_client_cls, monkeypatch):
 
 
 @patch("src.rag.reranker.cohere.ClientV2")
-def test_run_cohere_actually_invoked(mock_client_cls, monkeypatch):
+def test_run_cohere_actually_invoked(mock_client_cls, monkeypatch, tmp_path):
     """Constraint #3: assert Cohere ran — both the client call and the flag."""
     monkeypatch.setenv("COHERE_API_KEY", "test-key")
-    r, embeddings = _retriever_with_index(20)
+    r, embeddings = _retriever_with_index(tmp_path, 20)
     mock_client = MagicMock()
     mock_client.rerank.return_value = _cohere_response(
         list(range(5)), [0.9, 0.8, 0.7, 0.6, 0.5]
@@ -107,9 +111,9 @@ def test_run_cohere_actually_invoked(mock_client_cls, monkeypatch):
 
 
 @patch("src.rag.reranker.cohere.ClientV2")
-def test_run_fallback_on_cohere_error_flags_not_ran(mock_client_cls, monkeypatch):
+def test_run_fallback_on_cohere_error_flags_not_ran(mock_client_cls, monkeypatch, tmp_path):
     monkeypatch.setenv("COHERE_API_KEY", "test-key")
-    r, embeddings = _retriever_with_index(20)
+    r, embeddings = _retriever_with_index(tmp_path, 20)
     mock_client = MagicMock()
     mock_client.rerank.side_effect = RuntimeError("Cohere unavailable")
     mock_client_cls.return_value = mock_client
@@ -121,9 +125,9 @@ def test_run_fallback_on_cohere_error_flags_not_ran(mock_client_cls, monkeypatch
     assert len(results) == 5  # graceful fallback to FAISS top-5 (ADR-002)
 
 
-def test_run_missing_key_warns_and_falls_back(monkeypatch, caplog):
+def test_run_missing_key_warns_and_falls_back(monkeypatch, caplog, tmp_path):
     monkeypatch.delenv("COHERE_API_KEY", raising=False)
-    r, embeddings = _retriever_with_index(20)
+    r, embeddings = _retriever_with_index(tmp_path, 20)
 
     import logging
 
@@ -142,17 +146,17 @@ def test_run_missing_key_warns_and_falls_back(monkeypatch, caplog):
 # ---------------------------------------------------------------------------
 
 
-def test_run_without_index_raises():
-    r = Retriever(index=None, metadata=[])
-    r._index = None  # ensure no disk index leaked in
+def test_run_without_index_raises(tmp_path):
+    # Empty index_dir → nothing to load → run() must raise.
+    r = Retriever(index_dir=tmp_path)
     with pytest.raises(RuntimeError):
         r.run("query")
 
 
 @patch("src.rag.reranker.cohere.ClientV2")
-def test_run_top_5_when_fewer_candidates(mock_client_cls, monkeypatch):
+def test_run_top_5_when_fewer_candidates(mock_client_cls, monkeypatch, tmp_path):
     monkeypatch.setenv("COHERE_API_KEY", "test-key")
-    r, embeddings = _retriever_with_index(3)
+    r, embeddings = _retriever_with_index(tmp_path, 3)
     mock_client = MagicMock()
     mock_client.rerank.return_value = _cohere_response([0, 1, 2], [0.9, 0.8, 0.7])
     mock_client_cls.return_value = mock_client
@@ -169,9 +173,9 @@ def test_run_top_5_when_fewer_candidates(mock_client_cls, monkeypatch):
 
 
 @patch("src.rag.reranker.cohere.ClientV2")
-def test_run_latency_under_1s(mock_client_cls, monkeypatch):
+def test_run_latency_under_1s(mock_client_cls, monkeypatch, tmp_path):
     monkeypatch.setenv("COHERE_API_KEY", "test-key")
-    r, embeddings = _retriever_with_index(20)
+    r, embeddings = _retriever_with_index(tmp_path, 20)
     mock_client = MagicMock()
     mock_client.rerank.return_value = _cohere_response(
         list(range(5)), [0.9, 0.8, 0.7, 0.6, 0.5]

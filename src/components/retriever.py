@@ -30,30 +30,36 @@ _DEFAULT_INDEX_DIR = Path("data/rag/faiss_index")
 
 
 class Retriever:
-    """Two-stage retrieval Component.
+    """Two-stage retrieval Component: embed → FAISS top-20 → Cohere rerank top-5.
 
-    Usage:
-        r = Retriever()                 # loads pre-built index from disk if present
-        r.build(chunks)                 # one-time: embed + index + persist
-        results = r.run("some query")   # query time: embed → FAISS → Cohere
+    The lifecycle has two distinct phases:
 
-    Tests may inject an in-memory index via the index/metadata kwargs.
+      Write-time — run rarely, only when the knowledge base changes:
+          r = Retriever()
+          r.build(chunks)   # embed all chunks, build the FAISS index, persist to disk
+
+      Query-time — run per user query, fast, no rebuild:
+          r = Retriever()              # auto-loads the persisted index from disk
+          results = r.run("some query")
+
+    build() is the expensive one-time setup; run() is the per-query path. They are
+    separated so the corpus is never re-embedded on every query. When a persisted
+    index already exists at index_dir, a freshly-constructed Retriever loads it and
+    is ready to run() immediately — no build() needed.
     """
 
     def __init__(
         self,
         config: Optional[AppConfig] = None,
         index_dir: Path = _DEFAULT_INDEX_DIR,
-        index: Optional[faiss.IndexFlatIP] = None,
-        metadata: Optional[list[dict]] = None,
     ) -> None:
         self._config = config or load_config()
         self._index_dir = index_dir
-        self._index = index
-        self._metadata: list[dict] = metadata or []
+        self._index: Optional[faiss.IndexFlatIP] = None
+        self._metadata: list[dict] = []
         self.last_rerank_ran: bool = False
 
-        if self._index is None and (index_dir / "index.faiss").exists():
+        if (index_dir / "index.faiss").exists():
             try:
                 self._index, self._metadata = load_index(index_dir)
                 logger.info(
