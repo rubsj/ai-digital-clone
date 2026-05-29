@@ -15,6 +15,21 @@ Plan: `docs/plans/day10-plan.md`. Scope: 3 Components + 2 Agents + schema update
 - Pre-existing unrelated failure: `tests/test_query_loader.py::test_load_queries_canonical_file` fails with `FileNotFoundError` (missing canonical query data file). Not caused by Day 10; left untouched (out of scope). Suite after Phase 1: 428 passed, 40 skipped, 1 failed.
 - ADR candidate: no. Schema reshape executes ADR-010/011; no new decision surfaced.
 
+## Phase 2: Components (`src/components/`)
+
+- Built: `src/components/{__init__,retriever,scoring_engine,style_profile_builder}.py` + tests `tests/test_components_{retriever,scoring_engine,style_profile_builder}.py`. 20 new tests, all green. Full suite 448 passed / 40 skipped / 1 pre-existing fail.
+- Analysis-first per-function map (decided against live source):
+  - **Retriever** wraps `src/rag/`: `retrieve()` (FAISS), `embed_chunks/embed_query` (embedder), `build_index/load_index/save_index` (indexer) — all wrapped as-is. `RAGAgent` (`src/agents/rag_agent.py`) reclassified → `Retriever` class with `run()`; `__init__` gained optional `index`/`metadata` injection for testability (structural improvement, behaviour identical).
+  - **ScoringEngine** wraps the three sub-scorers: `score_style` (`src/style/style_scorer.py` — note: plan said `src/evaluation/style_scorer.py`; actual location is `src/style/`), `score_groundedness` + `score_confidence` (`src/evaluation/`). `score()` is self-contained — it extracts response features via the frozen `extract_features` (response wrapped in a minimal `EmailMessage`) then calls the three. Returns a local `Scores` NamedTuple, not a schema. Did NOT wrap `evaluator.py` (formula/LLM moved to EvaluatorAgent).
+  - **StyleProfileBuilder** wraps `src/style/`: `parse_mbox` (§4.8 pipeline), `extract_features` (15 features), `build_profile_batch` — all frozen, wrapped as-is. `sample_emails` populated in the Component via `profile.model_copy(...)`, so frozen `profile_builder.py` stays untouched. Sampling is deterministic: ≤5 → all; else 5 evenly-spaced.
+- Cohere fail-loud (constraint #3): the Day-3 bug was `os.environ.get("COHERE_API_KEY", "")` → empty string → silent generic fallback. Fix in `src/rag/reranker.py` (the Component can't import `cohere`, so the fix lives where the client is): added `rerank_with_status() -> (results, ran)` and a loud, env-var-specific WARNING when the key is missing/empty; refactored `rerank()` to delegate (v1 signature/behaviour preserved — existing `test_reranker.py` still passes). `Retriever.run()` records `last_rerank_ran` and logs an ERROR when reranking didn't run. Verification method: `test_run_cohere_actually_invoked` asserts the mocked `cohere.ClientV2().rerank` was called AND `last_rerank_ran is True` ("assert Cohere ran"); `test_run_missing_key_warns_and_falls_back` asserts the loud warning fires.
+- Decided (not a constraint conflict, documented): `ScoringEngine.score()` is self-contained (extracts features internally) rather than taking pre-extracted `response_features` like v1 `evaluate()` did — gives EvaluatorAgent a single clean call and keeps all deterministic scoring in one Component. `embed_openai` (LiteLLM, via groundedness) is a transitive import, not a direct one — the LLM-free grep targets each component file's own import lines and passes. Embeddings are vector math on the frozen scoring path (ADR-003/004), not LLM reasoning.
+- Latency smokes: Retriever <1s and ScoringEngine <500ms asserted with `time.perf_counter()` on mocked embeddings/Cohere (deterministic portion), per the plan's recorded-replay allowance. StyleProfileBuilder has no per-call budget (offline).
+- Surprising: plan's `style_scorer.py` path was wrong (it's in `src/style/`, not `src/evaluation/`) — wrapped the real location. Also re-confirmed the adapter-boundary grep needs to match import lines, not the substring "cli" inside "client".
+- v1 left in place: no deletions under `src/`. `reranker.py` edited (sanctioned Cohere fix), not deleted.
+- Convention (Ruby, this session): code comments/docstrings must NOT reference PRD section numbers — they should be self-contained; PRD numbers rot and force a reader to fetch an external doc. ADR-NNN references are fine. Audited and removed PRD/§ refs from Phase 2 code + tests (and retroactively from Phase 1 `schemas.py`). Plan files and these session notes may still cite PRD sections — the rule is code-only.
+- ADR candidate: no. All decisions execute existing ADRs (002/003/004/007/009/011/013).
+
 ## Dead Code Ledger
 
 | Item | Status | Safe to delete |
@@ -23,4 +38,5 @@ Plan: `docs/plans/day10-plan.md`. Scope: 3 Components + 2 Agents + schema update
 | `tests/test_evaluator.py` | Skipped (module-level) — exercises `evaluator.py`. | Remove with `evaluator.py` (Day 11). |
 | `tests/test_flow.py` | Skipped (module-level) — builds old `EvaluationResult` shape, exercises v1 `src/flow.py`. | Re-enable/rewrite at Day 11 Flow refactor. |
 | v1 `final_score`/`decision` reads in `src/flow.py`, `src/cli.py`, `src/visualization.py` | Dead at runtime (not import-time); not imported by Phase 2-3 code. | After Day 11 Flow refactor. |
-| `src/agents/rag_agent.py` | (Pending Phase 2) superseded by `src/components/retriever.py`. | After Day 11 Flow imports the Component. |
+| `src/agents/rag_agent.py` | Dead — superseded by `src/components/retriever.py` (same pipeline, now a Component with `run()`). | After Day 11 Flow imports `Retriever` instead of `RAGAgent`. |
+| `src/rag/reranker.py::rerank()` | Live but thin — now delegates to `rerank_with_status()`. Keep until all callers migrate to the status-returning variant (Day 11). | Not before Day 11; v1 callers still use it. |
