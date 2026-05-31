@@ -31,8 +31,8 @@ from src.schemas import (
 pytestmark = pytest.mark.skip(reason="v1 flow.py superseded by the Flow refactor; EvaluationResult contract changed (ADR-010/011)")
 
 _MOCK_FALLBACK = FallbackResponse(
-    trigger_reason="low score",
-    context_summary="kernel memory",
+    acknowledgment="That is outside what I can answer from the retrieved material.",
+    suggested_redirections=["How does the buddy allocator work?"],
     calendar_link="https://cal.com/placeholder",
     available_slots=["2024-02-01 10:00", "2024-02-02 14:00", "2024-02-03 09:00"],
     unstyled_response="Here is an unstyled answer.",

@@ -8,7 +8,7 @@ field_serializer/field_validator for JSON roundtrip compatibility.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
@@ -212,18 +212,50 @@ class EvaluationResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Routing decision model
+# ---------------------------------------------------------------------------
+
+
+class RoutingDecision(BaseModel):
+    """GatekeeperAgent's deliver-or-fallback verdict (ADR-010).
+
+    The GatekeeperAgent owns routing; there is no weighted formula and no
+    final_score in v2. reasoning must reference the specific scores and flags
+    it was given (ADR-010 risk mitigation).
+    """
+
+    decision: Literal["deliver", "fallback"]
+    reasoning: str = Field(min_length=1, description="Human-readable routing rationale")
+    trigger_reason: Optional[str] = None
+    trigger_category: Optional[
+        Literal[
+            "low_groundedness",
+            "off_domain",
+            "hallucination_risk",
+            "chunk_mismatch",
+            "empty_retrieval",
+        ]
+    ] = None
+
+
+# ---------------------------------------------------------------------------
 # Fallback / output models
 # ---------------------------------------------------------------------------
 
 
 class FallbackResponse(BaseModel):
-    """Output when the system routes a query to fallback instead of delivering."""
+    """Output when the system routes a query to fallback instead of delivering.
 
-    trigger_reason: str
-    context_summary: str
+    v2 shape (ADR-012): LLM-generated acknowledgment + redirections
+    + calendar mock + failsafe unstyled_response. Replaces v1 trigger_reason /
+    context_summary shape.
+    """
+
+    acknowledgment: str
+    suggested_redirections: list[str] = Field(default_factory=list)
     calendar_link: str
     available_slots: list[str] = Field(default_factory=list)
-    unstyled_response: Optional[str] = None
+    unstyled_response: str
 
 
 class StyledResponse(BaseModel):
@@ -269,5 +301,6 @@ class CloneState(BaseModel):
     retrieved_chunks: list[RetrievalResult] = Field(default_factory=list)
     styled_response: str = ""
     evaluation: Optional[EvaluationResult] = None
+    routing_decision: Optional[RoutingDecision] = None
     final_output: Optional[Union[StyledResponse, FallbackResponse]] = None
     trigger_reason: str = ""

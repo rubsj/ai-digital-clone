@@ -677,5 +677,158 @@ Created two sequence diagrams ingle-query-sequence.md and dual-leader-sequence.m
 System-architecture and Data flow diagrams are structural diagrams showing shape and flow of the application. Sequence diagrams - single and dual leader comparision , are behavioral diagrams showing time-ordered interaction. The five architectural diagrams tell the system story at multiple resolutions and from different angles.
 single-query-sequence.md file originally poiunted to ADR 005 for threshold value decision , however on checking I realized that I never created an ADR document on why I chose 0.75 as theshold and I have noted it as work to be done post all projects are complete. From the diagram I removed the ADR reference for now , it will be updated after writing the ADR in future.
 The dual leader comparision sequence diagram shows retrieve onc and style twice optimization with par/and notation. This is logically parallel in diagram , at implementation level it can be done in sequence or in parallel or concurrently . I have chosen to do it in sequence for simplicity , if required it can be done concurrently using asyncio.gather approach. Sequence diagram describe the intent not enforcement.
+# Day 10 - Components and Agents 
+Questions
+Day 10 Phase Defence — 4-Category Menu
+Category 1: What was built
+Answer in your own words, not by listing files.
+1.1. Day 10's deliverable was 3 Components and 2 Agents. Without looking it up: name them, and for each one say in one sentence what it does in the pipeline.
+1.2. What is the difference between an Agent and a Component in v2? Give me the criterion, not examples. Why does this distinction exist as a separate ADR rather than being an implementation detail?
+1.3. The EvaluatorAgent is described as "hybrid." What does hybrid mean specifically? What are the two parts and which is which?
+1.4. The pipeline order is: Retriever → CloneAgent → EvaluatorAgent → (GatekeeperAgent → deliver | fallback). Day 10 built the first three. What does each one need from the one before it? Trace the data flow.
+
+Category 2: What was decided and why
+This is the hardest category. Answer without consulting ADRs.
+2.1. We added a sample_emails: list[str] field to StyleProfile. Why? What does CloneAgent need it for that the 15-feature vector cannot provide? (You worked this out with me in conversation; recall the reasoning, don't just state the conclusion.)
+2.2. ADR-013 freezes StyleProfileBuilder during the rework, but we modified StyleProfileBuilder to populate sample_emails. Why is that not a violation of the freeze? What is the freeze actually protecting?
+2.3. CloneAgent runs at two different temperatures: 0.3 for the Crew kickoff, 0 for the Instructor parse. Why two? What would break if both were 0? What would break if both were 0.3?
+2.4. EvaluatorAgent runs both calls at temperature 0, unlike CloneAgent. Why is the design choice different?
+2.5. The plan said "ONE LLM call" for EvaluatorAgent Step 2, and we changed it to "ONE LLM-reasoning step via the kickoff → Instructor parse pattern." Why was the original wording wrong? What architectural commitment did the kickoff requirement enforce?
+2.6. EvaluationResult has model_config = ConfigDict(extra="forbid"). Why? What v1 failure mode does this prevent?
+2.7. The Cohere reranker had a silent failure bug in v1 (empty COHERE_API_KEY defaulting silently). We fixed it with a loud WARNING and graceful fallback. Why is the loud WARNING the architecturally important part? Why not just fix the env var bug?
+2.8. ScoringEngine is a Component, not an Agent. Why? It does style scoring, groundedness scoring, confidence scoring. What in the Agent vs Component criterion makes those three jobs deterministic rather than LLM work?
+
+Category 3: What alternatives were considered
+Don't tell me the choices we made. Tell me the choices we ruled out and why.
+3.1. For the StyleProfile sample emails problem, I gave you three options: (a) add the field and have the builder populate it, (b) sample outside the frozen builder via a separate path, (c) defer sample emails entirely. You picked (a). What was wrong with (b)? What was wrong with (c)?
+3.2. For EvaluatorAgent Step 2, Sonnet surfaced two options: "Two-call, match CloneAgent" vs "One literal Instructor call." You picked two-call. What was wrong with the one-literal-call option? Why was it tempting? What architectural sin would it have committed?
+3.3. We considered adding mypy to the toolchain and dropped it. Why drop rather than add? What would adding it mid-rework have cost?
+3.4. The plan said "rename style_crew.py → clone_agent.py." Sonnet created clone_agent.py fresh and left style_crew.py on disk. What two readings of "rename" were in conflict? Why did Stop Gate 1 win over the §12.2 PRD wording?
+3.5. Latency smokes for the Agents (CloneAgent <3s, EvaluatorAgent <2s) were deferred because mocked calls cannot observe real latency. We could have asserted anyway, or used recorded replays. Why deferring to Day 12 evaluation is correct rather than a cop-out?
+
+Category 4: What would you change
+This is where understanding meets honesty.
+4.1. What is the weakest part of Day 10's work? Where would a senior reviewer push back hardest, and what would your defence be?
+4.2. What's in the Dead Code Ledger and when does each item retire? If you can't recall every entry, say so; that itself is signal.
+4.3. The plan fired surface-don't-silently-choose four times: mypy, "rename," "ONE LLM call," latency smokes. Three were plan-precision gaps. One (latency smokes) was a real engineering reality. Which was which, and how would you tell the difference next time before Sonnet surfaces it?
+4.4. If Day 11 builds GatekeeperAgent + FallbackAgent + Flow refactor + integration tests + first end-to-end smoke in a single day, what's the biggest risk? What would you add to the Day 11 plan that Day 10's plan didn't have? (Phase Defence wiring is one answer; what else?)
+4.5. The Day 10 protocol failure was that Phase Defence existed in the Engineering Protocols Notion page but not in the plan's exit gates. Why did this happen? What is the general failure mode here that you want to prevent going forward?
+Answers : - 
+
+For day10 deliverable built 3 components
+1. retriever - it builds and loads FAISS index , by following pipeline of reading and chunking the technical books on which response will be grounded
+2. style profile builder - it builds 15 vector style profile from LKML following mailbox scrubbing pipeline
+3. Scoring Engine - it builds three scores style score , groundedness score and confidence score . Style score is build by doing cosine on leader profile and built response , groundedness score and confidence score - I don't know how those are calculated
+Built two agents
+1. Clone Agent - It takes leader profile and query and response chunk and build response 
+2. Eveluator Agent - it retreives score for response , uses responses from clone agent and its cunk citation to build evaluation remark string and list of flags to qualify the evaluation
+
+The difference between Component and Agent is that components are pure Python function which runs pipelines to produce data , Agent on the other hand uses the data from these pipelines and other params given to it and invokes LLMs with these to generate reasoning and responses. The reasoning exists as seperate ADR because in V1 without this reasining in ADR , the implementation drifted and ended up calling everything Agent and built only one rel Agent
 
 
+Evaluator Agent is hybris becuase it uses ScoreEngine Components to retrieve score in one part and then uses LLM to generate evaluation result
+
+Retriever provides chunks for building response. Clone Agent uses these chunks to ground its response and produces actual response and citation list from the chunks which were used to build response. Evaluator Agent reads the response and citations to build evaluation result string and qualifying flags list. This will be used by GAtekeeper agent to determine whether to send styled response or call Fallback agent which will use the leader style to provide templated response with un styled chunks as response of main query
+
+We added sample_emails field to StyleProfile to send these emails in prompt using them as examples for few shot prompt style prompt. We are sending these emails as example to retreive style along with style vector numbers and we are doing this because LLMs are trained on natural langage and its more efficient and appropriate for LLM to build styled response using natural language emails than plain style vector numebrs
+
+Adding sample_emails is not a violation of freeze as we have frozen the implementation of style vector and that is intact and not modified. The style emails are implementation detail aspect which does not affect architectural decision
+
+temperature 0 means determinstic response is expected from LLM. We are using temperature 0.3 so that LLM has some creativity freedom to build response prose and temepature 0 is used for parsing the response. Keeping temperature 0.3 for both would mean that response parsing won't be deterministic and will fail in parsing response
+
+I don't know why we have model_config set to forbid
+
+We have fixed env bug and in dev environoment if reranker is not run it will throw error however for production I don't want the system to fail completly and hence throwing the load warning just to alert.
+
+The Scoring Engine is component and it is determinstic as internally it uses mathematical constructs like Cosine to build numerical score. Doing mathemetical calculation is a determinstic work not suitable for LLM
+
+sample outside of frozen path via a seperate path would be an unnecessary overhead and increase latency. Deferring sample emails entirely would mean the Clone Agent would not work in current implementation. I am not very confident of these other paths
+
+One litleral call option means two work has to be performed by LLM - build the response and parsing the response . This would have lead to increased surface area of failure for LLM. One specific focussed task for an LLM produce better result
+
+adding mypy now in the toolchain would have meant having to refactor a lot of code to add strict types to whole code . This would have led to distraction from today's work and redundant work even in the classes that we would need to delete soon
+
+sonnet pointed out that rename here could have meant to rename the filename and the function inside it which was going to be total rewrite and would have broken existing code which would be deprecated after next day's work. humm I am not 100 % sure 
+
+deferring latency smokes to day 12 when the whole system is functional is the right call becuase without the actual LLM call with fully functional system the numbers that we  get from mock won't be truly correct number and won't be useful
+
+hum I don't knw what should be considered weekest part in today's work
+
+i don't remember dead code ledger but it has list of classes and functions which are no longer needed but are kept as it and will be deleted when deleting them won't cause any compilation issue or when the v2 implemnetation is complete
+
+mypy, "rename," "ONE LLM call," were plan precision gaps as each of these words could be interpreted in multiple ways. To tell if its a plan precision gap I have put in plan if there is ambiguity due to words usage , provide detailed reasoning to avoid word ambiguity. LAtency smokes was real engineering query that sonnet should have causght and it did
+
+The biggest risk is plan not providing clear instruction and leaving words wich could be interpreted in multiple ways. I am not sure what else could be the risk for the day 11
+
+Engineering protocol should have been added to plan wherever it was appropriate and since it was not in plan and only in NOtion it slipped
+
+
+Learning Journal note
+Built three components and 2 Agents. Components are 
+1. Retriever - it builds and loads FAISS index , by following pipeline of reading and chunking the technical books on which response will be grounded
+2. style profile builder - it builds 15 vector style profile from LKML following mailbox scrubbing pipeline
+3. Scoring Engine - it builds three scores style score , groundedness score and confidence score . Style score is build by doing cosine on leader profile and built response , groundedness score sentence level cosine between response and retrieved chunk and confidence score heuristic driven
+Agents are :
+1. Clone Agent - It takes leader profile and query and response chunk and build response 
+2. Evaluator Agent - it retreives score for response , uses responses from clone agent and its chunk citation to build evaluation remark string and list of flags to qualify the evaluation
+From the schemas removed final_score and decision from EvaluationResult, added CloneResponse, added sample_emails to StyleProfile
+Today following decisions are taken
+Decision 1: The sample_emails freeze exception this modified the frozen component. ADR-013 freezes StyleProfileBuilder, but CloneAgent required 3-5 email samples. The conflict surfaced when Sonnet audited StyleProfile and found no sample field. Resolution: Keep the intent of freeze in place which is to keep the current style vector extraction process intact. I updated the StyleProfileBuilder class to support new architecture. Sampling cleaned emails carries data forward without changing feature extraction or the cleaning pipeline; the purpose holds. Sanctioned exception, logged in session notes and Dead Code Ledger.
+
+Decision 2: Dual-temperature pattern in CloneAgent, I decided to use different temperatures for LLM depending on what is it needed for. kickoff at 0.3 for voice fidelity, Instructor parse at 0 for structured-output reliability. The architectural insight: when two concerns conflict (creativity vs determinism), make two LLM calls to optimize each separately rather than compromise one number for both. EvaluatorAgent runs both at 0 because it has no voice concern and it needs both LLM calls to be as deterministic as possible
+
+Decision 3: extra="forbid" on EvaluationResult to prevent silent failure due to passed in extra param. Pydantic by default allows passing extra param however I wanted the code to show me failure and warning if final_score field is being passed as I need to remove that field hence by making extra forbid I am ensuring that this field does not get silently used around
+
+Decision 4: One-literal-call vs kickoff-plus-parse for EvaluatorAgent to make a real agent not wrap llm call in a python function.  In plan it was written to make one LLM call but that was not be interpreted literally as during implementation Sonnet did find that making one LLM call would not be optimal. I definitely want the agent to call kickoff() which is CrewAI's agent call without it , the Agent is not truly agent. Hence I made two calls one for kickoff and one for parsing response using instructor. This way each LLM call is doing one function
+
+Sonnet flagged 4 times that one word or sentence could be interpreted multiple ways and depending on the interpretation the implementation would drift from architecture and implementation intention. Thankfully the protocol to make sonnet stop and ask me question in case of ambiguity worked as it was surfaced during development and I was able to resolve it then and there rather than having to find it in later stage of development. I also learnt that going forward , I need to make sure plan does not have dual meaning or sentences and plan have everything clearly defined with one meaning
+
+Structural Learning - However the phase defence and learning protocol was missed because it was not defined in plan and that would need to be taken care of going forward. This happened because Architecture lives in ADRs and nothing is forcing it in implementation so when I forced the ADR reference in. plan it was honored same way when Engineering Protocol lives only in Notion and is not brought into plan it does not get honored so it has to be brought into plan.
+
+Weekest part in today's work is confidence score logic. I have kept this logic as it is and its not very clearly defined and I don't understand it properly either. If Day 11 evaluation will show confidence as week signal and it causes GateKeeper Agent to get bad input , I will revisit it on Day 12 
+
+
+# Day 11 - 
+>> PHASE A EXIT GATE — Phase Defence <<
+Stopping for your Phase A defence. Ruby, please work through the four-category menu:
+
+1 — What was built
+A1 (schemas):
+
+RoutingDecision — new model with decision: Literal["deliver", "fallback"], reasoning: str (min_length=1), trigger_reason: Optional[str], trigger_category: Optional[Literal["low_groundedness", "off_domain", "hallucination_risk", "chunk_mismatch", "empty_retrieval"]]
+FallbackResponse — reshaped v1→v2 (acknowledgment, suggested_redirections, calendar_link, available_slots, unstyled_response)
+CloneState — additive: routing_decision: Optional[RoutingDecision] = None
+tests/test_schemas.py — updated with 7 new RoutingDecision tests (including trigger_category literals + rejection), 3 FallbackResponse v2 tests, 3 CloneState routing_decision tests
+A2 (FallbackAgent): src/agents/fallback_agent.py (163 lines) — real CrewAI Agent, temperature=0.3 generation / temperature=0 Instructor parse, templated failsafe on any LLM exception. tests/integration/test_fallback_agent.py — 13 tests including 2 real-behavior failsafe tests.
+
+A3 (GatekeeperAgent): src/agents/gatekeeper_agent.py (158 lines) — real CrewAI Agent, temperature=0, Instructor parses directly to RoutingDecision. Prompt includes all three scores, flags, and demands reasoning cite them; on fallback emits trigger_category from the 5-literal set + free-text trigger_reason; on deliver, both null. tests/integration/test_gatekeeper_agent.py — 16 tests covering prompt builder (scores + flags reach task description), crew shape, run() output shape, trigger_category iff-contract (fallback → literal, deliver → None), temperature=0 Instructor parse assert.
+
+Suite: 520 passed, 40 skipped, 1 known pre-existing failure. flow.py untouched. ruff: clean.
+
+2 — What was decided and why
+trigger_category not enforced as a schema cross-field validator. The plan explicitly specifies this: "set iff fallback is enforced at the prompt + A3 contract-test layer, not as a schema cross-field validator — symmetric with the existing trigger_reason handling." The schema stays permissive; the iff-relationship is asserted in the A3 contract tests. Reason: a cross-field validator would add coupling between schema correctness and routing logic, and the Day-12 real-LLM tests are where the behavioral guarantee lands.
+
+RoutingDecision used directly as Instructor response_model in GatekeeperAgent (no intermediate _GatekeeperDraft). CloneAgent and EvaluatorAgent use an intermediate draft because their final output adds computed fields (reconciled citations, assembled scores). GatekeeperAgent's Instructor output IS the final RoutingDecision with no additions — no intermediate type needed.
+
+trigger_category added to A1 in the same commit as A3 construction (not shipped with the plan amendment). The amendment was a plan-level change; the code change landed here, in A3, because A3 (GatekeeperAgent) is the first code that produces RoutingDecision instances with trigger_category set. Keeping the schema change co-located with its first consumer avoids a schema field with no code exercising it.
+
+3 — Alternatives considered
+Alternative for trigger_category: a separate TriggerCategory enum model. Rejected — a Literal inline on RoutingDecision is sufficient for a 5-value bounded set, doesn't add a new importable type, and Pydantic validates it identically. A dedicated Enum would be warranted if the taxonomy needed to be referenced from multiple models or exported for consumers — neither is true on Day 11.
+
+Alternative for _parse_decision: use Crew.kickoff() directly with a structured output config instead of the kickoff → Instructor-parse two-step. Rejected because it departs from the canonical Day-10 pattern (all four agents use kickoff→Instructor-parse) and the pattern is the consistency invariant the architecture-honesty greps enforce.
+
+4 — What would change the answer
+If the 5-literal vocabulary turns out to be wrong when real-LLM routing runs on Day 12: extending trigger_category requires a logged ADR-010 amendment, not an ad-hoc edit. The vocabulary is deliberately small; a Day-12 discovery that a 6th category is needed is expected and the amendment path is already written into the plan.
+
+If the Phase B CloneState reshape renames or removes routing_decision: the GatekeeperAgent output contract and all A3 tests are unaffected (they depend on RoutingDecision directly, not on CloneState). The only breakage is the CloneState field reference in flow.py, which Phase B owns.
+
+Category V — v1-drift check (mandatory for Agent phases)
+No weighted formula, no threshold comparison, no final_score field, and no Python function named like an Agent anywhere in the new files. Proved by grep:
+
+
+grep -rn "final_score\|threshold\|final_score\|def .*Agent(" \
+  src/agents/gatekeeper_agent.py tests/integration/test_gatekeeper_agent.py
+→ (no matches)
+final_score exists only in: schemas.py deprecation docstring, v1 dead-code files (flow.py, cli.py, evaluator.py, fallback_steps.py, evaluator_steps.py), and the corresponding skipped tests. No new Day-11 file introduces it.
+
+Waiting for your Phase A defence answer before Phase B begins.

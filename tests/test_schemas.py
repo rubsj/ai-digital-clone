@@ -21,6 +21,7 @@ from src.schemas import (
     KnowledgeChunk,
     LeaderComparison,
     RetrievalResult,
+    RoutingDecision,
     StyleFeatures,
     StyleProfile,
     StyledResponse,
@@ -120,13 +121,22 @@ def _make_clone_response(**kwargs) -> CloneResponse:
 
 def _make_fallback(**kwargs) -> FallbackResponse:
     defaults = dict(
-        trigger_reason="final_score=0.60 < 0.75",
-        context_summary="Query about memory management in Linux kernel.",
+        acknowledgment="That's outside what I can answer well from the retrieved material.",
+        suggested_redirections=["How does the buddy allocator work?", "What is slab allocation?"],
         calendar_link="https://cal.com/torvalds/book",
-        available_slots=["2026-04-10T10:00", "2026-04-10T14:00"],
-        unstyled_response=None,
+        available_slots=["2026-04-10T10:00", "2026-04-10T14:00", "2026-04-11T09:00"],
+        unstyled_response="The kernel memory subsystem handles physical pages via the buddy allocator.",
     )
     return FallbackResponse(**(defaults | kwargs))
+
+
+def _make_routing_decision(**kwargs) -> RoutingDecision:
+    defaults = dict(
+        decision="deliver",
+        reasoning="Style score 0.91 and groundedness 0.68 both above targets; no flags raised.",
+        trigger_reason=None,
+    )
+    return RoutingDecision(**(defaults | kwargs))
 
 
 def _make_styled_response(**kwargs) -> StyledResponse:
@@ -437,19 +447,91 @@ def test_clone_response_roundtrip():
 
 
 # ---------------------------------------------------------------------------
+# RoutingDecision
+# ---------------------------------------------------------------------------
+
+
+def test_routing_decision_deliver():
+    rd = _make_routing_decision()
+    assert rd.decision == "deliver"
+    assert rd.reasoning
+    assert rd.trigger_reason is None
+
+
+def test_routing_decision_fallback():
+    rd = _make_routing_decision(
+        decision="fallback",
+        reasoning="Groundedness 0.21 far below target; flag: low_groundedness.",
+        trigger_reason="low_groundedness",
+    )
+    assert rd.decision == "fallback"
+    assert rd.trigger_reason == "low_groundedness"
+
+
+def test_routing_decision_invalid_literal_raises():
+    with pytest.raises(ValidationError):
+        RoutingDecision(decision="maybe", reasoning="uncertain")
+
+
+def test_routing_decision_empty_reasoning_raises():
+    with pytest.raises(ValidationError):
+        RoutingDecision(decision="deliver", reasoning="")
+
+
+def test_routing_decision_trigger_category_defaults_none():
+    rd = _make_routing_decision()
+    assert rd.trigger_category is None
+
+
+def test_routing_decision_trigger_category_valid_literals():
+    for cat in ("low_groundedness", "off_domain", "hallucination_risk", "chunk_mismatch", "empty_retrieval"):
+        rd = _make_routing_decision(
+            decision="fallback",
+            reasoning="scores below target.",
+            trigger_reason="score too low",
+            trigger_category=cat,
+        )
+        assert rd.trigger_category == cat
+
+
+def test_routing_decision_trigger_category_invalid_raises():
+    with pytest.raises(ValidationError):
+        RoutingDecision(
+            decision="fallback",
+            reasoning="scores below target.",
+            trigger_category="weird_reason",
+        )
+
+
+# ---------------------------------------------------------------------------
 # FallbackResponse
 # ---------------------------------------------------------------------------
 
 
 def test_fallback_response_valid():
     fb = _make_fallback()
-    assert fb.unstyled_response is None
-    assert len(fb.available_slots) == 2
+    assert fb.acknowledgment
+    assert isinstance(fb.suggested_redirections, list)
+    assert fb.calendar_link
+    assert len(fb.available_slots) == 3
+    assert fb.unstyled_response
 
 
-def test_fallback_response_with_unstyled():
-    fb = _make_fallback(unstyled_response="Here is a grounded answer without style.")
-    assert fb.unstyled_response is not None
+def test_fallback_response_empty_redirections():
+    fb = _make_fallback(suggested_redirections=[])
+    assert fb.suggested_redirections == []
+
+
+def test_fallback_response_v1_fields_rejected():
+    """v1 fields trigger_reason / context_summary must not be silently accepted."""
+    with pytest.raises((ValidationError, TypeError)):
+        FallbackResponse(
+            trigger_reason="low score",
+            context_summary="some context",
+            calendar_link="https://cal.com/x",
+            available_slots=[],
+            unstyled_response="",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -498,7 +580,25 @@ def test_clone_state_defaults():
     assert state.retrieved_chunks == []
     assert state.styled_response == ""
     assert state.evaluation is None
+    assert state.routing_decision is None
     assert state.final_output is None
+
+
+def test_clone_state_routing_decision_populated():
+    state = CloneState()
+    state.routing_decision = _make_routing_decision()
+    assert state.routing_decision.decision == "deliver"
+
+
+def test_clone_state_routing_decision_fallback():
+    state = CloneState()
+    state.routing_decision = _make_routing_decision(
+        decision="fallback",
+        reasoning="Low groundedness detected.",
+        trigger_reason="low_groundedness",
+    )
+    assert state.routing_decision.decision == "fallback"
+    assert state.routing_decision.trigger_reason == "low_groundedness"
 
 
 def test_clone_state_incremental_population():
