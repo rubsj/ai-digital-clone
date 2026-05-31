@@ -71,11 +71,140 @@ Four-category defence rendered at the Phase A exit gate:
 - **Category III (alternatives considered):** separate `TriggerCategory` Enum rejected (a 5-value inline `Literal` is sufficient, no multi-model reference needed); single-call Instructor approach for GatekeeperAgent rejected (departs from the kickoff→parse canonical pattern enforced by architecture-honesty greps).
 - **Category V — v1-drift (mandatory):** no weighted formula, no threshold comparison, no `final_score` field, no Agent-named functions in any Day-11 file. Proved by grep.
 
-## Phase B — status
+## Phase B — `flow.py` rewire, latency, smoke, v1 retire
 
-**Not started.** Phase B (CloneState reshape + `flow.py` rewire + latency + smoke + v1 retire) begins after Ruby clears the Phase A defence gate.
+Phase B cleared the Phase A defence gate and executed B0→B5 as specified.
 
-**Day-12 named follow-ups recorded from amendments:**
-- `test_groundedness_scorer: chunk.embedding=None re-embed path` (amendment 3 — always-taken live branch uncovered).
-- `trigger_category correctness` — whether the Gatekeeper labels the right category for given inputs (contract test only proves a legal literal is chosen; behavioral correctness requires real LLM).
-- ADR-010 amendment — sync `trigger_category` addition to Notion ADR Log (`reference_notion_adr_log.md`).
+### B0 — groundedness source audit (pre-condition)
+
+Source-confirmed three facts before touching any code:
+
+1. **`indexer.py:74` excludes embeddings from `metadata.json`:** `metadata = [c.model_dump(exclude={"embedding"}) for c in chunks]`. The FAISS index holds the vectors; `metadata.json` does not.
+2. **`retriever.py:49` reconstructs chunks without an embedding:** `chunk = KnowledgeChunk(**metadata[idx])`. The `embedding` key is absent from the dict, so `chunk.embedding is None` on every `Retriever.run()` call in production.
+3. **`embed_openai` raises on API failure — no silent MiniLM fallback.** `embed_openai` at `embedder.py:110` calls `litellm.embedding()` directly; any exception propagates. `embed_minilm` is a completely separate function; the two are not wired together. Consequence: `score_groundedness()` always batch-re-embeds chunk text via `embed_openai` (the `embedding is None` branch is always taken live), and any API failure hard-fails rather than degrading.
+4. **Coverage gap pre-closed.** `tests/test_groundedness_scorer.py:161` already has `test_score_groundedness_missing_chunk_embedding_triggers_batch` (embedding=None → re-embed path, score ∈ [0,1]). No new test needed.
+
+B0 produced no code changes. The coverage gap named in amendment 3 (Phase A) was already closed before Phase B started.
+
+### B1 — CloneState v2 reshape + `flow.py` rewrite
+
+**CloneState** (`src/schemas.py`): full v2 reshape. Renamed `retrieved_chunks` → `chunks`. Replaced `styled_response: str` and `trigger_reason` and `final_output` with typed optional fields: `style_profile: Optional[StyleProfile]`, `response_text: Optional[str]`, `citations: list[Citation]`, `styled_response: Optional[StyledResponse]`, `fallback_response: Optional[FallbackResponse]`. Added `routing_decision: Optional[RoutingDecision]` (additive in Phase A, now part of the canonical v2 shape). `model_config = ConfigDict(arbitrary_types_allowed=True)` required for `StyleProfile` (numpy array inside). Ten fields total; `trigger_reason` and `final_output` gone — v1 callers (`cli.py`, `visualization.py`) break at attribute-access time, not import time, consistent with the Day-10 blast-radius pattern.
+
+**`flow.py`** (`src/flow.py`): full rewrite. Five-step pipeline:
+
+| Step | Decorator | Method | Agent called |
+|------|-----------|--------|--------------|
+| 1 | `@start()` | `retrieve` | `Retriever()` (Component) |
+| 2 | `@listen(retrieve)` | `clone` | `CloneAgent()` |
+| 3 | `@listen(clone)` | `evaluate` | `EvaluatorAgent()` |
+| 4 | `@router(evaluate)` | `route` | `GatekeeperAgent()` |
+| 5a | `@listen("deliver")` | `finalize` | — (state assembly) |
+| 5b | `@listen("fallback")` | `handle_fallback` | `FallbackAgent()` |
+
+`retrieve` early-exits when `state.chunks` is non-empty (ADR-005 shared-retrieval optimization). `route` has an emergency guard: if `state.evaluation is None`, returns `"fallback"` immediately with a `RoutingDecision` describing the skip rather than calling GatekeeperAgent on a None input.
+
+`compare_leaders()` updated: loads profiles externally, injects via `kickoff(inputs={"style_profile": ...})`, uses `state.chunks` (renamed). Torvalds flow runs first and retrieves; Kroah-Hartman flow receives `chunks=shared_chunks` so its retrieve step early-exits — one Retriever call total (ADR-005 gate).
+
+**Pydantic PrivateAttr** (surprising): The v1 `flow.py` set `self._config = ...` in `__init__` after `super().__init__()` and this was never verified at runtime because all v1 flow tests were skipped. CrewAI `Flow` inherits `BaseModel`; Pydantic's `__getattribute__` intercepts access to unknown underscore names set outside the Pydantic init path. Setting `self._timings = {}` in `__init__` does not persist across subsequent step-method calls — attribute reads return `AttributeError: 'DigitalCloneFlow' object has no attribute '_timings'. Did you mean: 'timings'?`. Fix: `_timings: dict = PrivateAttr(default_factory=dict)` declared at class level. The `__init__` override was removed entirely. This is the correct Pydantic v2 pattern for per-instance private state on a BaseModel subclass.
+
+### B2 — per-stage latency instrumentation
+
+Two-layer timing:
+
+- **Step-level wall-clock** on `DigitalCloneFlow` via `_timings: dict = PrivateAttr(default_factory=dict)` (same PrivateAttr from B1). `perf_counter()` wraps each agent call; result stored as `retrieve_ms`, `clone_ms`, `evaluate_ms`, `route_ms`, `deliver_ms`, `fallback_ms`. Exposed via `flow.timings` property (returns a copy).
+- **Generate/parse split** per agent via a `last_run_timings: dict` instance attribute set at the end of each agent's `run()` method. Flow reads it with `getattr(agent, "last_run_timings", {})` — graceful fallback to `{}` when the agent is mocked. Stored as `clone_generate_ms`/`clone_parse_ms`, `evaluate_score_ms`/`evaluate_generate_ms`/`evaluate_parse_ms`, `route_generate_ms`/`route_parse_ms`, `fallback_generate_ms`/`fallback_parse_ms`.
+
+Timings are observability only — not asserted in any test, not stored on `CloneState`. Day 12 is the first real-LLM timing measurement pass. The key structure is locked in now so Day 12 can assert on specific keys.
+
+**Why `last_run_timings` instead of returning `(result, timing_dict)`.** Changing any agent's return type from `CloneResponse`/`EvaluationResult`/etc. to a tuple would break all Phase A contract tests that assert on typed return values. The instance-attribute side-channel adds zero coupling; mocked agents simply don't set the attribute and `getattr` falls back to `{}`.
+
+### B3 / B4 — test suite rewire
+
+**`tests/test_flow.py`** (full rewrite, 25 tests): removed the module-level `pytest.mark.skip` that had protected the collection-time `FallbackResponse(trigger_reason=...)` crash. Updated to v2 constructors. Two central helpers: `_run_deliver()` patches `Retriever`, `CloneAgent.run`, `EvaluatorAgent.run`, `GatekeeperAgent.run`; `_run_fallback()` adds `FallbackAgent.run`. Tests cover: deliver 5-step trace (all five state fields populated), fallback 5-step trace, typed field assertions on both arms, `retrieve` early-exit (`Retriever.run.assert_not_called`), `retrieve_ms` absent when early-exiting, Kroah-Hartman path, all 7 timing-key groups.
+
+**`tests/integration/test_compare_leaders.py`** (new, 4 tests): gate test asserts `mock_retriever_instance.run.assert_called_once()` — exactly one Retriever-Component call across both flow runs (Torvalds retrieves; Kroah-Hartman early-exits). Assertion message explicitly notes this counts Retriever-Component calls, not embedding calls (evaluate still re-embeds for groundedness — expected, not a regression). Three shape tests: `compare_leaders` returns a `LeaderComparison`, `result.query` matches input, both arms are `StyledResponse`.
+
+**`tests/test_schemas.py`**: `CloneState` block updated to v2 field names (`chunks`, `style_profile`, `response_text`, `citations`, `styled_response`, `fallback_response`). `test_clone_state_incremental_population` uses v2 fields in pipeline order.
+
+**`tests/test_cli.py` and `tests/test_visualization.py`**: `pytestmark = pytest.mark.skip(reason="... Day 12 (D-B1)")`. No module-level v1-shaped constructors in either file (all v1 field access is inside function bodies), so a simple `pytestmark` is safe — verified by checking collection completes with zero errors. Pre-existing `F841` in `test_cli.py` (`as mock_cls` unused variable) fixed while the file was open.
+
+**Suite after B3/B4:** 519 passed, 37 skipped, 1 pre-existing failure (`test_load_queries_canonical_file`).
+
+### Stop Gate 1 — Phase B defence (rendered and cleared)
+
+Four-category defence rendered before B5.
+
+**Category I (what was built):** CloneState v2 (10 fields; `retrieved_chunks`/`trigger_reason`/`final_output` gone); `flow.py` v2 (5-step pipeline calling real agents); per-stage latency via `PrivateAttr(_timings)` + `last_run_timings` side-channel on all four agents; `test_flow.py` rewritten (25 tests); `test_compare_leaders.py` created (4 tests, Retriever-count gate); collection-safe skip markers on `test_cli.py` + `test_visualization.py`.
+
+**Category II (decided and why):** `PrivateAttr` for `_timings` — `BaseModel.__getattribute__` intercepts `__init__`-set underscore names; `PrivateAttr(default_factory=dict)` is the correct Pydantic v2 pattern. `getattr(agent, "last_run_timings", {})` — preserves agent return-type contracts unchanged; mocked agents return `{}` without special handling. Both step-level and generate/parse split recorded — they are complementary (outer vs inner measure) and Day 12 needs both.
+
+**Category III (alternatives considered):** Timings on `CloneState` rejected — latency is observability, not a result-model field; CloneState is serialized/validated by Pydantic. Tuple return from agents rejected — breaks Phase A contract tests. Combined `evaluate_and_route` step rejected — plan explicitly splits them; the split attributes the groundedness re-embed clearly to `evaluate_ms`.
+
+**Category V — v1-drift:** No weighted formula, threshold comparison, `final_score` field, or Agent-named function in any Day-11 B file. `final_score` in the repo is confined to: `schemas.py` deprecation docstring; the three blocked/deferred Day-12 files (`cli.py`, `visualization.py`, `evaluation/evaluator.py`); their skipped tests; and two v2 assertions that confirm the field is absent or rejected.
+
+Gate cleared by Ruby. B5 proceeded.
+
+### B5 — v1 dead code retirement
+
+Per-file grep before every delete. Zero live importers required; any unexpected caller would stop the retirement of that file.
+
+**Retired (grep zero, deleted):**
+
+| File | Grep result | Live callers | Action |
+|------|-------------|--------------|--------|
+| `src/agents/style_crew.py` | `tests/test_style_crew.py` only | Co-retired | Deleted |
+| `tests/test_style_crew.py` | imports `style_crew` | Co-retired | Deleted |
+| `src/agents/evaluator_steps.py` | zero | — | Deleted |
+| `src/agents/fallback_steps.py` | zero | — | Deleted |
+| `scripts/timing_dual_leader.py` | zero | — | Deleted |
+
+**Blocked (unexpected live callers — not deleted):**
+
+| File | Blocking caller | Resolution |
+|------|-----------------|------------|
+| `src/agents/rag_agent.py` | `src/cli.py:16` imports `RAGAgent` | Blocked. `cli.py` is deferred Day-12 (D-B1); `rag_agent.py` must survive until then. |
+| `src/evaluation/evaluator.py` | `src/evaluation/__init__.py:4` re-exports `evaluate` | Blocked. `__init__.py` is a live package init not in the retire list. Retire Day 12 alongside cli.py refactor. |
+| `src/rag/reranker.py::rerank()` | `src/rag/__init__.py:8`, `tests/test_reranker.py:12`, 7 experiment scripts | Blocked. `rerank()` has many callers; file also exports `rerank_with_status` used by `Retriever`. Keep. |
+
+**Tooling note (rm -i alias):** first delete attempt used `rm` without path prefix; the shell alias `rm='rm -i'` rendered the interactive prompt but the files were not deleted in the non-interactive bash context (the prompt output was captured but no `y` was provided). Second attempt used `\rm` to bypass the alias — deletions confirmed by `ls` verification before and after.
+
+**Suite after B5:** 498 passed, 37 skipped, 1 pre-existing failure. 21 tests removed (the `test_style_crew.py` suite, which had all been live-passing). ruff clean on `src/` and `tests/`.
+
+**PRD §12.2** mapping rows updated: four retired files marked "retired (Day 11)"; three blocked files annotated with their blocking reason and Day-12 trigger.
+
+## Dead Code Ledger — final state (Day 11)
+
+| Item | Status |
+|------|--------|
+| `src/agents/rag_agent.py` | Blocked — `src/cli.py` imports `RAGAgent`. Retire Day 12 with cli.py refactor. |
+| `src/evaluation/evaluator.py` | Blocked — `src/evaluation/__init__.py` re-exports `evaluate`. Retire Day 12. |
+| `tests/test_evaluator.py` | Blocked — exercises `evaluation/evaluator.py`. Remove with it Day 12. |
+| `src/rag/reranker.py::rerank()` | Live thin wrapper. Many callers; not retiring. |
+| `src/cli.py` / `src/visualization.py` | Use v1 `final_score`/`final_output`. Refactor Day 12 (D-B1). |
+| `tests/test_cli.py` / `tests/test_visualization.py` | Skip-marked (collection-safe). Re-enable Day 12. |
+| `src/agents/style_crew.py` | **Retired Day 11.** |
+| `tests/test_style_crew.py` | **Retired Day 11.** |
+| `src/agents/evaluator_steps.py` | **Retired Day 11.** |
+| `src/agents/fallback_steps.py` | **Retired Day 11.** |
+| `scripts/timing_dual_leader.py` | **Retired Day 11.** |
+
+## Phase B exit gate — architecture-honesty greps
+
+Run after B5 retirement. All four pass:
+
+1. **All 4 agent files `from crewai import LLM, Agent, Crew, Task` + role/goal/backstory present:** `clone_agent.py`, `evaluator_agent.py`, `gatekeeper_agent.py`, `fallback_agent.py`. ✓
+2. **`src/components/` imports no `litellm|openai|cohere|instructor`:** zero matches. ✓
+3. **No Agent-suffixed function definitions outside `src/agents/`:** zero matches. ✓
+4. **`final_score` confined to deprecation docstring + three blocked Day-12 files:** `schemas.py` (docstring prose); `cli.py`, `visualization.py`, `evaluation/evaluator.py` (live but blocked — known Day-12 items); their skipped tests; plus two v2 assertions in `test_schemas.py` and `test_evaluator_agent.py` that confirm the field is absent or rejected. Zero matches in any Day-11 file. ✓
+
+## Day-12 named follow-ups
+
+Carried forward from Phase A amendments plus B5 blockers:
+
+- `test_groundedness_scorer: chunk.embedding=None re-embed path` — already closed (pre-existing test found in B0 audit). No action needed.
+- `trigger_category` correctness verification with real LLM (contract test proves a legal literal is returned; behavioral accuracy requires live execution).
+- Sync ADR-010 amendment (`trigger_category` addition) to Notion ADR Log.
+- `cli.py` + `visualization.py` refactor to v2 field names — D-B1; unblocks `rag_agent.py` and `evaluation/evaluator.py` retirement.
+- `src/evaluation/__init__.py` — remove `evaluate` re-export when `evaluation/evaluator.py` is retired.
+- In-Flow convenience profile loader for `cli query` command (profile-loading is currently caller-side only).
+- First real-LLM latency measurement pass using `flow.timings` + `last_run_timings` keys established in B2.
