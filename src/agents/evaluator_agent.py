@@ -12,6 +12,7 @@ for deterministic review.
 from __future__ import annotations
 
 import logging
+from time import perf_counter
 
 import instructor
 import litellm
@@ -133,10 +134,19 @@ class EvaluatorAgent:
         chunks: list[RetrievalResult],
     ) -> EvaluationResult:
         """Score deterministically, reason about the scores, assemble EvaluationResult."""
+        t_score = perf_counter()
         scores = self._scoring.score(query, response, profile, chunks)
+        t_gen = perf_counter()
         crew = self._build_crew(query, response, scores, chunks)
         raw = crew.kickoff().raw
+        t_parse = perf_counter()
         draft = self._parse_review(raw)
+        t_done = perf_counter()
+        self.last_run_timings: dict[str, float] = {
+            "score_ms": (t_gen - t_score) * 1000,
+            "generate_ms": (t_parse - t_gen) * 1000,
+            "parse_ms": (t_done - t_parse) * 1000,
+        }
         return EvaluationResult(
             style_score=scores.style_score,
             groundedness_score=scores.groundedness_score,
