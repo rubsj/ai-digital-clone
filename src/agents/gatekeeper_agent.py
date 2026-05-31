@@ -3,8 +3,7 @@
 Inputs: query, response_text, chunks, evaluation (EvaluationResult), leader.
 Output: RoutingDecision. Runs at temperature=0. On fallback, the prompt demands
 trigger_category from the bounded 5-literal set and trigger_reason as free text
-referencing specific scores/flags. On deliver, both are null. Routing correctness
-is measured with real LLM on Day 12 — a green suite here proves plumbing only.
+referencing specific scores/flags. On deliver, both are null.
 """
 
 from __future__ import annotations

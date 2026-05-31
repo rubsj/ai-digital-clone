@@ -789,46 +789,142 @@ Weekest part in today's work is confidence score logic. I have kept this logic a
 
 
 # Day 11 - 
->> PHASE A EXIT GATE — Phase Defence <<
-Stopping for your Phase A defence. Ruby, please work through the four-category menu:
+For phase A , did following schema changes
+- Built RoutingDecision to be used by AgtekeeperAgent
+- Updated FallbackResponse to remove trigger_reason and context summary and added acknowledgement and suggested_redirection
+- Edited StyledResponse to add routingDecision object to it
+Built two agents- FallbackAgent and GatekeeperAgent
 
-1 — What was built
-A1 (schemas):
+GateKeeperAgenet - This agent receives Query , response_test , chunks , evaluation_result and leader as input and it provides RoutingDecision as output
+This agent runs at 0 temperature , If fallback decision is determined by this agent it must also provide trigger_reason and trigger_category
 
-RoutingDecision — new model with decision: Literal["deliver", "fallback"], reasoning: str (min_length=1), trigger_reason: Optional[str], trigger_category: Optional[Literal["low_groundedness", "off_domain", "hallucination_risk", "chunk_mismatch", "empty_retrieval"]]
-FallbackResponse — reshaped v1→v2 (acknowledgment, suggested_redirections, calendar_link, available_slots, unstyled_response)
-CloneState — additive: routing_decision: Optional[RoutingDecision] = None
-tests/test_schemas.py — updated with 7 new RoutingDecision tests (including trigger_category literals + rejection), 3 FallbackResponse v2 tests, 3 CloneState routing_decision tests
-A2 (FallbackAgent): src/agents/fallback_agent.py (163 lines) — real CrewAI Agent, temperature=0.3 generation / temperature=0 Instructor parse, templated failsafe on any LLM exception. tests/integration/test_fallback_agent.py — 13 tests including 2 real-behavior failsafe tests.
+FallbackAgent - this agent Routes to fallback , it generates a leader voiced acknowledgement and 2-3 in-domain redirection i.e. it tells end user it can't anser given query but it can anser these 2-3 other queries which the fallback agent builds from the chunks it had received in the input. A try except wraps LLM path so that if there is any failure a templated failsafe response is returned making the fallbackResponse a usable response
 
-A3 (GatekeeperAgent): src/agents/gatekeeper_agent.py (158 lines) — real CrewAI Agent, temperature=0, Instructor parses directly to RoutingDecision. Prompt includes all three scores, flags, and demands reasoning cite them; on fallback emits trigger_category from the 5-literal set + free-text trigger_reason; on deliver, both null. tests/integration/test_gatekeeper_agent.py — 16 tests covering prompt builder (scores + flags reach task description), crew shape, run() output shape, trigger_category iff-contract (fallback → literal, deliver → None), temperature=0 Instructor parse assert.
+The GatekeeperAgent returns RoutingDecision with fields decision , trigger_reason and trigger_category however in this agent's pydentic model I am not enforcing strictor validation check for trigger_category and trigger_reason fields because doing so may cause LLm to give parsing failure error on live path causing the whole Agent Flow to fail. And since the temperature is set to 0 there is high chance if LLM produced a response with these fields missing or with invalid data it will do it in next try as well and instructure will cause failure evantually.
 
-Suite: 520 passed, 40 skipped, 1 known pre-existing failure. flow.py untouched. ruff: clean.
+Updated Plan to reframe test as testing for the contract and not the actual behavior test because these tests are still only mock test and so can test only the contract.
+with the LLM mocked, any assertion on output content just re-asserts the fixture you wrote, so the only honest claim is that inputs reach the prompt and the output parses to the right type. A green suite proves plumbing, not routing.
 
-2 — What was decided and why
-trigger_category not enforced as a schema cross-field validator. The plan explicitly specifies this: "set iff fallback is enforced at the prompt + A3 contract-test layer, not as a schema cross-field validator — symmetric with the existing trigger_reason handling." The schema stays permissive; the iff-relationship is asserted in the A3 contract tests. Reason: a cross-field validator would add coupling between schema correctness and routing logic, and the Day-12 real-LLM tests are where the behavioral guarantee lands.
+Updated plan to make call pass the profile to the Flow so that Flow is not responsible for loading profile and this will lead to refactor in CLI in Day 12
+Retriever run test is never testing the groundedness coverage path and it is noted but not added into today's work since that would increase the cope causing scope creep
 
-RoutingDecision used directly as Instructor response_model in GatekeeperAgent (no intermediate _GatekeeperDraft). CloneAgent and EvaluatorAgent use an intermediate draft because their final output adds computed fields (reconciled citations, assembled scores). GatekeeperAgent's Instructor output IS the final RoutingDecision with no additions — no intermediate type needed.
+If this question is asked do you know why we kept the schema permissive instead of enforcing "category set iff fallback"
+the answer is 
+GatekeeperAgent returns a RoutingDecision. Now the mechanism. The LLM doesn't hand you a RoutingDecision directly. It emits text/JSON, and Instructor parses that into the Pydantic model. Parsing runs the validators. If a validator fails, Instructor catches the error, appends it to the prompt ("you produced X, it failed because Y, try again"), and re-calls the LLM. After N retries it gives up and raises.
+So picture a fallback query at temperature 0. The LLM decides "fallback" but forgets to emit trigger_category (LLMs drop fields, even good ones). With a validator: Instructor rejects it, retries, the LLM forgets again (temp 0 means it's fairly deterministic, so it may forget the same way every time), retries exhaust, Instructor raises. That exception happens inside the @router step of your Flow. Nothing catches it there. The whole pipeline crashes on a query that should have just returned a slightly-imperfect fallback.
+Without the validator: the same LLM output parses fine. You get a RoutingDecision(decision="fallback", trigger_category=None). The fallback still delivers to the user. The only damage is that one fallback doesn't get counted in chart 6's distribution. A dented chart, not a dead pipeline.
+That's the trade. The validator converts "occasionally mislabeled data" into "occasionally crashes on the live path." For a field whose only job is feeding a Day-13 bar chart, crashing the user's query is a wildly bad price.
+The first-principles version, which is the part worth keeping: put a hard constraint where its failure is cheap, not where its failure is fatal. The schema sits on the live request path, so a constraint there fails fatally. The eval harness runs offline over recorded outputs, so the same constraint there just flags a bad row. Same check, same strictness, moved to where a failure is observable instead of catastrophic.
 
-trigger_category added to A1 in the same commit as A3 construction (not shipped with the plan amendment). The amendment was a plan-level change; the code change landed here, in A3, because A3 (GatekeeperAgent) is the first code that produces RoutingDecision instances with trigger_category set. Keeping the schema change co-located with its first consumer avoids a schema field with no code exercising it.
+Key Takeaways
+- Introduced a dedicated routing architecture via GatekeeperAgent and RoutingDecision.
+- Reframed fallback behavior from error reporting to user guidance.
+- Added deterministic failsafe mechanisms to guarantee fallback usability.
+Chose production resilience over strict schema enforcement on the live path.
+- Refined testing philosophy to focus on contract validation rather than mocked behavioral assertions.
+- Improved architectural boundaries by planning profile ownership outside the Flow.
+Identified but intentionally deferred retriever groundedness coverage testing to prevent scope creep.
+Reflection
+The most valuable lesson from today's work was recognizing that correctness and reliability are not always aligned. A validation rule that appears technically correct can become harmful if it sits on a critical production path. The routing schema discussion reinforced an important engineering principle:
+Systems should fail where failures are observable and recoverable, not where they can interrupt user workflows.
+Moving strictness from the live routing path to the offline evaluation layer preserves both data quality and system availability, achieving a better overall architecture.
 
-3 — Alternatives considered
-Alternative for trigger_category: a separate TriggerCategory enum model. Rejected — a Literal inline on RoutingDecision is sufficient for a 5-value bounded set, doesn't add a new importable type, and Pydantic validates it identically. A dedicated Enum would be warranted if the taxonomy needed to be referenced from multiple models or exported for consumers — neither is true on Day 11.
+PHASE B
+Performed groundedness source audit 
+B0 was a read-only audit to answer one question before rewriting flow.py: when a chunk comes back from the retriever, does it have an embedding or not? This matters because the groundedness scorer needs embeddings to score — if chunks arrive with embeddings already attached, it can skip re-embedding; if not, it must call the OpenAI API every time.
+What we traced:
+The indexer strips embeddings before saving to disk (metadata.json gets exclude={"embedding"}). The FAISS index holds the vectors separately. When the retriever loads results, it reconstructs KnowledgeChunk from that stripped dict, so chunk.embedding is always None on every live retrieval call.
+That means the groundedness scorer's embedding is None branch is not an edge case — it's the only path that ever runs in production. Every scoring call batch-re-embeds the chunk text via embed_openai.
+The failure mode finding:
+embed_openai calls litellm.embedding() directly and lets exceptions propagate. embed_minilm is a completely separate function — there is no fallback wiring between them. So an OpenAI API failure during groundedness scoring hard-fails the evaluation step rather than silently degrading to a lower-quality embedding model. That's the correct behavior (fail loud, not silently wrong), but it was worth confirming explicitly before building the flow around it.
+Why no code changed:
+The pre-existing test at test_groundedness_scorer.py:161 already covered the embedding=None → re-embed path. The audit confirmed the behavior, confirmed coverage existed, and closed the pre-condition. B1 could start on a known foundation.
 
-Alternative for _parse_decision: use Crew.kickoff() directly with a structured output config instead of the kickoff → Instructor-parse two-step. Rejected because it departs from the canonical Day-10 pattern (all four agents use kickoff→Instructor-parse) and the pattern is the consistency invariant the architecture-honesty greps enforce.
+Edited CloneState to update properties for new architecture
+low.py was rewritten as a typed Flow[CloneState] with a 5-step pipeline: retrieve → clone → evaluate → route → finalize|handle_fallback.
+Per-stage latency via _timings: dict = PrivateAttr(default_factory=dict) with a timings property returning a copy. Emergency fallback guard in route() when state.evaluation is None.
 
-4 — What would change the answer
-If the 5-literal vocabulary turns out to be wrong when real-LLM routing runs on Day 12: extending trigger_category requires a logged ADR-010 amendment, not an ad-hoc edit. The vocabulary is deliberately small; a Day-12 discovery that a 6th category is needed is expected and the amendment path is already written into the plan.
+Did Per-agent latency instrumentation. CloneAgent, EvaluatorAgent, GatekeeperAgent, and FallbackAgent each gained self.last_run_timings: dict set at the end of run() (generate/parse split where applicable; score/generate/parse split for evaluator). Flow reads these via getattr(agent, "last_run_timings", {}) after each step and writes sub-keys (clone_generate_ms, evaluate_score_ms, etc.) into _timings. Values are not asserted.
 
-If the Phase B CloneState reshape renames or removes routing_decision: the GatekeeperAgent output contract and all A3 tests are unaffected (they depend on RoutingDecision directly, not on CloneState). The only breakage is the CloneState field reference in flow.py, which Phase B owns.
+cli.py, visualization.py, streamlit_app.py untouched.
+All three still reference v1 field names. Touching them mid-Phase B would widen scope from "rewire the pipeline" to "rewrite three consumer surfaces simultaneously." The risk is merge conflict churn and a larger blast radius if the v2 reshape had to roll back.
 
-Category V — v1-drift check (mandatory for Agent phases)
-No weighted formula, no threshold comparison, no final_score field, and no Python function named like an Agent anywhere in the new files. Proved by grep:
+PrivateAttr for per-step timings, not instance __init__.
+Flow[CloneState] inherits Pydantic BaseModel. A plain self._timings = {} set after super().__init__() is not visible to step methods — Pydantic's __getattr__ does not surface it. _timings: dict = PrivateAttr(default_factory=dict) at class level is the Pydantic-sanctioned pattern and the only one that survives across step method calls. The timings property returns a copy to prevent callers from mutating internal state.
+
+compare_leaders() injects shared chunks via kickoff(inputs={"chunks": shared_chunks}), not a separate load step.
+The Flow's retrieve step already early-exits when state.chunks is non-empty (ADR-005). Reusing that guard for the KH run avoids adding a separate code path. The caller (compare_leaders) captures flow.state.chunks after the Torvalds run and passes them in — one Retriever call for both leaders, provably gated by the integration test.
+
+Emergency fallback guard in route() when state.evaluation is None.
+EvaluatorAgent.run() could theoretically return None if an unexpected exception is swallowed upstream. Without the guard, GatekeeperAgent.run() would receive evaluation=None and produce undefined behavior. The guard short-circuits to a hardcoded RoutingDecision(decision="fallback") with a diagnostic reasoning string, making the failure mode explicit and recoverable.
+
+grep first, delete only on zero hits, STOP on unexpected callers.
+The only safe way to retire legacy files alongside an active codebase is to confirm zero importers independently of the test suite. The suite can pass with a dead file if nothing imports it, but it cannot confirm the file is safe to delete if something not under test (an experiment script, an __init__ re-export) still references it. The three blockers found — cli.py, evaluation/__init__.py, rag/__init__.py — would have been silent if we deleted first and relied on pytest alone.
 
 
-grep -rn "final_score\|threshold\|final_score\|def .*Agent(" \
-  src/agents/gatekeeper_agent.py tests/integration/test_gatekeeper_agent.py
-→ (no matches)
-final_score exists only in: schemas.py deprecation docstring, v1 dead-code files (flow.py, cli.py, evaluator.py, fallback_steps.py, evaluator_steps.py), and the corresponding skipped tests. No new Day-11 file introduces it.
 
-Waiting for your Phase A defence answer before Phase B begins.
+
+Python concept that I learnt 
+Pydantic models work differently from regular Python classes. When you define a class that inherits from BaseModel (which Flow[CloneState] does via CrewAI), Pydantic takes over attribute management. It builds a strict schema of declared fields at class definition time and routes all attribute access through its own __getattr__/__setattr__ machinery.
+
+Why self._timings = {} in __init__ breaks:
+
+When you do self._timings = {} after super().__init__(), Pydantic sees an assignment to an undeclared field. It doesn't store it the normal way — it either raises a validation error or silently discards it depending on the model's config. Either way, when a step method later tries to read self._timings, Pydantic's __getattr__ looks through its field registry, finds nothing named _timings, and raises AttributeError. The assignment in __init__ effectively never happened from Pydantic's perspective.
+
+What PrivateAttr does:
+
+
+_timings: dict = PrivateAttr(default_factory=dict)
+This is Pydantic's explicit mechanism for "I want this instance to have mutable state that is not a validated field." Declaring it at class level tells Pydantic: reserve a slot for _timings, initialize it via default_factory on construction, and make it accessible via normal attribute access. It bypasses field validation entirely — it's just instance state that Pydantic knows about and manages the lifecycle of correctly.
+
+Why the timings property returns a copy:
+
+
+@property
+def timings(self) -> dict[str, float]:
+    return dict(self._timings)
+If it returned self._timings directly, a caller could do flow.timings["retrieve_ms"] = 999 and mutate the internal dict. The copy means external code gets a snapshot — reading is fine, but writes don't affect the flow's own state.
+
+
+
+Emergency fallback guard in route() when state.evaluation is None.
+EvaluatorAgent.run() could theoretically return None if an unexpected exception is swallowed upstream. Without the guard, GatekeeperAgent.run() would receive evaluation=None and produce undefined behavior. The guard short-circuits to a hardcoded RoutingDecision(decision="fallback") with a diagnostic reasoning string, making the failure mode explicit and recoverable.
+Explanation :
+
+@router(evaluate)
+def route(self) -> str:
+    if self.state.evaluation is None:
+        self.state.routing_decision = RoutingDecision(
+            decision="fallback",
+            reasoning="evaluate step produced no result — emergency fallback")
+        return "fallback"
+    agent = GatekeeperAgent()
+    ...
+
+route() listens to evaluate(). Normally evaluate() sets state.evaluation to an EvaluationResult. But state.evaluation is declared Optional[EvaluationResult] — it starts as None and only gets set if EvaluatorAgent.run() completes successfully.
+
+The risk without the guard:
+
+If something went wrong in the evaluate step — an exception caught somewhere upstream, a bug in EvaluatorAgent — state.evaluation stays None. route() then calls GatekeeperAgent.run(evaluation=None). The gatekeeper's prompt does evaluation.style_score, evaluation.groundedness_score, etc. — all of those crash with AttributeError: 'NoneType' object has no attribute 'style_score'. The flow dies with an unhandled exception rather than producing any output.
+
+What the guard does:
+
+It checks state.evaluation is None before touching it. If None, it skips the LLM entirely, writes a hardcoded RoutingDecision(decision="fallback") with a diagnostic message, and returns "fallback". The flow continues normally down the fallback arm — the user gets a fallback response instead of a crash.
+
+The reasoning string "evaluate step produced no result — emergency fallback" is specifically for observability — when you see this in logs or output, you know the failure happened in the evaluate step, not in the gatekeeper's own decision logic.
+
+
+B5 protocol: 
+
+Category III — Alternatives Considered
+Flow timings via a decorator or context manager instead of inline perf_counter pairs.
+A @timed("step_name") decorator would be cleaner for adding new steps later. Rejected for Day 11: CrewAI's @start/@listen/@router decorators stack on top of the method, and wrapping them with an additional decorator requires verifying that CrewAI's decorator introspection still resolves the method correctly. The risk of decorator ordering breaking CrewAI's step graph is non-trivial. Inline perf_counter pairs are explicit and unambiguous. A decorator can be introduced on Day 12 once real-LLM timing is being measured and the value justifies the complexity.
+
+last_run_timings on the Agent class via a base class instead of per-agent assignment.
+A TimedAgent base class with self.last_run_timings: dict = {} would remove duplication. Rejected: agents are not in a clean inheritance hierarchy (CloneAgent, GatekeeperAgent, FallbackAgent all have different run() signatures), and introducing a base class purely for one dict attribute adds coupling for no behavioral gain. getattr(agent, "last_run_timings", {}) in the Flow's step method is a safe duck-typed read that degrades gracefully if the attribute is absent.
+
+Deleting cli.py, visualization.py, streamlit_app.py and rebuilding from scratch against the v2 schema.
+Would have unblocked all three B5 blocked files in the same session. Rejected because all three files contain logic (config loading, argument parsing, plot rendering) that is not yet replicated elsewhere. A clean rewrite risks losing edge-case handling that was implicit in the original code and is not covered by the currently-skipped tests. The safer path is to read the current files, diff them against v2 field names, and make targeted changes — which is Day 12's explicit scope.
+
+Keeping timing_dual_leader.py as the compare_leaders() implementation.
+The script pre-dated the Flow abstraction and ran two crews manually with custom timing logic. After B1 introduced Flow[CloneState] with compare_leaders() properly wired and ADR-005 shared retrieval, the script duplicated the pipeline without the routing or fallback steps. No callers remained; keeping it would create a confusing second path that silently skips evaluation and routing. Retired in B5.
