@@ -10,6 +10,7 @@ is measured with real LLM on Day 12 — a green suite here proves plumbing only.
 from __future__ import annotations
 
 import logging
+from time import perf_counter
 
 import instructor
 import litellm
@@ -159,5 +160,13 @@ class GatekeeperAgent:
     ) -> RoutingDecision:
         """Decide deliver or fallback; on fallback set trigger_reason + trigger_category."""
         crew = self._build_crew(query, response_text, chunks, evaluation, leader)
+        t_gen = perf_counter()
         raw = crew.kickoff().raw
-        return self._parse_decision(raw)
+        t_parse = perf_counter()
+        result = self._parse_decision(raw)
+        t_done = perf_counter()
+        self.last_run_timings: dict[str, float] = {
+            "generate_ms": (t_parse - t_gen) * 1000,
+            "parse_ms": (t_done - t_parse) * 1000,
+        }
+        return result

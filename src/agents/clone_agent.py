@@ -11,6 +11,7 @@ voice variation; the parse runs at temperature 0 for deterministic structuring.
 from __future__ import annotations
 
 import logging
+from time import perf_counter
 
 import instructor
 import litellm
@@ -168,8 +169,15 @@ class CloneAgent:
     ) -> CloneResponse:
         """Generate a styled response and reconcile its citations to input chunks."""
         crew = self._build_crew(query, leader, style_profile, chunks)
+        t_gen = perf_counter()
         raw = crew.kickoff().raw
+        t_parse = perf_counter()
         draft = self._parse_citations(raw, chunks)
+        t_done = perf_counter()
+        self.last_run_timings: dict[str, float] = {
+            "generate_ms": (t_parse - t_gen) * 1000,
+            "parse_ms": (t_done - t_parse) * 1000,
+        }
         return CloneResponse(
             response_text=draft.response_text,
             citations=self._reconcile(draft.cited_chunk_indices, chunks),

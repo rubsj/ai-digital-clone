@@ -577,11 +577,14 @@ def test_clone_state_defaults():
     state = CloneState()
     assert state.query == ""
     assert state.leader == ""
-    assert state.retrieved_chunks == []
-    assert state.styled_response == ""
+    assert state.chunks == []
+    assert state.style_profile is None
+    assert state.response_text is None
+    assert state.citations == []
     assert state.evaluation is None
     assert state.routing_decision is None
-    assert state.final_output is None
+    assert state.styled_response is None
+    assert state.fallback_response is None
 
 
 def test_clone_state_routing_decision_populated():
@@ -602,26 +605,27 @@ def test_clone_state_routing_decision_fallback():
 
 
 def test_clone_state_incremental_population():
-    """Simulate how DigitalCloneFlow populates state step-by-step."""
+    """Simulate how DigitalCloneFlow populates state step-by-step (v2 pipeline)."""
     state = CloneState()
 
-    # Step 1: start
+    # Step 1: retrieve
     state.query = "What is a kernel?"
     state.leader = "torvalds"
+    state.chunks = [RetrievalResult(chunk=_make_chunk(), score=0.9, rank=0)]
 
-    # Step 2: retrieve_knowledge
-    state.retrieved_chunks = [RetrievalResult(chunk=_make_chunk(), score=0.9, rank=0)]
+    # Step 2: clone
+    state.response_text = "Look, the kernel is basically the core of the OS."
 
-    # Step 3: apply_style
-    state.styled_response = "Look, the kernel is basically the core of the OS."
-
-    # Step 4: evaluate_response
+    # Step 3: evaluate
     state.evaluation = _make_eval_result()
 
-    # Step 5: deliver_response
-    state.final_output = _make_styled_response()
+    # Step 4: route
+    state.routing_decision = _make_routing_decision()
+
+    # Step 5: finalize (deliver)
+    state.styled_response = _make_styled_response()
 
     assert state.query == "What is a kernel?"
-    assert len(state.retrieved_chunks) == 1
+    assert len(state.chunks) == 1
     assert state.evaluation.style_score == 0.92
-    assert isinstance(state.final_output, StyledResponse)
+    assert isinstance(state.styled_response, StyledResponse)

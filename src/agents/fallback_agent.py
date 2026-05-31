@@ -10,6 +10,7 @@ always returns a usable FallbackResponse.
 from __future__ import annotations
 
 import logging
+from time import perf_counter
 
 import instructor
 import litellm
@@ -158,8 +159,15 @@ class FallbackAgent:
         slots = generate_available_slots(n=3)
         try:
             crew = self._build_crew(query, leader, trigger_reason, chunks)
+            t_gen = perf_counter()
             raw = crew.kickoff().raw
+            t_parse = perf_counter()
             draft = self._parse_draft(raw)
+            t_done = perf_counter()
+            self.last_run_timings: dict[str, float] = {
+                "generate_ms": (t_parse - t_gen) * 1000,
+                "parse_ms": (t_done - t_parse) * 1000,
+            }
             return FallbackResponse(
                 acknowledgment=draft.acknowledgment,
                 suggested_redirections=draft.suggested_redirections,
@@ -168,6 +176,7 @@ class FallbackAgent:
                 unstyled_response=raw,
             )
         except Exception as exc:
+            self.last_run_timings = {"generate_ms": 0.0, "parse_ms": 0.0}
             logger.error(
                 "FallbackAgent LLM call failed for leader=%r; activating templated failsafe. "
                 "Error: %s",

@@ -1,31 +1,41 @@
 """DigitalCloneFlow: CrewAI Flow orchestrating the full query pipeline.
 
-Steps (Phase 2, happy path): retrieve → style_response → evaluate_response → deliver
-Router + fallback branch added in Phase 3.
-Dual-leader comparison wrapper added in Phase 4.
+v2 pipeline (Day 11, ADR-010/012): retrieve → clone → evaluate → route →
+deliver|fallback. Each step calls a real CrewAI Agent. Retrieval is shared
+across leaders in compare_leaders() (ADR-005). Profile is caller-injected via
+kickoff(inputs={"style_profile": ...}); the Flow has no profile-load step.
 
 Public API:
-    DigitalCloneFlow().kickoff(inputs={"query": ..., "leader": ...})
+    DigitalCloneFlow().kickoff(inputs={"query": ..., "leader": ..., "style_profile": ...})
     compare_leaders(query) -> LeaderComparison
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import logging
 from pathlib import Path
+from time import perf_counter
 
-import pydantic
 from crewai.flow.flow import Flow, listen, router, start
+from pydantic import PrivateAttr
 
-from src.agents.evaluator_steps import EvaluatorAgent
-from src.agents.fallback_steps import build_fallback_response
-from src.agents.rag_agent import RAGAgent
-from src.agents.style_crew import generate_styled_response
+from src.agents.clone_agent import CloneAgent
+from src.agents.evaluator_agent import EvaluatorAgent
+from src.agents.fallback_agent import FallbackAgent
+from src.agents.gatekeeper_agent import GatekeeperAgent
+from src.components.retriever import Retriever
 from src.config import load_config
-from src.schemas import CloneState, EmailMessage, FallbackResponse, LeaderComparison, StyledResponse
-from src.style.feature_extractor import extract_features
+from src.schemas import (
+    CloneState,
+    LeaderComparison,
+    RoutingDecision,
+    StyledResponse,
+)
 from src.style.profile_builder import load_profile
 
+logger = logging.getLogger(__name__)
+
+_LEADERS = ("Linus Torvalds", "Greg Kroah-Hartman")
 _LEADER_KEY_MAP: dict[str, str] = {
     "Linus Torvalds": "torvalds",
     "Greg Kroah-Hartman": "kroah_hartman",
@@ -35,11 +45,12 @@ _LEADER_KEY_MAP: dict[str, str] = {
 class DigitalCloneFlow(Flow[CloneState]):
     """End-to-end query pipeline for a single-leader styled response."""
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._config = load_config()
-        self._rag = RAGAgent(config=self._config)
-        self._evaluator = EvaluatorAgent()
+    _timings: dict = PrivateAttr(default_factory=dict)
+
+    @property
+    def timings(self) -> dict[str, float]:
+        """Per-stage wall-clock timings (ms). Not asserted — observability only."""
+        return dict(self._timings)
 
     # ------------------------------------------------------------------
     # Step 1: retrieve
@@ -49,155 +60,166 @@ class DigitalCloneFlow(Flow[CloneState]):
     def retrieve(self) -> None:
         """Embed query → FAISS top-20 → Cohere rerank → top-5 chunks.
 
-        Early-exits when retrieved_chunks is already populated (dual-leader
-        retrieve-once optimization, Phase 4).
+        Early-exits when state.chunks is already populated (ADR-005 dual-leader
+        retrieve-once optimization).
         """
-        if self.state.retrieved_chunks:
+        if self.state.chunks:
             return
-        try:
-            self.state.retrieved_chunks = self._rag.retrieve(self.state.query)
-        except (pydantic.ValidationError, AssertionError):
-            raise
-        except Exception as exc:
-            self.state.trigger_reason = f"retrieve failed: {exc}"
-            self.state.retrieved_chunks = []
+        t0 = perf_counter()
+        self.state.chunks = Retriever().run(self.state.query)
+        self._timings["retrieve_ms"] = (perf_counter() - t0) * 1000
 
     # ------------------------------------------------------------------
-    # Step 2: style_response
+    # Step 2: clone
     # ------------------------------------------------------------------
 
     @listen(retrieve)
-    def style_response(self) -> None:
-        """Load leader profile and invoke the single-agent style Crew."""
-        if self.state.trigger_reason:
-            return
-        try:
-            leader_key = _LEADER_KEY_MAP[self.state.leader]
-            profile_path = Path(self._config.leaders[leader_key].profile_path)
-            profile = load_profile(profile_path)
-            self.state.styled_response = generate_styled_response(
-                profile=profile,
-                chunks=self.state.retrieved_chunks,
-                query=self.state.query,
+    def clone(self) -> None:
+        """Call CloneAgent to generate a leader-styled response and citations."""
+        agent = CloneAgent()
+        t0 = perf_counter()
+        result = agent.run(
+            query=self.state.query,
+            leader=self.state.leader,
+            style_profile=self.state.style_profile,
+            chunks=self.state.chunks,
+        )
+        self._timings["clone_ms"] = (perf_counter() - t0) * 1000
+        tims = getattr(agent, "last_run_timings", {})
+        self._timings["clone_generate_ms"] = tims.get("generate_ms", 0.0)
+        self._timings["clone_parse_ms"] = tims.get("parse_ms", 0.0)
+        self.state.response_text = result.response_text
+        self.state.citations = list(result.citations)
+
+    # ------------------------------------------------------------------
+    # Step 3: evaluate
+    # ------------------------------------------------------------------
+
+    @listen(clone)
+    def evaluate(self) -> None:
+        """EvaluatorAgent: deterministic scores + LLM explanation/flags (ADR-011)."""
+        agent = EvaluatorAgent()
+        t0 = perf_counter()
+        self.state.evaluation = agent.run(
+            query=self.state.query,
+            response=self.state.response_text or "",
+            profile=self.state.style_profile,
+            chunks=self.state.chunks,
+        )
+        self._timings["evaluate_ms"] = (perf_counter() - t0) * 1000
+        tims = getattr(agent, "last_run_timings", {})
+        self._timings["evaluate_score_ms"] = tims.get("score_ms", 0.0)
+        self._timings["evaluate_generate_ms"] = tims.get("generate_ms", 0.0)
+        self._timings["evaluate_parse_ms"] = tims.get("parse_ms", 0.0)
+
+    # ------------------------------------------------------------------
+    # Step 4: route (@router)
+    # ------------------------------------------------------------------
+
+    @router(evaluate)
+    def route(self) -> str:
+        """GatekeeperAgent decides deliver or fallback (ADR-010)."""
+        if self.state.evaluation is None:
+            self.state.routing_decision = RoutingDecision(
+                decision="fallback",
+                reasoning="evaluate step produced no result — emergency fallback",
             )
-        except (pydantic.ValidationError, AssertionError):
-            raise
-        except Exception as exc:
-            self.state.trigger_reason = f"style_response failed: {exc}"
-
-    # ------------------------------------------------------------------
-    # Step 3: evaluate_response (router)
-    # ------------------------------------------------------------------
-
-    @router(style_response)
-    def evaluate_response(self) -> str:
-        """Score the styled response; return routing decision string."""
-        if self.state.trigger_reason:
             return "fallback"
-        try:
-            leader_key = _LEADER_KEY_MAP[self.state.leader]
-            profile_path = Path(self._config.leaders[leader_key].profile_path)
-            profile = load_profile(profile_path)
-
-            fake_email = EmailMessage(
-                sender="generated",
-                subject="response",
-                body=self.state.styled_response,
-                timestamp=datetime.now(tz=timezone.utc),
-                message_id="generated-response",
-            )
-            response_features = extract_features(fake_email)
-
-            self.state.evaluation = self._evaluator.evaluate(
-                response=self.state.styled_response,
-                chunks=self.state.retrieved_chunks,
-                profile=profile,
-                query=self.state.query,
-                response_features=response_features,
-            )
-            return self.state.evaluation.decision
-        except (pydantic.ValidationError, AssertionError):
-            raise
-        except Exception as exc:
-            self.state.trigger_reason = f"evaluate_response failed: {exc}"
-            return "fallback"
+        agent = GatekeeperAgent()
+        t0 = perf_counter()
+        self.state.routing_decision = agent.run(
+            query=self.state.query,
+            response_text=self.state.response_text or "",
+            chunks=self.state.chunks,
+            evaluation=self.state.evaluation,
+            leader=self.state.leader,
+        )
+        self._timings["route_ms"] = (perf_counter() - t0) * 1000
+        tims = getattr(agent, "last_run_timings", {})
+        self._timings["route_generate_ms"] = tims.get("generate_ms", 0.0)
+        self._timings["route_parse_ms"] = tims.get("parse_ms", 0.0)
+        return self.state.routing_decision.decision
 
     # ------------------------------------------------------------------
-    # Step 4a: finalize (happy path, route="deliver")
+    # Step 5a: finalize (deliver arm)
     # ------------------------------------------------------------------
 
     @listen("deliver")
     def finalize(self) -> None:
         """Assemble the final StyledResponse into state."""
-        self.state.final_output = StyledResponse(
+        t0 = perf_counter()
+        self.state.styled_response = StyledResponse(
             query=self.state.query,
             leader=self.state.leader,
-            response=self.state.styled_response,
+            response=self.state.response_text or "",
             evaluation=self.state.evaluation,
+            citations=self.state.citations,
         )
+        self._timings["deliver_ms"] = (perf_counter() - t0) * 1000
 
     # ------------------------------------------------------------------
-    # Step 4b: handle_fallback (route="fallback")
+    # Step 5b: handle_fallback (fallback arm)
     # ------------------------------------------------------------------
 
     @listen("fallback")
     def handle_fallback(self) -> None:
-        """Build a FallbackResponse when evaluation score is below threshold."""
-        trigger = self.state.trigger_reason or (
-            f"final_score {self.state.evaluation.final_score:.4f} < threshold 0.75"
-            if self.state.evaluation
-            else "evaluation not completed"
+        """FallbackAgent generates a leader-voiced fallback response (ADR-012)."""
+        trigger = ""
+        if self.state.routing_decision:
+            trigger = self.state.routing_decision.trigger_reason or ""
+        agent = FallbackAgent()
+        t0 = perf_counter()
+        self.state.fallback_response = agent.run(
+            query=self.state.query,
+            leader=self.state.leader,
+            trigger_reason=trigger,
+            style_profile=self.state.style_profile,
+            chunks=self.state.chunks,
         )
-        try:
-            self.state.final_output = build_fallback_response(
-                query=self.state.query,
-                chunks=self.state.retrieved_chunks,
-                trigger_reason=trigger,
-            )
-        except (pydantic.ValidationError, AssertionError):
-            raise
-        except Exception as exc:
-            self.state.final_output = FallbackResponse(
-                trigger_reason=f"fallback itself failed: {exc}",
-                context_summary="",
-                calendar_link="",
-                available_slots=[],
-                unstyled_response="",
-            )
+        self._timings["fallback_ms"] = (perf_counter() - t0) * 1000
+        tims = getattr(agent, "last_run_timings", {})
+        self._timings["fallback_generate_ms"] = tims.get("generate_ms", 0.0)
+        self._timings["fallback_parse_ms"] = tims.get("parse_ms", 0.0)
 
 
 # ---------------------------------------------------------------------------
-# Dual-leader comparison wrapper (Phase 4)
+# Dual-leader comparison wrapper (ADR-005)
 # ---------------------------------------------------------------------------
-
-_LEADERS = ("Linus Torvalds", "Greg Kroah-Hartman")
 
 
 def compare_leaders(query: str) -> LeaderComparison:
     """Run the flow for both leaders, sharing retrieved chunks across runs.
 
-    The first run (Torvalds) performs the RAG retrieval.  The second run
+    The first run (Torvalds) performs the RAG retrieval. The second run
     (Kroah-Hartman) receives those chunks pre-populated so its retrieve step
-    early-exits — one embed + FAISS + rerank call instead of two.
+    early-exits — one embed + FAISS + rerank call instead of two (ADR-005).
 
-    Both flows execute regardless of each other's outcome; if either produces
-    a FallbackResponse rather than a StyledResponse, ValueError is raised
-    after both runs complete so neither is blocked by the other.
+    Both flows execute regardless of each other's outcome; asymmetric
+    deliver/fallback outcomes are expected and surfaced faithfully.
     """
+    config = load_config()
+
+    profile_t = load_profile(Path(config.leaders["torvalds"].profile_path))
     flow_t = DigitalCloneFlow()
-    flow_t.kickoff(inputs={"query": query, "leader": _LEADERS[0]})
+    flow_t.kickoff(inputs={
+        "query": query,
+        "leader": _LEADERS[0],
+        "style_profile": profile_t,
+    })
 
-    shared_chunks = list(flow_t.state.retrieved_chunks)
+    shared_chunks = list(flow_t.state.chunks)
 
+    profile_kh = load_profile(Path(config.leaders["kroah_hartman"].profile_path))
     flow_kh = DigitalCloneFlow()
     flow_kh.kickoff(inputs={
         "query": query,
         "leader": _LEADERS[1],
-        "retrieved_chunks": shared_chunks,
+        "style_profile": profile_kh,
+        "chunks": shared_chunks,
     })
 
-    t_out = flow_t.state.final_output
-    kh_out = flow_kh.state.final_output
+    t_out = flow_t.state.styled_response or flow_t.state.fallback_response
+    kh_out = flow_kh.state.styled_response or flow_kh.state.fallback_response
 
     if t_out is None or kh_out is None:
         raise ValueError(f"Pipeline produced no output — t={type(t_out)}, kh={type(kh_out)}")

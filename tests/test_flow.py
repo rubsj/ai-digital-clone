@@ -1,42 +1,31 @@
-"""Tests for src/flow.py — Phase 2 happy path.
+"""Tests for src/flow.py v2 — five-step pipeline with GatekeeperAgent routing.
 
-All LLM-using steps (generate_styled_response, EvaluatorAgent.evaluate) are mocked.
-RAGAgent.retrieve and load_profile are also mocked to avoid I/O.
+All LLM-using steps are mocked (Retriever, CloneAgent, EvaluatorAgent,
+GatekeeperAgent, FallbackAgent). These tests prove wiring only — routing
+correctness is measured with real LLM on Day 12. The known pre-existing
+failure test_query_loader.py::test_load_queries_canonical_file is unrelated
+to this module.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import numpy as np
-import pytest
-
-from src.flow import DigitalCloneFlow, compare_leaders
+from src.flow import DigitalCloneFlow
 from src.schemas import (
+    Citation,
+    CloneResponse,
     EvaluationResult,
     FallbackResponse,
     KnowledgeChunk,
-    LeaderComparison,
     RetrievalResult,
+    RoutingDecision,
     StyledResponse,
     StyleFeatures,
     StyleProfile,
 )
 
-# EvaluationResult dropped final_score + decision + the weighted formula, and routing
-# moves to the GatekeeperAgent (ADR-010/011). v1 src/flow.py (and these tests, which build
-# the old EvaluationResult shape) are superseded by the Flow refactor. Skip until that
-# lands rather than touch frozen v1 logic.
-pytestmark = pytest.mark.skip(reason="v1 flow.py superseded by the Flow refactor; EvaluationResult contract changed (ADR-010/011)")
-
-_MOCK_FALLBACK = FallbackResponse(
-    acknowledgment="That is outside what I can answer from the retrieved material.",
-    suggested_redirections=["How does the buddy allocator work?"],
-    calendar_link="https://cal.com/placeholder",
-    available_slots=["2024-02-01 10:00", "2024-02-02 14:00", "2024-02-03 09:00"],
-    unstyled_response="Here is an unstyled answer.",
-)
+from datetime import datetime, timezone
 
 
 # ---------------------------------------------------------------------------
@@ -77,426 +66,289 @@ def _make_profile(name: str = "Linus Torvalds") -> StyleProfile:
     )
 
 
-def _make_retrieval_result(content: str = "kernel memory details") -> RetrievalResult:
-    chunk = KnowledgeChunk(
+def _make_chunk(content: str = "kernel memory details") -> KnowledgeChunk:
+    return KnowledgeChunk(
         content=content,
         source_topic="Linux Kernel",
         source_field="cs",
         chunk_index=0,
-        embedding=np.ones(1536, dtype=np.float32) / np.sqrt(1536),
+        embedding=None,
     )
-    return RetrievalResult(chunk=chunk, score=0.85, rank=0)
 
 
-def _make_evaluation(decision: str = "deliver") -> EvaluationResult:
+def _make_retrieval_result(content: str = "kernel memory details") -> RetrievalResult:
+    return RetrievalResult(chunk=_make_chunk(content), score=0.85, rank=0)
+
+
+def _make_clone_response() -> CloneResponse:
+    return CloneResponse(
+        response_text="The buddy allocator manages physical pages in a power-of-two hierarchy.",
+        citations=[
+            Citation(
+                chunk_id="0",
+                source_topic="Linux Kernel",
+                text_snippet="kernel memory",
+                relevance_score=0.85,
+            )
+        ],
+    )
+
+
+def _make_eval(flags: list[str] | None = None) -> EvaluationResult:
     return EvaluationResult(
-        style_score=0.8,
-        groundedness_score=0.85,
+        style_score=0.82,
+        groundedness_score=0.78,
         confidence_score=0.75,
-        final_score=round(0.4 * 0.8 + 0.4 * 0.85 + 0.2 * 0.75, 6),
-        explanation="Well-styled and grounded.",
-        decision=decision,
+        explanation="Well-styled and grounded in the retrieved chunks.",
+        flags=flags or [],
     )
 
 
-def _make_mock_config() -> MagicMock:
-    cfg = MagicMock()
-    cfg.leaders = {
-        "torvalds": MagicMock(profile_path="data/models/torvalds_profile.json"),
-        "kroah_hartman": MagicMock(profile_path="data/models/kroah_hartman_profile.json"),
-    }
-    return cfg
+def _make_routing_decision(decision: str = "deliver") -> RoutingDecision:
+    if decision == "deliver":
+        return RoutingDecision(
+            decision="deliver",
+            reasoning="Scores above target; no flags raised.",
+        )
+    return RoutingDecision(
+        decision="fallback",
+        reasoning="Groundedness 0.210 below target.",
+        trigger_reason="groundedness_score too low",
+        trigger_category="low_groundedness",
+    )
+
+
+def _make_fallback_response() -> FallbackResponse:
+    return FallbackResponse(
+        acknowledgment="That question is outside what I can confidently answer.",
+        suggested_redirections=["How does the buddy allocator work?"],
+        calendar_link="https://cal.com/placeholder",
+        available_slots=["2024-02-01 10:00", "2024-02-02 14:00", "2024-02-03 09:00"],
+        unstyled_response="Here is a plain answer.",
+    )
 
 
 # ---------------------------------------------------------------------------
-# Shared patch context for all happy-path tests
+# Central mock runner helpers
 # ---------------------------------------------------------------------------
 
 
-def _run_happy_path(
-    query: str = "How does memory management work?",
+def _run_deliver(
+    query: str = "How does virtual memory work?",
     leader: str = "Linus Torvalds",
-    styled_text: str = "The kernel uses slab allocators.",
-    decision: str = "deliver",
+    chunks_preloaded: list[RetrievalResult] | None = None,
 ) -> DigitalCloneFlow:
-    """Run the flow end-to-end with all I/O mocked."""
-    mock_eval = _make_evaluation(decision=decision)
-    mock_profile = _make_profile(leader)
+    """Run the full v2 flow with all agents mocked, routing to deliver."""
+    profile = _make_profile(leader)
+    inputs: dict = {"query": query, "leader": leader, "style_profile": profile}
+    if chunks_preloaded is not None:
+        inputs["chunks"] = chunks_preloaded
 
     with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", return_value=styled_text),
-        patch("src.flow.EvaluatorAgent.evaluate", return_value=mock_eval),
+        patch("src.flow.Retriever") as MockRetriever,
+        patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
+        patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
+        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("deliver")),
     ):
+        MockRetriever.return_value.run.return_value = [_make_retrieval_result()]
         flow = DigitalCloneFlow()
-        flow.kickoff(inputs={"query": query, "leader": leader})
+        flow.kickoff(inputs=inputs)
+    return flow
 
+
+def _run_fallback(
+    query: str = "Who will win the next election?",
+    leader: str = "Linus Torvalds",
+) -> DigitalCloneFlow:
+    """Run the full v2 flow with all agents mocked, routing to fallback."""
+    profile = _make_profile(leader)
+    with (
+        patch("src.flow.Retriever") as MockRetriever,
+        patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
+        patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
+        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("fallback")),
+        patch("src.flow.FallbackAgent.run", return_value=_make_fallback_response()),
+    ):
+        MockRetriever.return_value.run.return_value = [_make_retrieval_result()]
+        flow = DigitalCloneFlow()
+        flow.kickoff(inputs={"query": query, "leader": leader, "style_profile": profile})
     return flow
 
 
 # ---------------------------------------------------------------------------
-# Happy path — state population
+# Step 1: retrieve — early-exit guard (ADR-005)
 # ---------------------------------------------------------------------------
 
 
-def test_happy_path():
-    flow = _run_happy_path()
-    assert len(flow.state.retrieved_chunks) == 1
-    assert flow.state.styled_response == "The kernel uses slab allocators."
-    assert flow.state.evaluation is not None
-    assert 0.0 <= flow.state.evaluation.final_score <= 1.0
-    assert isinstance(flow.state.final_output, StyledResponse)
-
-
-def test_happy_path_retrieved_chunks_populated():
-    flow = _run_happy_path()
-    assert len(flow.state.retrieved_chunks) > 0
-
-
-def test_happy_path_styled_response_non_empty():
-    flow = _run_happy_path(styled_text="The buddy allocator splits pages.")
-    assert len(flow.state.styled_response) > 0
-
-
-def test_happy_path_evaluation_score_in_range():
-    flow = _run_happy_path()
-    assert 0.0 <= flow.state.evaluation.final_score <= 1.0
-
-
-def test_happy_path_final_output_is_styled_response():
-    flow = _run_happy_path()
-    assert isinstance(flow.state.final_output, StyledResponse)
-
-
-def test_happy_path_final_output_query_matches():
-    q = "What is the buddy allocator?"
-    flow = _run_happy_path(query=q)
-    assert flow.state.final_output.query == q
-
-
-def test_happy_path_final_output_leader_matches():
-    flow = _run_happy_path(leader="Linus Torvalds")
-    assert flow.state.final_output.leader == "Linus Torvalds"
-
-
-def test_happy_path_final_output_response_matches_styled():
-    flow = _run_happy_path(styled_text="Slab allocator manages kernel objects.")
-    assert flow.state.final_output.response == "Slab allocator manages kernel objects."
-
-
-def test_happy_path_evaluation_embedded_in_final_output():
-    flow = _run_happy_path()
-    assert flow.state.final_output.evaluation == flow.state.evaluation
-
-
-def test_happy_path_final_output_never_none():
-    flow = _run_happy_path()
-    assert flow.state.final_output is not None
-
-
-# ---------------------------------------------------------------------------
-# Retrieve step — early-exit guard (Phase 4 hook)
-# ---------------------------------------------------------------------------
-
-
-def test_retrieve_skipped_when_chunks_pre_populated():
-    """retrieve() must not call RAGAgent.retrieve when chunks already present."""
-    mock_eval = _make_evaluation()
-    mock_profile = _make_profile()
-
+def test_retrieve_skipped_when_chunks_prepopulated():
+    """retrieve() must not call Retriever.run when state.chunks already present."""
     with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]) as mock_retrieve,
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", return_value="response"),
-        patch("src.flow.EvaluatorAgent.evaluate", return_value=mock_eval),
+        patch("src.flow.Retriever") as MockRetriever,
+        patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
+        patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
+        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("deliver")),
     ):
-        flow = DigitalCloneFlow()
+        mock_run = MockRetriever.return_value.run
+        mock_run.return_value = [_make_retrieval_result()]
         pre_populated = [_make_retrieval_result("pre-populated chunk")]
+        flow = DigitalCloneFlow()
         flow.kickoff(inputs={
             "query": "test",
             "leader": "Linus Torvalds",
-            "retrieved_chunks": pre_populated,
+            "style_profile": _make_profile(),
+            "chunks": pre_populated,
         })
-
-    mock_retrieve.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
-# KH leader path
-# ---------------------------------------------------------------------------
+    mock_run.assert_not_called()
 
 
-def test_happy_path_kroah_hartman():
-    flow = _run_happy_path(leader="Greg Kroah-Hartman")
-    assert flow.state.final_output.leader == "Greg Kroah-Hartman"
+def test_retrieve_populates_state_chunks():
+    flow = _run_deliver()
+    assert isinstance(flow.state.chunks, list)
+    assert len(flow.state.chunks) > 0
+    assert isinstance(flow.state.chunks[0], RetrievalResult)
 
 
 # ---------------------------------------------------------------------------
-# Phase 3 — Router boundary tests
+# Deliver path — state typing and output shape
 # ---------------------------------------------------------------------------
 
 
-def _run_with_score(final_score: float) -> DigitalCloneFlow:
-    """Run the flow with a manually constructed EvaluationResult at a given score."""
-    style_score = final_score
-    groundedness_score = final_score
-    confidence_score = final_score
-    decision = "deliver" if final_score >= 0.75 else "fallback"
-    mock_eval = EvaluationResult(
-        style_score=style_score,
-        groundedness_score=groundedness_score,
-        confidence_score=confidence_score,
-        final_score=final_score,
-        explanation="boundary test",
-        decision=decision,
-    )
-    mock_profile = _make_profile()
-
-    with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", return_value="styled text"),
-        patch("src.flow.EvaluatorAgent.evaluate", return_value=mock_eval),
-        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
-    ):
-        flow = DigitalCloneFlow()
-        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
-
-    return flow
+def test_deliver_path_styled_response_is_styled_response():
+    """Deliver arm must produce a StyledResponse in state.styled_response."""
+    flow = _run_deliver()
+    assert isinstance(flow.state.styled_response, StyledResponse)
 
 
-def test_router_below_threshold_routes_to_fallback():
-    """Score 0.7499 must produce a FallbackResponse."""
-    flow = _run_with_score(0.7499)
-    assert isinstance(flow.state.final_output, FallbackResponse)
+def test_deliver_path_fallback_response_is_none():
+    flow = _run_deliver()
+    assert flow.state.fallback_response is None
 
 
-def test_router_at_threshold_routes_to_deliver():
-    """Score 0.7500 must produce a StyledResponse."""
-    flow = _run_with_score(0.7500)
-    assert isinstance(flow.state.final_output, StyledResponse)
+def test_deliver_path_response_text_populated():
+    flow = _run_deliver()
+    assert flow.state.response_text is not None
+    assert len(flow.state.response_text) > 0
 
 
-def test_router_fallback_output_never_none():
-    flow = _run_with_score(0.7499)
-    assert flow.state.final_output is not None
+def test_deliver_path_evaluation_is_evaluation_result():
+    flow = _run_deliver()
+    assert isinstance(flow.state.evaluation, EvaluationResult)
 
 
-def test_router_deliver_output_never_none():
-    flow = _run_with_score(0.7500)
-    assert flow.state.final_output is not None
+def test_deliver_path_routing_decision_is_routing_decision():
+    flow = _run_deliver()
+    assert isinstance(flow.state.routing_decision, RoutingDecision)
+    assert flow.state.routing_decision.decision == "deliver"
 
 
-# ---------------------------------------------------------------------------
-# Phase 3 — Error-injection tests
-# ---------------------------------------------------------------------------
-
-
-def _run_with_retrieve_error() -> DigitalCloneFlow:
-    mock_profile = _make_profile()
-    with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", side_effect=RuntimeError("FAISS index missing")),
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", return_value="styled text"),
-        patch("src.flow.EvaluatorAgent.evaluate", return_value=_make_evaluation()),
-        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
-    ):
-        flow = DigitalCloneFlow()
-        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
-    return flow
-
-
-def _run_with_style_error() -> DigitalCloneFlow:
-    mock_profile = _make_profile()
-    with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", side_effect=RuntimeError("LLM timeout")),
-        patch("src.flow.EvaluatorAgent.evaluate", return_value=_make_evaluation()),
-        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
-    ):
-        flow = DigitalCloneFlow()
-        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
-    return flow
-
-
-def _run_with_evaluate_error() -> DigitalCloneFlow:
-    mock_profile = _make_profile()
-    with (
-        patch("src.flow.load_config", return_value=_make_mock_config()),
-        patch("src.flow.RAGAgent.__init__", return_value=None),
-        patch("src.flow.RAGAgent.retrieve", return_value=[_make_retrieval_result()]),
-        patch("src.flow.load_profile", return_value=mock_profile),
-        patch("src.flow.generate_styled_response", return_value="styled text"),
-        patch("src.flow.EvaluatorAgent.evaluate", side_effect=RuntimeError("Instructor parse error")),
-        patch("src.flow.build_fallback_response", return_value=_MOCK_FALLBACK),
-    ):
-        flow = DigitalCloneFlow()
-        flow.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
-    return flow
-
-
-def test_retrieve_error_routes_to_fallback():
-    """RAGAgent.retrieve failure → FallbackResponse in final_output."""
-    flow = _run_with_retrieve_error()
-    assert isinstance(flow.state.final_output, FallbackResponse)
-
-
-def test_style_error_routes_to_fallback():
-    """generate_styled_response failure → FallbackResponse in final_output."""
-    flow = _run_with_style_error()
-    assert isinstance(flow.state.final_output, FallbackResponse)
-
-
-def test_evaluate_error_routes_to_fallback():
-    """EvaluatorAgent.evaluate failure → FallbackResponse in final_output."""
-    flow = _run_with_evaluate_error()
-    assert isinstance(flow.state.final_output, FallbackResponse)
-
-
-def test_retrieve_error_final_output_never_none():
-    flow = _run_with_retrieve_error()
-    assert flow.state.final_output is not None
-
-
-def test_style_error_final_output_never_none():
-    flow = _run_with_style_error()
-    assert flow.state.final_output is not None
-
-
-def test_evaluate_error_final_output_never_none():
-    flow = _run_with_evaluate_error()
-    assert flow.state.final_output is not None
-
-
-def test_retrieve_error_trigger_reason_mentions_step():
-    """trigger_reason on retrieve failure must mention 'retrieve'."""
-    flow = _run_with_retrieve_error()
-    assert "retrieve" in flow.state.trigger_reason.lower()
-
-
-# ---------------------------------------------------------------------------
-# Phase 4 — Dual-leader comparison
-# ---------------------------------------------------------------------------
-
-_SHARED_PATCHES = dict(
-    load_config="src.flow.load_config",
-    rag_init="src.flow.RAGAgent.__init__",
-    rag_retrieve="src.flow.RAGAgent.retrieve",
-    load_profile="src.flow.load_profile",
-    generate="src.flow.generate_styled_response",
-    evaluate="src.flow.EvaluatorAgent.evaluate",
-    fallback="src.flow.build_fallback_response",
-)
-
-
-def _run_compare_leaders(
-    query: str = "How does memory management work?",
-    styled_text: str = "The kernel uses slab allocators.",
-) -> LeaderComparison:
-    mock_eval = _make_evaluation(decision="deliver")
-    mock_profile = _make_profile()
-    with (
-        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
-        patch(_SHARED_PATCHES["rag_init"], return_value=None),
-        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]),
-        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
-        patch(_SHARED_PATCHES["generate"], return_value=styled_text),
-        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
-        patch(_SHARED_PATCHES["fallback"], return_value=_MOCK_FALLBACK),
-    ):
-        return compare_leaders(query)
-
-
-def test_dual_leader_returns_leader_comparison():
-    result = _run_compare_leaders()
-    assert isinstance(result, LeaderComparison)
-
-
-def test_dual_leader_torvalds_field_is_styled_response():
-    result = _run_compare_leaders()
-    assert isinstance(result.torvalds, StyledResponse)
-
-
-def test_dual_leader_kroah_hartman_field_is_styled_response():
-    result = _run_compare_leaders()
-    assert isinstance(result.kroah_hartman, StyledResponse)
-
-
-def test_dual_leader_query_propagated():
+def test_deliver_path_styled_response_query_matches():
     q = "What is the buddy allocator?"
-    result = _run_compare_leaders(query=q)
-    assert result.query == q
-    assert result.torvalds.query == q
-    assert result.kroah_hartman.query == q
+    flow = _run_deliver(query=q)
+    assert flow.state.styled_response.query == q
 
 
-def test_dual_leader_leaders_differ():
-    result = _run_compare_leaders()
-    assert result.torvalds.leader != result.kroah_hartman.leader
+def test_deliver_path_styled_response_leader_matches():
+    flow = _run_deliver(leader="Linus Torvalds")
+    assert flow.state.styled_response.leader == "Linus Torvalds"
 
 
-def test_dual_leader_rag_retrieve_called_once():
-    """RAGAgent.retrieve must be called exactly once across both Flow runs."""
-    mock_eval = _make_evaluation(decision="deliver")
-    mock_profile = _make_profile()
-    with (
-        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
-        patch(_SHARED_PATCHES["rag_init"], return_value=None),
-        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]) as mock_retrieve,
-        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
-        patch(_SHARED_PATCHES["generate"], return_value="response"),
-        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
-    ):
-        compare_leaders("test query")
-
-    mock_retrieve.assert_called_once()
+def test_deliver_path_five_step_trace():
+    """All five v2 pipeline fields must be populated on the deliver path."""
+    flow = _run_deliver()
+    assert flow.state.chunks            # step 1: retrieve
+    assert flow.state.response_text     # step 2: clone
+    assert flow.state.evaluation        # step 3: evaluate
+    assert flow.state.routing_decision  # step 4: route
+    assert flow.state.styled_response   # step 5: finalize (deliver arm)
 
 
-def test_dual_leader_leader_a_failure_does_not_block_leader_b():
-    """If leader A's style step fails, leader B must still produce a StyledResponse."""
-    mock_eval = _make_evaluation(decision="deliver")
-    mock_profile = _make_profile()
-    call_count = {"n": 0}
+# ---------------------------------------------------------------------------
+# Fallback path — state typing and output shape
+# ---------------------------------------------------------------------------
 
-    def generate_side_effect(*args, **kwargs):
-        call_count["n"] += 1
-        if call_count["n"] == 1:
-            raise RuntimeError("LLM timeout for leader A")
-        return "KH response"
 
-    with (
-        patch(_SHARED_PATCHES["load_config"], return_value=_make_mock_config()),
-        patch(_SHARED_PATCHES["rag_init"], return_value=None),
-        patch(_SHARED_PATCHES["rag_retrieve"], return_value=[_make_retrieval_result()]),
-        patch(_SHARED_PATCHES["load_profile"], return_value=mock_profile),
-        patch(_SHARED_PATCHES["generate"], side_effect=generate_side_effect),
-        patch(_SHARED_PATCHES["evaluate"], return_value=mock_eval),
-        patch(_SHARED_PATCHES["fallback"], return_value=_MOCK_FALLBACK),
-    ):
-        flow_t = DigitalCloneFlow()
-        flow_t.kickoff(inputs={"query": "test", "leader": "Linus Torvalds"})
-        shared_chunks = list(flow_t.state.retrieved_chunks)
+def test_fallback_path_fallback_response_is_fallback_response():
+    """Fallback arm must produce a FallbackResponse in state.fallback_response."""
+    flow = _run_fallback()
+    assert isinstance(flow.state.fallback_response, FallbackResponse)
 
-        flow_kh = DigitalCloneFlow()
-        flow_kh.kickoff(inputs={
-            "query": "test",
-            "leader": "Greg Kroah-Hartman",
-            "retrieved_chunks": shared_chunks,
-        })
 
-    # Leader A failed → FallbackResponse; leader B must have still run and produced output
-    assert isinstance(flow_t.state.final_output, FallbackResponse)
-    assert isinstance(flow_kh.state.final_output, StyledResponse)
-    assert flow_kh.state.final_output.response == "KH response"
+def test_fallback_path_styled_response_is_none():
+    flow = _run_fallback()
+    assert flow.state.styled_response is None
+
+
+def test_fallback_path_routing_decision_is_fallback():
+    flow = _run_fallback()
+    assert isinstance(flow.state.routing_decision, RoutingDecision)
+    assert flow.state.routing_decision.decision == "fallback"
+
+
+def test_fallback_path_five_step_trace():
+    """All five v2 pipeline fields must be populated on the fallback path."""
+    flow = _run_fallback()
+    assert flow.state.chunks             # step 1: retrieve
+    assert flow.state.response_text      # step 2: clone
+    assert flow.state.evaluation         # step 3: evaluate
+    assert flow.state.routing_decision   # step 4: route
+    assert flow.state.fallback_response  # step 5: handle_fallback (fallback arm)
+
+
+# ---------------------------------------------------------------------------
+# Kroah-Hartman leader path
+# ---------------------------------------------------------------------------
+
+
+def test_kroah_hartman_leader_deliver_path():
+    flow = _run_deliver(leader="Greg Kroah-Hartman")
+    assert isinstance(flow.state.styled_response, StyledResponse)
+    assert flow.state.styled_response.leader == "Greg Kroah-Hartman"
+
+
+# ---------------------------------------------------------------------------
+# B2 latency — timings dict populated (not asserted for values — Day 12)
+# ---------------------------------------------------------------------------
+
+
+def test_timings_dict_has_retrieve_key():
+    flow = _run_deliver()
+    assert "retrieve_ms" in flow.timings
+
+
+def test_timings_dict_has_clone_keys():
+    flow = _run_deliver()
+    assert "clone_ms" in flow.timings
+    assert "clone_generate_ms" in flow.timings
+    assert "clone_parse_ms" in flow.timings
+
+
+def test_timings_dict_has_evaluate_keys():
+    flow = _run_deliver()
+    assert "evaluate_ms" in flow.timings
+    assert "evaluate_generate_ms" in flow.timings
+    assert "evaluate_parse_ms" in flow.timings
+
+
+def test_timings_dict_has_route_keys():
+    flow = _run_deliver()
+    assert "route_ms" in flow.timings
+    assert "route_generate_ms" in flow.timings
+    assert "route_parse_ms" in flow.timings
+
+
+def test_timings_dict_has_deliver_key():
+    flow = _run_deliver()
+    assert "deliver_ms" in flow.timings
+
+
+def test_timings_dict_has_fallback_keys():
+    flow = _run_fallback()
+    assert "fallback_ms" in flow.timings
+    assert "fallback_generate_ms" in flow.timings
+    assert "fallback_parse_ms" in flow.timings
+
+
+def test_timings_not_retrieved_when_early_exit():
+    """Timings dict must not have retrieve_ms when retrieve step early-exits."""
+    flow = _run_deliver(chunks_preloaded=[_make_retrieval_result()])
+    assert "retrieve_ms" not in flow.timings

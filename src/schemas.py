@@ -298,9 +298,11 @@ class CloneState(BaseModel):
 
     query: str = ""
     leader: str = ""
-    retrieved_chunks: list[RetrievalResult] = Field(default_factory=list)
-    styled_response: str = ""
+    chunks: list[RetrievalResult] = Field(default_factory=list)
+    style_profile: Optional[StyleProfile] = None
+    response_text: Optional[str] = None
+    citations: list[Citation] = Field(default_factory=list)
     evaluation: Optional[EvaluationResult] = None
     routing_decision: Optional[RoutingDecision] = None
-    final_output: Optional[Union[StyledResponse, FallbackResponse]] = None
-    trigger_reason: str = ""
+    styled_response: Optional[StyledResponse] = None
+    fallback_response: Optional[FallbackResponse] = None
