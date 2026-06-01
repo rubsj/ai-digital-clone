@@ -37,3 +37,28 @@ OOD fallback at 100% is non-negotiable for shipping regardless of where the in-d
 ## Consequences
 
 The Day 11 decision is a defined outcome rather than a verdict argued after the fact, because the criteria are fixed before the run. The system either clears E2 and ships, or it falls below E1 and does not, and the band in between has its handling fixed here in advance: the deliver rate is documented as the operating point and P6 ships if the other criteria pass. This ADR is the citation point for the Day 11 evaluation report (`docs/day11-evaluation.md`), which records the measured rates against E1 and E2. Locking the criteria before the measurement, including the rule for the middle band, is what keeps the Day 11 decision from being reasoned backward from whatever the numbers happen to be.
+
+---
+
+## Amendment — Day 12 (2026-06-01)
+
+**Floor correction.** The E1 floor of 39% per leader was derived from the pooled Day-8 baseline of 11/28 = 39.3%. Applied per leader, 39% would set Kroah-Hartman's floor at 5.46/14, above Kroah-Hartman's own Day-8 per-leader baseline of 5/14 = 35.7%. This would cause a false regression if Kroah-Hartman matched its own Day-8 level exactly. The floor is therefore corrected to honest per-leader baselines:
+
+- Torvalds floor: 42.9% (6/14), matching the Torvalds Day-8 per-leader baseline.
+- Kroah-Hartman floor: 35.7% (5/14), matching the Kroah-Hartman Day-8 per-leader baseline.
+
+This change does not alter the original Decision section's E2 target, OOD non-negotiable, or the band-handling rule. It corrects a mis-derivation in E1 that would have fired a false regression alarm against Kroah-Hartman.
+
+**Sub-floor handling.** The Day-12 measurement produced 0/14 deliver rate for both leaders across all three passes. This falls below the corrected floors. Per the original Decision: "Below E1 the architecture has regressed and P6 does not ship." That rule stands. The investigation branch applies: read the GatekeeperAgent reasoning and scores to distinguish correct conservatism from pathological punting on groundable queries.
+
+Day-12 investigation finding: two compound root causes were identified.
+
+Root cause 1 — EvaluatorAgent flag threshold calibration. The EvaluatorAgent prompt specifies groundedness target 0.60 and instructs the LLM to flag any dimension below its target. The LLM is raising `low_groundedness` for scores up to 0.706 (q08 Kroah-Hartman). The effective flag threshold is approximately 0.70-0.75, not the stated 0.60.
+
+Root cause 2 — GatekeeperAgent routes on flag presence. The Gatekeeper routes to fallback whenever `low_groundedness` appears in the EvaluatorAgent flags, regardless of the actual score value. In several cases the Gatekeeper also makes arithmetic errors in its reasoning (for example, describing gs=0.651 as "below the acceptable threshold of 0.60"). The Gatekeeper is following the flag, not re-evaluating the number.
+
+These two root causes compound: EvaluatorAgent over-flags above the stated threshold, then Gatekeeper follows the flag. The sub-floor deliver rate is therefore not evidence that the corpus is wrong or that the CloneAgent responses are ungroundable. It is evidence that the scoring and routing layer is more conservative than its own stated targets.
+
+The pre-floor branch outcome as defined in this ADR: stop ship, investigate, document the root cause. Investigation is complete (see `docs/day11-evaluation.md`). The fix is a re-calibration of the EvaluatorAgent flag threshold and a Gatekeeper prompt update to evaluate scores numerically, not just flag presence. A re-measurement after those changes determines whether the floor is cleared.
+
+Notion sync of this amendment is scheduled for Phase 2 alongside the ADR-010 trigger_category amendment logged Day 11.

@@ -2,11 +2,13 @@
 
 Three deterministic scores come from ScoringEngine (no LLM). A real CrewAI
 reviewer Agent then reasons about those scores against the response and its
-sources; one Instructor parse structures that reasoning into an explanation and
-a list of flags. The three scores, explanation, and flags assemble into an
-EvaluationResult. There is no combined score and no routing decision here: the
-GatekeeperAgent owns routing (ADR-010/011). Both LLM steps run at temperature 0
-for deterministic review.
+sources; one Instructor parse structures that reasoning into an explanation.
+Flags are raised deterministically in code from the ScoringEngine scores
+(ADR-017 RC-1 fix: was previously LLM judgment, which drifted above threshold).
+The three scores, explanation, and flags assemble into an EvaluationResult.
+There is no combined score and no routing decision here: the GatekeeperAgent
+owns routing (ADR-010/011). Both LLM steps run at temperature 0 for
+deterministic review.
 """
 
 from __future__ import annotations
@@ -17,7 +19,7 @@ from time import perf_counter
 import instructor
 import litellm
 from crewai import LLM, Agent, Crew, Task
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.components.scoring_engine import ScoringEngine, Scores
 from src.schemas import EvaluationResult, RetrievalResult, StyleProfile
@@ -29,12 +31,18 @@ _MAX_CHUNKS = 5
 _TEMPERATURE = 0
 _LLM_MAX_RETRIES = 2
 
+# ADR-017 RC-1 fix: flag thresholds as named constants, not LLM judgment.
+# Previously the thresholds lived only as f-string literals in natural-language
+# prose and the LLM drifted to flagging at ~0.70-0.75 instead of 0.60.
+GROUNDEDNESS_MIN: float = 0.60
+STYLE_MIN: float = 0.90
+CONFIDENCE_MIN: float = 0.80
+
 
 class _ReviewDraft(BaseModel):
-    """Instructor parse target for the reviewer's structured verdict."""
+    """Instructor parse target for the reviewer's explanation prose."""
 
     explanation: str
-    flags: list[str] = Field(default_factory=list)
 
 
 def _build_role() -> str:
@@ -48,8 +56,21 @@ def _build_goal() -> str:
     return (
         "Judge whether a response is well-styled, grounded in its sources, and "
         "confident, using the three measured scores. Explain the verdict in plain "
-        "language and raise specific flags for any weak dimension."
+        "language, focusing on the weakest dimension."
     )
+
+
+def _compute_flags(scores: Scores) -> list[str]:
+    # ADR-017 RC-1 fix: threshold comparison is arithmetic, was previously
+    # delegated to LLM judgment which drifted to flagging at ~0.70-0.75 in practice.
+    flags = []
+    if scores.groundedness_score < GROUNDEDNESS_MIN:
+        flags.append("low_groundedness")
+    if scores.style_score < STYLE_MIN:
+        flags.append("low_style")
+    if scores.confidence_score < CONFIDENCE_MIN:
+        flags.append("low_confidence")
+    return flags
 
 
 def _build_backstory() -> str:
@@ -79,9 +100,7 @@ def _build_task_description(query: str, response: str, scores: Scores,
         f"  Groundedness: {scores.groundedness_score:.3f} (target > 0.60)\n"
         f"  Confidence:   {scores.confidence_score:.3f} (target > 0.80)\n\n"
         "Write a concise explanation of the response's quality that references these "
-        "scores and focuses on the weakest dimension. Then list specific flags for any "
-        "dimension below its target (for example 'low_groundedness'); use an empty list "
-        "if none apply."
+        "scores and focuses on the weakest dimension."
     )
 
 
@@ -105,7 +124,7 @@ class EvaluatorAgent:
         )
         task = Task(
             description=_build_task_description(query, response, scores, chunks),
-            expected_output="A short quality explanation plus a list of flags.",
+            expected_output="A short quality explanation of the response.",
             agent=agent,
         )
         return Crew(agents=[agent], tasks=[task], verbose=False)
@@ -115,8 +134,8 @@ class EvaluatorAgent:
         prompt = (
             "Below is a reviewer's verdict on a generated response.\n\n"
             f"Verdict:\n{raw}\n\n"
-            "Return the explanation text and a list of flags (short snake_case labels "
-            "for weak dimensions, empty if none)."
+            "Return only the explanation text (the quality assessment prose). "
+            "Do not include any flag labels or appended content."
         )
         return client.chat.completions.create(
             model=self._model,
@@ -152,5 +171,5 @@ class EvaluatorAgent:
             groundedness_score=scores.groundedness_score,
             confidence_score=scores.confidence_score,
             explanation=draft.explanation,
-            flags=draft.flags,
+            flags=_compute_flags(scores),  # ADR-017: deterministic, not from LLM
         )
