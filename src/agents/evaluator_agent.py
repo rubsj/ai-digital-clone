@@ -35,7 +35,11 @@ _LLM_MAX_RETRIES = 2
 # Previously the thresholds lived only as f-string literals in natural-language
 # prose and the LLM drifted to flagging at ~0.70-0.75 instead of 0.60.
 GROUNDEDNESS_MIN: float = 0.60
-STYLE_MIN: float = 0.90
+# ADR-017 Amendment 1: corrected from 0.90 (synthetic-data calibration target per
+# ADR-003) to 0.70 (ADR-003 full-corpus self-similarity benchmark). The 0.90 was
+# never validated as a per-response flag threshold; 0.70 is the cosine proximity
+# the leaders' own LKML corpus clears against the style profile.
+STYLE_MIN: float = 0.70
 CONFIDENCE_MIN: float = 0.80
 
 
