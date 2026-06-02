@@ -263,6 +263,131 @@ Assertion script: `scripts/assert_router_16a.py` (throwaway). All changes commit
 
 ---
 
+## Phase 1.6.5 — Re-eval (84 records, ADR-018 deterministic router live)
+
+STOP GATE 1.6a cleared. Ran the 14 in-domain queries × 2 leaders × 3 passes = 84 records through the new deterministic router.
+
+### Prerequisite
+
+`scripts/analyze_reeval.py` `VALID_TRIGGER_CATEGORIES` updated from five to six literals (adding `"evaluation_error"`) to match the Phase 1.6.2 schema change before running the integrity assertion.
+
+### Re-eval run
+
+Script: `scripts/reeval2_indoman.py` (throwaway). Output: `results/evaluation_day12_reeval2.json`. OOD excluded (OOD groundedness 0.33–0.48; cannot flip on a threshold change; already 6/6 fallback in Phase 1).
+
+### STOP GATE 1.6b — Surface A: deliver-rate re-gate
+
+**Per-pass in-domain 2×2 grid:**
+
+| Pass | Torvalds | Floor | KH | Floor | E2 target (55%) |
+|---|---|---|---|---|---|
+| 1 | 3/14 (21.4%) | 42.9% BELOW | 10/14 (71.4%) | 35.7% CLEARS | CLEARS |
+| 2 | 4/14 (28.6%) | 42.9% BELOW | 9/14 (64.3%) | 35.7% CLEARS | CLEARS |
+| 3 | 4/14 (28.6%) | 42.9% BELOW | 9/14 (64.3%) | 35.7% CLEARS | CLEARS |
+
+Three-run variance: Torvalds 3–4/14, KH 9–10/14 (non-zero variance, as expected from CloneAgent's temp=0.3).
+
+**ADR-013 per-leader gap:** 35.7–50.0pp across all three passes. Trigger fired all three passes (threshold: >20pp).
+
+**Torvalds fallback groundedness breakdown (31 total fallbacks across 3 passes):**
+- Near-miss (0.55–0.60, gs range 0.554–0.599): 18 — correctly below the 0.60 floor
+- Clearly low (<0.55, gs range 0.497–0.546): 13 — clear groundedness deficit
+
+Both categories are legitimate groundedness failures: the deterministic router is correctly applying the 0.60 floor. Torvalds below floor is the honest per-leader operating point. Floor does not move (ADR-004 calibrated; pre-committed discipline).
+
+KH: honest partial success (clears floor and E2 target). ADR-013 contingency fires on all three passes.
+
+### STOP GATE 1.6b — Surface B: fallback-quality prose read
+
+Four samples read. Voice differentiation visible:
+
+- **Torvalds (direct/terse):** "I can't provide a solid answer on why L2 regularization spreads weight magnitudes more evenly than L1, or when to prefer L1. It's outside my expertise right now."
+- **KH (formal/deferential):** "Thank you for your question regarding the differences between L1 and L2 regularization. While I appreciate the interest in the nuances of these techniques, I must admit that I can't provide a well-grounded answer…"
+
+All four fallbacks name the exact query topic (not a generic redirect). Old v1 boilerplate ("I'm not able to answer off-topic questions") absent. Voice differentiation present but not strongly leader-distinctive — acknowledged as a Phase 1.7+ investigation item, not a routing failure.
+
+**Harness gap identified:** `_extract_leader_record()` in `src/eval/harness.py` does not serialize `routing_decision.quality_flags` to JSON. Stored records show `quality_flags=None` even for delivered records where non-blocking flags apply. The 1.6a pure-function assertions confirmed the router computes `quality_flags` correctly; this is a recording gap only. Fix deferred to Phase 2 alongside the `cli.py` refactor.
+
+### Three additional confirmations
+
+- **RC-3 gone:** 0 instances of `trigger_category=low_groundedness` where no `low_groundedness` flag was computed. Not recurred.
+- **trigger_category integrity:** PASS — non-null iff fallback, all values from the valid six-literal set, across all 84 leader-records.
+- **quality_flags blocking-flag check:** No blocking flags in `quality_flags` on any delivered record. Confirmed via the 1.6a assertions; stored JSON shows `quality_flags=None` (harness gap noted above).
+
+### STOP GATE 1.6b result
+
+**PASSED for the fix.** Routing is deterministic (RC-2 resolved), RC-1 and RC-3 resolved, fallback quality meets the bar (trigger-specific, voice-present, no old generic redirect). Torvalds below floor is an honest per-leader result; per pre-committed discipline the floor does not move and Phase 2 remains blocked until both leaders clear their floors.
+
+---
+
+## Phase 1.7 — Gatekeeper rename (agent → component, ADR-018 Consequences)
+
+Executed after STOP GATE 1.6b passed. Behavior-preserving rename sequenced AFTER the logic change so that logic and rename never mix in one diff.
+
+### 1.7.0 — Convention finding (read-only)
+
+Existing deterministic components: `Retriever` (`src/components/retriever.py`), `ScoringEngine` (`src/components/scoring_engine.py`), `StyleProfileBuilder` (`src/components/style_profile_builder.py`). Convention: `src/components/<concept_name>.py`, `PascalCase` noun, no suffix. `Retriever` is the unsuffixed single-concept precedent.
+
+Rename target: `src/components/gatekeeper.py`, class `Gatekeeper`. Convention match confirmed before touching anything.
+
+### 1.7.1 — Rename and move
+
+Files changed:
+
+| File | Action |
+|---|---|
+| `src/agents/gatekeeper_agent.py` | Deleted (git rm) |
+| `src/components/gatekeeper.py` | Created — same body, class `GatekeeperAgent` → `Gatekeeper`, module docstring updated |
+| `src/flow.py` | Import path + class name + route() docstring updated |
+| `src/components/scoring_engine.py` | Docstring: `GatekeeperAgent` → `Gatekeeper` |
+| `src/agents/evaluator_agent.py` | Docstring: `GatekeeperAgent` → `Gatekeeper` |
+| `src/agents/fallback_agent.py` | Docstring: `GatekeeperAgent` → `Gatekeeper` |
+| `src/schemas.py` | Docstring: `GatekeeperAgent` → `Gatekeeper` |
+| `tests/integration/test_gatekeeper_agent.py` | Deleted — old LLM-plumbing tests for nonexistent API (`_build_backstory`, `_build_crew`, etc.); was already causing a collection error |
+| `tests/integration/test_gatekeeper.py` | Created — 17 deterministic tests for `_compute_flags` and `Gatekeeper.run()` (no mocks; pure-function checks) |
+| `tests/test_flow.py` | Patch strings: `src.flow.GatekeeperAgent.run` → `src.flow.Gatekeeper.run` (3 occurrences); docstring updated |
+| `tests/integration/test_compare_leaders.py` | Patch strings: `src.flow.GatekeeperAgent.run` → `src.flow.Gatekeeper.run` (4 occurrences) |
+
+`src/components/__init__.py` not modified: adding `Gatekeeper` there creates a circular import (`src.components.__init__` → `gatekeeper` → `evaluator_agent` → `src.components.scoring_engine` → partially-initialized `src.components`). `flow.py` imports directly from `src.components.gatekeeper`; no re-export needed.
+
+Zero logic changed. `run()` signature, `RoutingDecision` return type, `_compute_flags`, `_BLOCKING_FLAGS`, `last_run_timings`, and all routing arithmetic are byte-for-byte identical.
+
+### 1.7.2 — Verification
+
+**No-remaining-reference grep:** `grep -rn "GatekeeperAgent\|gatekeeper_agent" src/ tests/` — empty (zero results).
+
+**Test suite after rename:**
+```
+8 failed, 492 passed, 37 skipped, 28 warnings in 4.41s
+```
+
+All 8 failures are pre-existing, none caused by the rename:
+
+| Failure | Root cause | Phase when introduced |
+|---|---|---|
+| `test_load_queries_canonical_file` | Missing `queries_v1.json` | Pre-existing (documented in plan) |
+| 6 × `test_fallback_agent` | `_build_task_description()` API enriched in 1.6.3 (new required params); test file not yet updated | Phase 1.6.3 |
+| `test_run_propagates_flags` | Deterministic flags now also emit `low_confidence` at cs<0.80; test expected only `[low_style, low_groundedness]` | Phase 1.5.1 |
+
+The old `test_gatekeeper_agent.py` was already failing with a collection error before this phase (imported `_build_backstory` and other functions removed in 1.6.1). The rename eliminated that collection error and replaced it with 17 passing deterministic tests.
+
+New `tests/integration/test_gatekeeper.py` — all 17 passed: `_compute_flags` arithmetic (6 tests), deliver path with quality_flags (5 tests), fallback `low_groundedness` path (3 tests), `empty_retrieval` ordering (2 tests), `last_run_timings` (1 test).
+
+### 1.7.3 — ADR-014 inventory correction
+
+`docs/adr/ADR-014-agent-component-inventory.md` updated:
+
+- Dated correction block (2026-06-01) citing ADR-018 added above the Decision counts.
+- Agent list 4 → 3: GatekeeperAgent entry removed.
+- Component list 3 → 4: Gatekeeper entry added with file path `src/components/gatekeeper.py` and one-line breadcrumb for readers following ADR-018 or ADR-010 file references.
+- Consequences section counts corrected from "four files in `src/agents/`, three in `src/components/`" to three and four respectively, with a parenthetical dated note.
+
+### STOP GATE 1.7 result
+
+Pending Ruby's keyword. All verification surfaces pasted in the gate output above.
+
+---
+
 ## Artifacts produced
 
 | Artifact | Type | Status |
@@ -280,20 +405,30 @@ Assertion script: `scripts/assert_router_16a.py` (throwaway). All changes commit
 | `src/agents/fallback_agent.py` | Modified — trigger_category + scores + style_profile wiring | Complete |
 | `src/flow.py` | Modified — handle_fallback wiring + evaluation_error guard | Complete |
 | `src/schemas.py` | Modified — quality_flags + six-literal trigger_category sets | Complete |
-| `scripts/reeval_indomain.py` | Throwaway — re-eval runner | Complete |
-| `scripts/analyze_reeval.py` | Throwaway — gate analysis | Complete |
+| `scripts/reeval_indomain.py` | Throwaway — re-eval runner (Phase 1.5.3) | Complete |
+| `scripts/analyze_reeval.py` | Throwaway — gate analysis (updated to six-literal set in 1.6.5) | Complete |
 | `scripts/assert_router_16a.py` | Throwaway — STOP GATE 1.6a assertion (4 checks) | Complete |
+| `scripts/reeval2_indoman.py` | Throwaway — Phase 1.6.5 re-eval runner | Complete |
+| `scripts/equivalence_guard.py` | Throwaway — ADR-017 Phase 1.5.2 equivalence check | Complete |
+| `results/evaluation_day12_reeval2.json` | Data — 84-record Phase 1.6.5 re-eval results | Complete |
+| `src/components/gatekeeper.py` | New — deterministic Gatekeeper component (renamed from gatekeeper_agent.py) | Complete |
+| `src/agents/gatekeeper_agent.py` | Deleted (renamed to Gatekeeper in src/components/) | Complete |
+| `tests/integration/test_gatekeeper.py` | New — 17 deterministic tests for Gatekeeper | Complete |
+| `tests/integration/test_gatekeeper_agent.py` | Deleted (LLM plumbing tests for removed API) | Complete |
+| `docs/adr/ADR-014-agent-component-inventory.md` | Amendment — agent count 4→3, component count 3→4, breadcrumb | Complete |
 
 ## Pending (not started this session)
 
 | Item | Blocked on |
 |---|---|
-| Phase 1.6 re-eval (84 records → `evaluation_day12_reeval2.json`) | STOP GATE 1.6a keyword ("approved"/"proceed") |
-| Phase 1.7 (Gatekeeper rename to component) | STOP GATE 1.6b cleared |
+| STOP GATE 1.7 keyword | Ruby's gate decision |
 | CONFIDENCE_MIN calibration | Post-1.6 re-eval data |
 | `_parse_review` removal | Day-13 latency item; needs CrewAI task `expected_output` update to suppress "Flags:" section in `.raw` |
-| Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.6b + STOP GATE 1.7 cleared |
-| Notion ADR sync: ADR-010 + ADR-015 + ADR-017 + ADR-018 | Phase 2 |
+| Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.6b + STOP GATE 1.7 cleared; also Torvalds floor not cleared |
+| Notion ADR sync: ADR-010 + ADR-015 + ADR-017 + ADR-018 + ADR-014 correction | Phase 2 |
+| 6 × test_fallback_agent failures (API mismatch from 1.6.3 enrichment) | Phase 2 test-file update |
+| `test_run_propagates_flags` (evaluator test expects pre-1.5.1 flag set) | Phase 2 test-file update |
+| Harness gap: `quality_flags` not serialized to JSON by `_extract_leader_record()` | Phase 2 alongside cli.py refactor |
 
 ## Dead code ledger (unchanged from Day 11)
 
@@ -301,4 +436,4 @@ All Day-11 ledger items carry forward. No new retirements this session (Phase 2 
 
 ## Architecture-honesty check
 
-No new agent files, no schema changes, no threshold comparisons outside the EvaluatorAgent. The only code change is `STYLE_MIN: float = 0.90 → 0.70` and the replacement of LLM-based flag extraction with `_compute_flags()`. The GatekeeperAgent, FallbackAgent, CloneAgent, `flow.py`, `schemas.py`, and all test files are byte-for-byte identical to their end-of-Day-11 state. Confirmed by `git diff --stat HEAD -- src/agents/gatekeeper_agent.py` producing no output.
+Three Agents (`src/agents/`): CloneAgent, EvaluatorAgent, FallbackAgent. Four Components (`src/components/`): Retriever, ScoringEngine, StyleProfileBuilder, Gatekeeper. One Flow orchestrator. Matches ADR-014 inventory as corrected by the 2026-06-01 amendment. No LLM call in the Gatekeeper, no LLM call in any other Component. The EvaluatorAgent's flag-raising is deterministic code; the LLM produces only the explanation text. Routing from scores to decision is arithmetic. The flow contract (route() returns a string, downstream reads `.decision`) is unchanged from Day 11.

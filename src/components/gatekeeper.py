@@ -1,4 +1,4 @@
-"""GatekeeperAgent: deterministic deliver-or-fallback routing (ADR-018).
+"""Gatekeeper: deterministic deliver-or-fallback routing (ADR-018).
 
 Replaces the LLM decision (ADR-010) with arithmetic. The LLM was ignoring
 the computed flags and applying its own unconstrained groundedness judgment
@@ -7,7 +7,7 @@ and mislabeling trigger_category regardless of actual flags (RC-3). Routing is
 purely arithmetic — no LLM involved. See ADR-018.
 
 Same run() signature and RoutingDecision return type as the old LLM-based
-GatekeeperAgent. The flow contract is unchanged; only the internals are replaced.
+router. The flow contract is unchanged; only the internals are replaced.
 """
 
 from __future__ import annotations
@@ -38,11 +38,11 @@ def _compute_flags(evaluation: EvaluationResult) -> list[str]:
     return flags
 
 
-class GatekeeperAgent:
+class Gatekeeper:
     """Deterministic routing; retains the flow's run() → RoutingDecision contract (ADR-018)."""
 
     def __init__(self, model: str = "") -> None:
-        # model param kept so GatekeeperAgent() call sites in flow.py need no change.
+        # model param kept so Gatekeeper() call sites in flow.py need no change.
         pass
 
     def run(

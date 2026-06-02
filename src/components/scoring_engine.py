@@ -4,7 +4,7 @@ LLM-free. Wraps the three v1 sub-scorers — style (cosine on 15-dim feature
 vectors), groundedness (sentence-level semantic similarity), and confidence
 (multi-factor heuristic) — into one score() call. No combined score and no
 routing decision: the EvaluatorAgent consumes these scores and the
-GatekeeperAgent owns routing. The scoring math (ADR-003/004) is unchanged.
+Gatekeeper owns routing. The scoring math (ADR-003/004) is unchanged.
 
 Note: groundedness uses embeddings via src/rag/embedder (transitively LiteLLM).
 Embeddings are vector math on the frozen scoring path, not LLM reasoning; this

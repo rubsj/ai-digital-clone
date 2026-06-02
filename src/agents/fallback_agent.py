@@ -1,6 +1,6 @@
 """FallbackAgent: real CrewAI Agent for graceful redirection (ADR-012).
 
-When GatekeeperAgent routes to fallback, this Agent generates a leader-voiced
+When Gatekeeper routes to fallback, this Agent generates a leader-voiced
 acknowledgment and 2-3 in-domain redirections inferred from the retrieved chunks.
 Calendar mock is generated deterministically (not by the LLM). A try/except
 wraps the LLM path; any failure activates the templated failsafe so the system

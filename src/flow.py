@@ -22,7 +22,7 @@ from pydantic import PrivateAttr
 from src.agents.clone_agent import CloneAgent
 from src.agents.evaluator_agent import EvaluatorAgent
 from src.agents.fallback_agent import FallbackAgent
-from src.agents.gatekeeper_agent import GatekeeperAgent
+from src.components.gatekeeper import Gatekeeper
 from src.components.retriever import Retriever
 from src.config import load_config
 from src.schemas import (
@@ -118,7 +118,7 @@ class DigitalCloneFlow(Flow[CloneState]):
 
     @router(evaluate)
     def route(self) -> str:
-        """GatekeeperAgent decides deliver or fallback (ADR-010)."""
+        """Gatekeeper decides deliver or fallback (ADR-018)."""
         if self.state.evaluation is None:
             self.state.routing_decision = RoutingDecision(
                 decision="fallback",
@@ -127,7 +127,7 @@ class DigitalCloneFlow(Flow[CloneState]):
                 trigger_reason="evaluation_error: evaluate step returned None",
             )
             return "fallback"
-        agent = GatekeeperAgent()
+        agent = Gatekeeper()
         t0 = perf_counter()
         self.state.routing_decision = agent.run(
             query=self.state.query,

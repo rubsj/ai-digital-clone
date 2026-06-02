@@ -197,8 +197,8 @@ class EvaluationResult(BaseModel):
 
     Three deterministic scores come from ScoringEngine; explanation and flags
     come from one LLM call (ADR-011 hybrid). There is no combined final_score —
-    routing is decided by the GatekeeperAgent, not a weighted formula
-    (ADR-010/011). extra="forbid" so any caller still passing final_score or
+    routing is decided by the Gatekeeper, not a weighted formula
+    (ADR-018). extra="forbid" so any caller still passing final_score or
     decision fails loudly rather than silently dropping the field.
     """
 

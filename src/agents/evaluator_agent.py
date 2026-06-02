@@ -6,8 +6,8 @@ sources; one Instructor parse structures that reasoning into an explanation.
 Flags are raised deterministically in code from the ScoringEngine scores
 (ADR-017 RC-1 fix: was previously LLM judgment, which drifted above threshold).
 The three scores, explanation, and flags assemble into an EvaluationResult.
-There is no combined score and no routing decision here: the GatekeeperAgent
-owns routing (ADR-010/011). Both LLM steps run at temperature 0 for
+There is no combined score and no routing decision here: the Gatekeeper
+owns routing (ADR-018). Both LLM steps run at temperature 0 for
 deterministic review.
 """
 
