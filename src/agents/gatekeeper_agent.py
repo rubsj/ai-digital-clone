@@ -1,153 +1,49 @@
-"""GatekeeperAgent: real CrewAI Agent for deliver-or-fallback routing (ADR-010).
+"""GatekeeperAgent: deterministic deliver-or-fallback routing (ADR-018).
 
-Inputs: query, response_text, chunks, evaluation (EvaluationResult), leader.
-Output: RoutingDecision. Runs at temperature=0. On fallback, the prompt demands
-trigger_category from the bounded 5-literal set and trigger_reason as free text
-referencing specific scores/flags. On deliver, both are null.
+Replaces the LLM decision (ADR-010) with arithmetic. The LLM was ignoring
+the computed flags and applying its own unconstrained groundedness judgment
+(RC-2: non-monotonic, flipping deliver/fallback/deliver across identical passes)
+and mislabeling trigger_category regardless of actual flags (RC-3). Routing is
+purely arithmetic — no LLM involved. See ADR-018.
+
+Same run() signature and RoutingDecision return type as the old LLM-based
+GatekeeperAgent. The flow contract is unchanged; only the internals are replaced.
 """
 
 from __future__ import annotations
 
 import logging
-from time import perf_counter
 
-import instructor
-import litellm
-from crewai import LLM, Agent, Crew, Task
-
+# Import thresholds from the evaluator so the router and evaluator stay in sync.
+# Any future recalibration of a threshold automatically propagates here.
+from src.agents.evaluator_agent import CONFIDENCE_MIN, GROUNDEDNESS_MIN, STYLE_MIN
 from src.schemas import EvaluationResult, RetrievalResult, RoutingDecision
 
 logger = logging.getLogger(__name__)
 
-_LLM_MODEL = "gpt-4o-mini"
-_MAX_CHUNKS = 5
-_TEMPERATURE = 0
-_LLM_MAX_RETRIES = 2
-
-_TRIGGER_CATEGORIES = (
-    "low_groundedness",
-    "off_domain",
-    "hallucination_risk",
-    "chunk_mismatch",
-    "empty_retrieval",
-)
+# Flags that promote to trigger_category and must NOT appear in quality_flags.
+# quality_flags carries only non-blocking annotations (low_style, low_confidence).
+_BLOCKING_FLAGS: frozenset[str] = frozenset({"low_groundedness"})
 
 
-def _build_role() -> str:
-    return (
-        "You are a routing decision-maker for an AI digital clone system that "
-        "generates responses in the voice of a Linux kernel maintainer."
-    )
-
-
-def _build_goal() -> str:
-    return (
-        "Decide whether to DELIVER a generated response or route to FALLBACK, "
-        "based solely on the three measured quality scores and evaluation flags "
-        "provided. Your reasoning must cite the specific score values and flags "
-        "you received — not general impressions."
-    )
-
-
-def _build_backstory() -> str:
-    return (
-        "You are conservative about hallucination risk: a confident-sounding "
-        "response that is poorly grounded is worse than an honest fallback. "
-        "Route to fallback when groundedness is low, when flags signal chunk "
-        "mismatch or off-domain content, or when no usable evidence was retrieved. "
-        "Default to deliver when scores are reasonable and no flags are raised."
-    )
-
-
-def _format_chunks_summary(chunks: list[RetrievalResult]) -> str:
-    if not chunks:
-        return "(no chunks retrieved)"
-    topics = [f"- {rr.chunk.source_topic}" for rr in chunks[:_MAX_CHUNKS]]
-    return "\n".join(topics)
-
-
-def _build_task_description(
-    query: str,
-    response_text: str,
-    chunks: list[RetrievalResult],
-    evaluation: EvaluationResult,
-) -> str:
-    flags_str = ", ".join(evaluation.flags) if evaluation.flags else "(none)"
-    categories_str = ", ".join(f'"{c}"' for c in _TRIGGER_CATEGORIES)
-    return (
-        f"Query: {query}\n\n"
-        f"Generated response:\n{response_text}\n\n"
-        f"Retrieved chunk topics:\n{_format_chunks_summary(chunks)}\n\n"
-        "Measured quality scores (0-1):\n"
-        f"  style_score:        {evaluation.style_score:.3f}\n"
-        f"  groundedness_score: {evaluation.groundedness_score:.3f}\n"
-        f"  confidence_score:   {evaluation.confidence_score:.3f}\n\n"
-        f"Evaluation flags: {flags_str}\n\n"
-        f"Evaluator explanation: {evaluation.explanation}\n\n"
-        "ROUTING RULES:\n"
-        "- Default: DELIVER. Route to FALLBACK only when a specific score or flag "
-        "warrants it.\n"
-        "- Your reasoning MUST cite the specific score values and flags listed above.\n"
-        "- If decision is 'fallback': set trigger_reason (free-text explanation "
-        "citing specific scores/flags) and trigger_category (one of: "
-        f"{categories_str}).\n"
-        "- If decision is 'deliver': trigger_reason and trigger_category must both "
-        "be null.\n"
-    )
+def _compute_flags(evaluation: EvaluationResult) -> list[str]:
+    """Reproduce the deterministic flag set from scores (mirrors evaluator_agent.py)."""
+    flags: list[str] = []
+    if evaluation.groundedness_score < GROUNDEDNESS_MIN:
+        flags.append("low_groundedness")
+    if evaluation.style_score < STYLE_MIN:
+        flags.append("low_style")
+    if evaluation.confidence_score < CONFIDENCE_MIN:
+        flags.append("low_confidence")
+    return flags
 
 
 class GatekeeperAgent:
-    """Routes each response to deliver or fallback based on evaluated quality."""
+    """Deterministic routing; retains the flow's run() → RoutingDecision contract (ADR-018)."""
 
-    def __init__(self, model: str = _LLM_MODEL) -> None:
-        self._model = model
-
-    def _build_crew(
-        self,
-        query: str,
-        response_text: str,
-        chunks: list[RetrievalResult],
-        evaluation: EvaluationResult,
-        leader: str,
-    ) -> Crew:
-        llm = LLM(model=self._model, temperature=_TEMPERATURE)
-        agent = Agent(
-            role=_build_role(),
-            goal=_build_goal(),
-            backstory=_build_backstory(),
-            llm=llm,
-            verbose=False,
-        )
-        task = Task(
-            description=_build_task_description(query, response_text, chunks, evaluation),
-            expected_output=(
-                "A routing decision: decision ('deliver' or 'fallback'), reasoning "
-                "citing the specific scores and flags, trigger_category and "
-                "trigger_reason set only on fallback, null on deliver."
-            ),
-            agent=agent,
-        )
-        return Crew(agents=[agent], tasks=[task], verbose=False)
-
-    def _parse_decision(self, raw: str) -> RoutingDecision:
-        client = instructor.from_litellm(litellm.completion)
-        categories_str = ", ".join(_TRIGGER_CATEGORIES)
-        prompt = (
-            "Below is a routing verdict for an AI-generated response.\n\n"
-            f"Verdict:\n{raw}\n\n"
-            "Extract the routing decision as structured output. Set decision to "
-            "'deliver' or 'fallback', reasoning to the rationale text. If decision "
-            f"is 'fallback', set trigger_category to one of: {categories_str}, and "
-            "trigger_reason to the free-text explanation. If decision is 'deliver', "
-            "both trigger_category and trigger_reason must be null."
-        )
-        return client.chat.completions.create(
-            model=self._model,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=RoutingDecision,
-            temperature=_TEMPERATURE,
-            max_retries=_LLM_MAX_RETRIES,
-        )
+    def __init__(self, model: str = "") -> None:
+        # model param kept so GatekeeperAgent() call sites in flow.py need no change.
+        pass
 
     def run(
         self,
@@ -157,15 +53,69 @@ class GatekeeperAgent:
         evaluation: EvaluationResult,
         leader: str,
     ) -> RoutingDecision:
-        """Decide deliver or fallback; on fallback set trigger_reason + trigger_category."""
-        crew = self._build_crew(query, response_text, chunks, evaluation, leader)
-        t_gen = perf_counter()
-        raw = crew.kickoff().raw
-        t_parse = perf_counter()
-        result = self._parse_decision(raw)
-        t_done = perf_counter()
-        self.last_run_timings: dict[str, float] = {
-            "generate_ms": (t_parse - t_gen) * 1000,
-            "parse_ms": (t_done - t_parse) * 1000,
-        }
-        return result
+        """Deterministic deliver-or-fallback in three steps (ADR-018).
+
+        (a) Compute all flags from scores — same thresholds as evaluator_agent.py.
+        (b) Label trigger_category; empty_retrieval MUST precede low_groundedness
+            because a zero-chunk retrieval also scores gs=0.0 (below the floor) and
+            would mislabel as low_groundedness without the chunk-count check first.
+        (c) Fallback iff a blocking category was set. quality_flags carries
+            non-blocking flags only (_BLOCKING_FLAGS excluded) on both paths.
+            The blocking flag travels in trigger_category, not quality_flags.
+        """
+        # Step (a): recompute flags independently from scores.
+        flags = _compute_flags(evaluation)
+        # Non-blocking flags only — blocking flags are in trigger_category.
+        quality_flags = [f for f in flags if f not in _BLOCKING_FLAGS]
+
+        # Step (b): ordered category tree.
+        # empty_retrieval is checked FIRST — chunk count is the only discriminant;
+        # groundedness alone cannot distinguish zero-chunk from low-groundedness-by-content.
+        trigger_category = None
+        if len(chunks) == 0:
+            trigger_category = "empty_retrieval"
+        elif "low_groundedness" in flags:
+            trigger_category = "low_groundedness"
+
+        # Step (c): route and assemble RoutingDecision.
+        # trigger_reason is a factual templated string; no LLM, no prose judgment.
+        self.last_run_timings: dict[str, float] = {"generate_ms": 0.0, "parse_ms": 0.0}
+
+        if trigger_category is not None:
+            if trigger_category == "empty_retrieval":
+                trigger_reason = "empty_retrieval: 0 chunks retrieved"
+            else:
+                trigger_reason = (
+                    f"low_groundedness: groundedness "
+                    f"{evaluation.groundedness_score:.2f} below "
+                    f"{GROUNDEDNESS_MIN:.2f} floor"
+                )
+            reasoning = (
+                f"Deterministic routing: {trigger_reason}. "
+                f"gs={evaluation.groundedness_score:.3f} "
+                f"ss={evaluation.style_score:.3f} "
+                f"cs={evaluation.confidence_score:.3f} "
+                f"flags={flags}"
+            )
+            return RoutingDecision(
+                decision="fallback",
+                reasoning=reasoning,
+                trigger_category=trigger_category,
+                trigger_reason=trigger_reason,
+                quality_flags=quality_flags,
+            )
+
+        # Deliver: trigger_category and trigger_reason null.
+        # quality_flags carries any non-blocking flags (low_style, low_confidence).
+        reasoning = (
+            f"Deterministic routing: deliver. "
+            f"gs={evaluation.groundedness_score:.3f} >= {GROUNDEDNESS_MIN:.2f} floor. "
+            f"quality_flags={flags}"
+        )
+        return RoutingDecision(
+            decision="deliver",
+            reasoning=reasoning,
+            trigger_category=None,
+            trigger_reason=None,
+            quality_flags=quality_flags,
+        )

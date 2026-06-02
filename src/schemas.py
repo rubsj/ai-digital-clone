@@ -217,11 +217,12 @@ class EvaluationResult(BaseModel):
 
 
 class RoutingDecision(BaseModel):
-    """GatekeeperAgent's deliver-or-fallback verdict (ADR-010).
+    """Deliver-or-fallback routing verdict (ADR-018; supersedes ADR-010).
 
-    The GatekeeperAgent owns routing; there is no weighted formula and no
-    final_score in v2. reasoning must reference the specific scores and flags
-    it was given (ADR-010 risk mitigation).
+    Routing is deterministic arithmetic; reasoning cites the actual score values.
+    trigger_category and trigger_reason are null on deliver, set by code on fallback.
+    quality_flags carries non-blocking flags only (low_style, low_confidence);
+    the blocking flag is always in trigger_category, never duplicated in quality_flags.
     """
 
     decision: Literal["deliver", "fallback"]
@@ -234,8 +235,10 @@ class RoutingDecision(BaseModel):
             "hallucination_risk",
             "chunk_mismatch",
             "empty_retrieval",
+            "evaluation_error",
         ]
     ] = None
+    quality_flags: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +251,8 @@ class FallbackResponse(BaseModel):
 
     v2 shape (ADR-012): LLM-generated acknowledgment + redirections
     + calendar mock + failsafe unstyled_response. Replaces v1 trigger_reason /
-    context_summary shape.
+    context_summary shape. trigger_category mirrors the RoutingDecision category
+    for audit; Optional so existing callers that omit it remain valid.
     """
 
     acknowledgment: str
@@ -256,6 +260,16 @@ class FallbackResponse(BaseModel):
     calendar_link: str
     available_slots: list[str] = Field(default_factory=list)
     unstyled_response: str
+    trigger_category: Optional[
+        Literal[
+            "low_groundedness",
+            "off_domain",
+            "hallucination_risk",
+            "chunk_mismatch",
+            "empty_retrieval",
+            "evaluation_error",
+        ]
+    ] = None
 
 
 class StyledResponse(BaseModel):

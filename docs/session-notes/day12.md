@@ -183,6 +183,54 @@ Floors not cleared: Torvalds 0/14 (0%), Kroah-Hartman 1/14 (7.1%), both below Da
 
 ---
 
+## Phase 1.6 — RC-2 fix: deterministic routing + enriched fallback (ADR-018)
+
+STOP GATE 1.5b closed NO-SHIP with RC-2 confirmed independent. Executing 1.6.1–1.6.4 per ADR-018. Stopped at STOP GATE 1.6a; re-eval not yet started.
+
+### ADR-018
+
+Authored `docs/adr/ADR-018-deterministic-routing.md` (Status: Accepted, 2026-06-01). Decision: replace the GatekeeperAgent LLM decision with deterministic arithmetic routing, move the explanation role to FallbackAgent. Three-step decision: compute flags from scores, label trigger_category in code (empty_retrieval checked before low_groundedness; zero-chunk also fails the gs floor so chunk count is the only discriminant), fallback iff a blocking category was set. Supersedes ADR-010; ADR-010 retained as the Day-10 record.
+
+### Steps 1.6.1–1.6.4 (implemented, not yet re-evaluated)
+
+**1.6.1 — Deterministic router (`src/agents/gatekeeper_agent.py`)**
+
+Full rewrite. Same `run()` signature (`query, response_text, chunks, evaluation, leader`) and `RoutingDecision` return type; the flow contract is unchanged. All LLM infrastructure removed (`crewai`, `instructor`, `litellm` imports gone). Threshold constants imported from `evaluator_agent.py` (`GROUNDEDNESS_MIN`, `STYLE_MIN`, `CONFIDENCE_MIN`) so any future recalibration propagates automatically. `_compute_flags()` recomputes the deterministic flag set from scores independently. Labeling tree: `len(chunks)==0 → empty_retrieval` (checked first); `low_groundedness in flags → low_groundedness`. `trigger_reason` is a factual code-templated string with the actual score value. Non-blocking flags travel via `quality_flags` on both deliver and fallback paths. `last_run_timings` set to `{"generate_ms": 0.0, "parse_ms": 0.0}`.
+
+**1.6.2 — Schema additions (`src/schemas.py`), additive only**
+
+`RoutingDecision`: added `quality_flags: list[str] = Field(default_factory=list)`. `FallbackResponse`: added `trigger_category: Optional[Literal[...five-literal set...]] = None`. No existing fields changed; five-literal set unchanged.
+
+**1.6.3 — Enriched FallbackAgent (`src/agents/fallback_agent.py`)**
+
+`run()` receives four new Optional kwargs: `trigger_category`, `groundedness_score`, `style_score`, `confidence_score` (all default `None` for backward compatibility). `_build_task_description` now receives all four plus `style_profile` (which was previously accepted by `run()` but silently unused — the live dead parameter from ADR-018 Precondition Check). `_format_style_examples()` added to extract up to two sample emails (truncated to 400 chars each) from the style profile as in-voice grounding examples. Task description now includes failure category, actual quality scores, and style examples so the redirect is specific to the trigger and in the leader's voice. `trigger_category` propagated to `FallbackResponse.trigger_category` on both the success and failsafe paths.
+
+**1.6.4 — Flow wiring (`src/flow.py` `handle_fallback`)**
+
+Added `trigger_category` extraction from `state.routing_decision.trigger_category`. Passes `trigger_category`, `groundedness_score`, `style_score`, `confidence_score` as kwargs to `FallbackAgent.run()`. Kwargs only; `route()` and the evaluate-is-None emergency guard left unchanged (Day-13 gap per ADR-018).
+
+### STOP GATE 1.6a (pending Ruby's gate decision)
+
+Assertion results (no API calls):
+
+```
+Checked 84 records from results/evaluation_day12_reeval.json
+PASS: delivers iff groundedness >= 0.6 — all 84 records correct
+
+── Zero-chunk unit case (empty_retrieval branch) ──
+  decision:         fallback
+  trigger_category: empty_retrieval
+  trigger_reason:   empty_retrieval: 0 chunks retrieved
+  quality_flags:    ['low_groundedness']
+PASS: zero-chunk unit case → trigger_category='empty_retrieval'
+```
+
+Assertion script: `scripts/assert_router_16a.py` (throwaway).
+
+`route()` contract confirmed unchanged (diff shows only `handle_fallback` changed in `flow.py`; `route()` body and the emergency guard are byte-for-byte identical to their pre-1.6 state).
+
+---
+
 ## Artifacts produced
 
 | Artifact | Type | Status |
@@ -202,12 +250,13 @@ Floors not cleared: Torvalds 0/14 (0%), Kroah-Hartman 1/14 (7.1%), both below Da
 
 | Item | Blocked on |
 |---|---|
-| RC-2 fix: GatekeeperAgent numerical score comparison | Ruby's gate decision + keyword |
-| RC-2 re-eval | RC-2 fix complete |
-| CONFIDENCE_MIN calibration | Post-RC-2 re-eval data |
+| Phase 1.6 re-eval (84 records → `evaluation_day12_reeval2.json`) | STOP GATE 1.6a keyword ("approved"/"proceed") |
+| Phase 1.7 (Gatekeeper rename to component) | STOP GATE 1.6b cleared |
+| CONFIDENCE_MIN calibration | Post-1.6 re-eval data |
 | `_parse_review` removal | Day-13 latency item; needs CrewAI task `expected_output` update to suppress "Flags:" section in `.raw` |
-| Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.5b cleared + RC-2 resolved |
-| Notion ADR sync: ADR-010 trigger_category amendment + ADR-015 Amendment | Phase 2 |
+| evaluate-is-None emergency guard fix (`evaluation_error` category) | Day-13 gap per ADR-018 |
+| Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.6b + STOP GATE 1.7 cleared |
+| Notion ADR sync: ADR-010 + ADR-015 + ADR-017 + ADR-018 | Phase 2 |
 
 ## Dead code ledger (unchanged from Day 11)
 
