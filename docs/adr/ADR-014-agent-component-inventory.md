@@ -16,18 +16,20 @@ The inventory also fixes the orchestrator's status. The Flow is plain orchestrat
 
 P6 v2 has exactly four Agents, three Components, and one Flow orchestrator, specified in PRD §5.1 and §5.2.
 
-The four Agents are LLM-driven, specified in PRD §5.1 to live under `src/agents/`:
+**2026-06-01 inventory correction (ADR-018):** Agent count 4 → 3; Component count 3 → 4. GatekeeperAgent was reclassified from Agent to Component (renamed Gatekeeper) because ADR-018 replaced its LLM decision with deterministic arithmetic; it now satisfies the ADR-009 Component criterion (deterministic `run()`, no LLM). File moved from `src/agents/gatekeeper_agent.py` to `src/components/gatekeeper.py`. Readers following ADR-018's or ADR-010's file references should look there.
+
+The three Agents are LLM-driven, specified in PRD §5.1 to live under `src/agents/`:
 
 - CloneAgent generates the response in the leader's voice (PRD §5.1.1).
 - EvaluatorAgent is a hybrid: it calls the ScoringEngine Component for the numerical scores and uses an LLM only to produce the explanation and flags (PRD §5.1.2, ADR-011).
-- GatekeeperAgent makes the deliver-or-fallback routing decision by reasoning over the scores in the context of the retrieved chunks and the response (PRD §5.1.3, ADR-010).
 - FallbackAgent writes a leader-appropriate fallback message and carries a short templated failsafe for when the LLM call fails (PRD §5.1.4).
 
-The three Components are deterministic, specified in PRD §5.2 with a `run()` method under `src/components/`:
+The four Components are deterministic, specified in PRD §5.2 with a `run()` method under `src/components/`:
 
 - Retriever embeds the query and searches FAISS for the top-20 candidates, then reranks to the top-5 with Cohere, with no LLM in the chain (PRD §5.2.1).
 - StyleProfileBuilder parses the leader's mbox and extracts the 15 style features per email, then builds the StyleProfile (PRD §5.2.2).
 - ScoringEngine computes the three quality scores (style, groundedness, confidence) with deterministic math and no LLM (PRD §5.2.3).
+- Gatekeeper makes the deterministic deliver-or-fallback routing decision from computed scores; no LLM (ADR-018). File: `src/components/gatekeeper.py`.
 
 The orchestrator is DigitalCloneFlow, a CrewAI `Flow[CloneState]` subclass whose decorators (`@start`, `@listen`, `@router`) define the step order (PRD §3.2). The Flow is not an Agent, and there is no PlannerAgent.
 
@@ -46,4 +48,4 @@ The orchestrator is DigitalCloneFlow, a CrewAI `Flow[CloneState]` subclass whose
 
 ## Consequences
 
-Once the rework lands, the directory structure mirrors the inventory: four files in `src/agents/` and three in `src/components/`, with nothing outside those directories named like an Agent. The inventory is a gate rather than a snapshot, because any Agent or Component added in later work has to pass the ADR-009 criterion before it earns a place in either directory. The orchestrator's fixed status, plain Flow and no PlannerAgent, means future steps are added as Agents or Components rather than by growing the Flow into something that reasons. (In Java terms the dividing line is closer to a strategy that reasons against a worker that computes than to Spring's `@Service` versus `@Component` stereotypes, since what classifies a unit here is whether an LLM does the reasoning.)
+Once the rework lands, the directory structure mirrors the inventory: three files in `src/agents/` and four in `src/components/`, with nothing outside those directories named like an Agent. (Corrected 2026-06-01 per ADR-018: Gatekeeper moved from `src/agents/` to `src/components/`.) The inventory is a gate rather than a snapshot, because any Agent or Component added in later work has to pass the ADR-009 criterion before it earns a place in either directory. The orchestrator's fixed status, plain Flow and no PlannerAgent, means future steps are added as Agents or Components rather than by growing the Flow into something that reasons. (In Java terms the dividing line is closer to a strategy that reasons against a worker that computes than to Spring's `@Service` versus `@Component` stereotypes, since what classifies a unit here is whether an LLM does the reasoning.)

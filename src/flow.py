@@ -22,7 +22,7 @@ from pydantic import PrivateAttr
 from src.agents.clone_agent import CloneAgent
 from src.agents.evaluator_agent import EvaluatorAgent
 from src.agents.fallback_agent import FallbackAgent
-from src.agents.gatekeeper_agent import GatekeeperAgent
+from src.components.gatekeeper import Gatekeeper
 from src.components.retriever import Retriever
 from src.config import load_config
 from src.schemas import (
@@ -118,14 +118,16 @@ class DigitalCloneFlow(Flow[CloneState]):
 
     @router(evaluate)
     def route(self) -> str:
-        """GatekeeperAgent decides deliver or fallback (ADR-010)."""
+        """Gatekeeper decides deliver or fallback (ADR-018)."""
         if self.state.evaluation is None:
             self.state.routing_decision = RoutingDecision(
                 decision="fallback",
                 reasoning="evaluate step produced no result — emergency fallback",
+                trigger_category="evaluation_error",
+                trigger_reason="evaluation_error: evaluate step returned None",
             )
             return "fallback"
-        agent = GatekeeperAgent()
+        agent = Gatekeeper()
         t0 = perf_counter()
         self.state.routing_decision = agent.run(
             query=self.state.query,
@@ -163,10 +165,12 @@ class DigitalCloneFlow(Flow[CloneState]):
 
     @listen("fallback")
     def handle_fallback(self) -> None:
-        """FallbackAgent generates a leader-voiced fallback response (ADR-012)."""
+        """FallbackAgent generates a leader-voiced fallback response (ADR-012/018)."""
         trigger = ""
+        trigger_category = None
         if self.state.routing_decision:
             trigger = self.state.routing_decision.trigger_reason or ""
+            trigger_category = self.state.routing_decision.trigger_category
         agent = FallbackAgent()
         t0 = perf_counter()
         self.state.fallback_response = agent.run(
@@ -175,6 +179,16 @@ class DigitalCloneFlow(Flow[CloneState]):
             trigger_reason=trigger,
             style_profile=self.state.style_profile,
             chunks=self.state.chunks,
+            trigger_category=trigger_category,
+            groundedness_score=(
+                self.state.evaluation.groundedness_score if self.state.evaluation else None
+            ),
+            style_score=(
+                self.state.evaluation.style_score if self.state.evaluation else None
+            ),
+            confidence_score=(
+                self.state.evaluation.confidence_score if self.state.evaluation else None
+            ),
         )
         self._timings["fallback_ms"] = (perf_counter() - t0) * 1000
         tims = getattr(agent, "last_run_timings", {})

@@ -1,7 +1,7 @@
-"""Tests for src/flow.py v2 — five-step pipeline with GatekeeperAgent routing.
+"""Tests for src/flow.py v2 — five-step pipeline with Gatekeeper routing.
 
 All LLM-using steps are mocked (Retriever, CloneAgent, EvaluatorAgent,
-GatekeeperAgent, FallbackAgent). These tests prove wiring only — routing
+Gatekeeper, FallbackAgent). These tests prove wiring only — routing
 correctness is measured with real LLM on Day 12. The known pre-existing
 failure test_query_loader.py::test_load_queries_canonical_file is unrelated
 to this module.
@@ -148,7 +148,7 @@ def _run_deliver(
         patch("src.flow.Retriever") as MockRetriever,
         patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
         patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
-        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("deliver")),
+        patch("src.flow.Gatekeeper.run", return_value=_make_routing_decision("deliver")),
     ):
         MockRetriever.return_value.run.return_value = [_make_retrieval_result()]
         flow = DigitalCloneFlow()
@@ -166,7 +166,7 @@ def _run_fallback(
         patch("src.flow.Retriever") as MockRetriever,
         patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
         patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
-        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("fallback")),
+        patch("src.flow.Gatekeeper.run", return_value=_make_routing_decision("fallback")),
         patch("src.flow.FallbackAgent.run", return_value=_make_fallback_response()),
     ):
         MockRetriever.return_value.run.return_value = [_make_retrieval_result()]
@@ -186,7 +186,7 @@ def test_retrieve_skipped_when_chunks_prepopulated():
         patch("src.flow.Retriever") as MockRetriever,
         patch("src.flow.CloneAgent.run", return_value=_make_clone_response()),
         patch("src.flow.EvaluatorAgent.run", return_value=_make_eval()),
-        patch("src.flow.GatekeeperAgent.run", return_value=_make_routing_decision("deliver")),
+        patch("src.flow.Gatekeeper.run", return_value=_make_routing_decision("deliver")),
     ):
         mock_run = MockRetriever.return_value.run
         mock_run.return_value = [_make_retrieval_result()]
