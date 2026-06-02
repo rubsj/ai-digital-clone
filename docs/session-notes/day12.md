@@ -195,39 +195,71 @@ Authored `docs/adr/ADR-018-deterministic-routing.md` (Status: Accepted, 2026-06-
 
 **1.6.1 — Deterministic router (`src/agents/gatekeeper_agent.py`)**
 
-Full rewrite. Same `run()` signature (`query, response_text, chunks, evaluation, leader`) and `RoutingDecision` return type; the flow contract is unchanged. All LLM infrastructure removed (`crewai`, `instructor`, `litellm` imports gone). Threshold constants imported from `evaluator_agent.py` (`GROUNDEDNESS_MIN`, `STYLE_MIN`, `CONFIDENCE_MIN`) so any future recalibration propagates automatically. `_compute_flags()` recomputes the deterministic flag set from scores independently. Labeling tree: `len(chunks)==0 → empty_retrieval` (checked first); `low_groundedness in flags → low_groundedness`. `trigger_reason` is a factual code-templated string with the actual score value. Non-blocking flags travel via `quality_flags` on both deliver and fallback paths. `last_run_timings` set to `{"generate_ms": 0.0, "parse_ms": 0.0}`.
+Full rewrite. Same `run()` signature (`query, response_text, chunks, evaluation, leader`) and `RoutingDecision` return type; the flow contract is unchanged. All LLM infrastructure removed (`crewai`, `instructor`, `litellm` imports gone). Threshold constants imported from `evaluator_agent.py` (`GROUNDEDNESS_MIN`, `STYLE_MIN`, `CONFIDENCE_MIN`) so any future recalibration propagates automatically. `_compute_flags()` recomputes the deterministic flag set from scores independently. Labeling tree: `len(chunks)==0 → empty_retrieval` (checked first); `low_groundedness in flags → low_groundedness`. `trigger_reason` is a factual code-templated string with the actual score value. `last_run_timings` set to `{"generate_ms": 0.0, "parse_ms": 0.0}`.
+
+`quality_flags` semantics (corrected at STOP GATE 1.6a review): carries **non-blocking flags only** (`low_style`, `low_confidence`). The blocking flag (`low_groundedness`) promotes to `trigger_category` and is **not** duplicated in `quality_flags`. `_BLOCKING_FLAGS = frozenset({"low_groundedness"})` is defined at module level; `quality_flags = [f for f in flags if f not in _BLOCKING_FLAGS]`. Zero-chunk fallback (`trigger_category=empty_retrieval`): the scorer returns `gs=0.0` which also fires `low_groundedness`, but `low_groundedness` is a blocking flag and therefore excluded from `quality_flags` regardless of whether it is the trigger — `quality_flags=[]` on a pure empty-retrieval fallback.
 
 **1.6.2 — Schema additions (`src/schemas.py`), additive only**
 
-`RoutingDecision`: added `quality_flags: list[str] = Field(default_factory=list)`. `FallbackResponse`: added `trigger_category: Optional[Literal[...five-literal set...]] = None`. No existing fields changed; five-literal set unchanged.
+`RoutingDecision`: added `quality_flags: list[str] = Field(default_factory=list)`, added `"evaluation_error"` as the sixth literal in `trigger_category`. `FallbackResponse`: added `trigger_category: Optional[Literal[...six-literal set...]] = None`. Both Literal sets are identical: `{low_groundedness, off_domain, hallucination_risk, chunk_mismatch, empty_retrieval, evaluation_error}`. No existing fields changed.
 
 **1.6.3 — Enriched FallbackAgent (`src/agents/fallback_agent.py`)**
 
 `run()` receives four new Optional kwargs: `trigger_category`, `groundedness_score`, `style_score`, `confidence_score` (all default `None` for backward compatibility). `_build_task_description` now receives all four plus `style_profile` (which was previously accepted by `run()` but silently unused — the live dead parameter from ADR-018 Precondition Check). `_format_style_examples()` added to extract up to two sample emails (truncated to 400 chars each) from the style profile as in-voice grounding examples. Task description now includes failure category, actual quality scores, and style examples so the redirect is specific to the trigger and in the leader's voice. `trigger_category` propagated to `FallbackResponse.trigger_category` on both the success and failsafe paths.
 
-**1.6.4 — Flow wiring (`src/flow.py` `handle_fallback`)**
+**1.6.4 — Flow wiring (`src/flow.py`)**
 
-Added `trigger_category` extraction from `state.routing_decision.trigger_category`. Passes `trigger_category`, `groundedness_score`, `style_score`, `confidence_score` as kwargs to `FallbackAgent.run()`. Kwargs only; `route()` and the evaluate-is-None emergency guard left unchanged (Day-13 gap per ADR-018).
+`handle_fallback`: added `trigger_category` extraction from `state.routing_decision.trigger_category`. Passes `trigger_category`, `groundedness_score`, `style_score`, `confidence_score` as kwargs to `FallbackAgent.run()`.
+
+`route()` — emergency guard: corrected at STOP GATE 1.6a review. The evaluate-is-None path now emits `trigger_category="evaluation_error"` and `trigger_reason="evaluation_error: evaluate step returned None"` (previously left null, which violated the ADR-018 contract). The guard diff:
+
+```python
+# before
+RoutingDecision(
+    decision="fallback",
+    reasoning="evaluate step produced no result — emergency fallback",
+)
+
+# after
+RoutingDecision(
+    decision="fallback",
+    reasoning="evaluate step produced no result — emergency fallback",
+    trigger_category="evaluation_error",
+    trigger_reason="evaluation_error: evaluate step returned None",
+)
+```
 
 ### STOP GATE 1.6a (pending Ruby's gate decision)
 
-Assertion results (no API calls):
+Initial assertion submission had two issues caught at gate review: (a) `quality_flags` was incorrectly carrying the blocking flag `low_groundedness`, and (b) `evaluation_error` was missing from both Literal sets and the emergency guard was not emitting `trigger_category`. Both corrected; see 1.6.1 and 1.6.2 notes above. Corrected assertion results (four checks, no API calls):
 
 ```
 Checked 84 records from results/evaluation_day12_reeval.json
 PASS: delivers iff groundedness >= 0.6 — all 84 records correct
+PASS: no blocking flags in quality_flags across all 84 records
 
 ── Zero-chunk unit case (empty_retrieval branch) ──
   decision:         fallback
   trigger_category: empty_retrieval
   trigger_reason:   empty_retrieval: 0 chunks retrieved
-  quality_flags:    ['low_groundedness']
-PASS: zero-chunk unit case → trigger_category='empty_retrieval'
+  quality_flags:    []
+PASS: zero-chunk unit case → trigger_category='empty_retrieval', quality_flags=[]
+
+── Deliver-low-style unit case (non-blocking flag on deliver path) ──
+  decision:         deliver
+  trigger_category: None
+  quality_flags:    ['low_style']
+PASS: deliver-low-style → quality_flags=['low_style'], no blocking flag
+
+── Evaluation-is-None unit case (evaluation_error guard in flow.py) ──
+  decision:         fallback
+  trigger_category: evaluation_error
+  trigger_reason:   evaluation_error: evaluate step returned None
+  quality_flags:    []
+PASS: evaluation-is-None → trigger_category='evaluation_error'
 ```
 
-Assertion script: `scripts/assert_router_16a.py` (throwaway).
-
-`route()` contract confirmed unchanged (diff shows only `handle_fallback` changed in `flow.py`; `route()` body and the emergency guard are byte-for-byte identical to their pre-1.6 state).
+Assertion script: `scripts/assert_router_16a.py` (throwaway). All changes committed at `a395c40` on `feat/evaluator-deterministic-flags`.
 
 ---
 
@@ -242,9 +274,15 @@ Assertion script: `scripts/assert_router_16a.py` (throwaway).
 | `docs/evaluation-methodology.md` | Doc — three-layer methodology | Complete |
 | `docs/adr/ADR-015-...md` | Amendment appended | Complete |
 | `docs/adr/ADR-017-deterministic-flag-raising.md` | New ADR + Amendment 1 | Complete |
+| `docs/adr/ADR-018-deterministic-routing.md` | New ADR | Complete |
 | `src/agents/evaluator_agent.py` | Modified — deterministic flags + STYLE_MIN | Complete |
+| `src/agents/gatekeeper_agent.py` | Full rewrite — deterministic router (ADR-018) | Complete |
+| `src/agents/fallback_agent.py` | Modified — trigger_category + scores + style_profile wiring | Complete |
+| `src/flow.py` | Modified — handle_fallback wiring + evaluation_error guard | Complete |
+| `src/schemas.py` | Modified — quality_flags + six-literal trigger_category sets | Complete |
 | `scripts/reeval_indomain.py` | Throwaway — re-eval runner | Complete |
 | `scripts/analyze_reeval.py` | Throwaway — gate analysis | Complete |
+| `scripts/assert_router_16a.py` | Throwaway — STOP GATE 1.6a assertion (4 checks) | Complete |
 
 ## Pending (not started this session)
 
@@ -254,7 +292,6 @@ Assertion script: `scripts/assert_router_16a.py` (throwaway).
 | Phase 1.7 (Gatekeeper rename to component) | STOP GATE 1.6b cleared |
 | CONFIDENCE_MIN calibration | Post-1.6 re-eval data |
 | `_parse_review` removal | Day-13 latency item; needs CrewAI task `expected_output` update to suppress "Flags:" section in `.raw` |
-| evaluate-is-None emergency guard fix (`evaluation_error` category) | Day-13 gap per ADR-018 |
 | Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.6b + STOP GATE 1.7 cleared |
 | Notion ADR sync: ADR-010 + ADR-015 + ADR-017 + ADR-018 | Phase 2 |
 
