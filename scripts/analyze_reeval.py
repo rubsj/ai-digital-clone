@@ -22,7 +22,7 @@ TORVALDS_FLOOR = 6 / 14   # 42.9%
 KH_FLOOR = 5 / 14          # 35.7%
 VALID_TRIGGER_CATEGORIES = {
     "low_groundedness", "off_domain", "hallucination_risk",
-    "chunk_mismatch", "empty_retrieval",
+    "chunk_mismatch", "empty_retrieval", "evaluation_error",
 }
 GROUNDEDNESS_MIN = 0.60
 STYLE_MIN = 0.70
