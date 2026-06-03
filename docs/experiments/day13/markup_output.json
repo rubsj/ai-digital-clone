@@ -1,0 +1,3018 @@
+{
+  "q01_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 1
+      }
+    }
+  },
+  "q01_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q01_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "10": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q02_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q02_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q02_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q03_p1": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "inferable",
+        "checked_chunk": 4
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "10": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q03_p2": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q03_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "10": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q04_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 2
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q04_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 2
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 2
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q04_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 2
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q05_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q05_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 4
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 4
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q05_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q06_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q06_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q06_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 4
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q07_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 3
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q07_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 3
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q07_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q08_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q08_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "10": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q08_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q09_p1": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    }
+  },
+  "q09_p2": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q09_p3": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "1": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q10_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q10_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q10_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 3
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q11_p1": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    }
+  },
+  "q11_p2": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q11_p3": {
+    "clone_A": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      }
+    }
+  },
+  "q12_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q12_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q12_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 0
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "inferable",
+        "checked_chunk": 1
+      }
+    }
+  },
+  "q13_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q13_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 0
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q13_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "inferable",
+        "checked_chunk": 1
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q14_p1": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "inferable",
+        "checked_chunk": 4
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q14_p2": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "9": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "free",
+        "checked_chunk": 3
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "free",
+        "checked_chunk": null
+      }
+    }
+  },
+  "q14_p3": {
+    "clone_A": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "8": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    },
+    "clone_B": {
+      "0": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "1": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "2": {
+        "label": "free",
+        "checked_chunk": null
+      },
+      "3": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "4": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "5": {
+        "label": "inferable",
+        "checked_chunk": 3
+      },
+      "6": {
+        "label": "grounded",
+        "checked_chunk": null
+      },
+      "7": {
+        "label": "grounded",
+        "checked_chunk": null
+      }
+    }
+  }
+}

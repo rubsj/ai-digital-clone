@@ -1,0 +1,1882 @@
+2026-06-01 13:24:36,389 INFO Loading faiss.
+2026-06-01 13:24:36,395 INFO Successfully loaded faiss.
+2026-06-01 13:24:39,547 INFO Using config path: /Users/rubyjha/.config/crewai/settings.json
+2026-06-01 13:24:39,634 INFO Loaded 20 queries: 14 in-domain, 6 OOD
+2026-06-01 13:24:39,634 INFO === PASS 1: all 20 queries ===
+2026-06-01 13:24:39,634 INFO Pass 1 [1/20] q01 (in_domain, expected=deliver)
+2026-06-01 13:24:39,912 INFO Flow started with ID: 5570b530-9386-4829-9a2a-f485a43ec6a7
+2026-06-01 13:24:39,922 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:24:44,596 INFO OpenAI API usage: {'prompt_tokens': 803, 'completion_tokens': 198, 'total_tokens': 1001, 'cached_prompt_tokens': 0}
+2026-06-01 13:24:44,610 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:24:48,574 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:24:49,373 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:24:53,481 INFO OpenAI API usage: {'prompt_tokens': 995, 'completion_tokens': 152, 'total_tokens': 1147, 'cached_prompt_tokens': 0}
+2026-06-01 13:24:53,489 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:24:57,168 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:24:59,932 INFO OpenAI API usage: {'prompt_tokens': 794, 'completion_tokens': 116, 'total_tokens': 910, 'cached_prompt_tokens': 0}
+2026-06-01 13:24:59,939 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:02,082 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:04,488 INFO OpenAI API usage: {'prompt_tokens': 396, 'completion_tokens': 114, 'total_tokens': 510, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:04,499 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:06,386 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:06,398 INFO Flow started with ID: 94b8dddd-0e2b-41ff-b245-b4bf94ab1816
+2026-06-01 13:25:10,377 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 182, 'total_tokens': 987, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:10,383 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:13,859 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:14,391 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:21,846 INFO OpenAI API usage: {'prompt_tokens': 979, 'completion_tokens': 338, 'total_tokens': 1317, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:21,853 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:26,557 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:29,628 INFO OpenAI API usage: {'prompt_tokens': 778, 'completion_tokens': 112, 'total_tokens': 890, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:29,635 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:31,889 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:35,567 INFO OpenAI API usage: {'prompt_tokens': 401, 'completion_tokens': 156, 'total_tokens': 557, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:35,574 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:38,742 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:38,748 INFO   T=fallback KH=fallback  gs_T=0.548 gs_KH=0.596  (59.1s)
+2026-06-01 13:25:38,748 INFO Pass 1 [2/20] q02 (in_domain, expected=deliver)
+2026-06-01 13:25:38,756 INFO Flow started with ID: a5eabb0c-630f-4f94-b88b-09815b5ca63e
+2026-06-01 13:25:38,773 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:25:42,735 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 199, 'total_tokens': 1004, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:42,742 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:46,268 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:46,862 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:51,175 INFO OpenAI API usage: {'prompt_tokens': 998, 'completion_tokens': 143, 'total_tokens': 1141, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:51,181 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:54,053 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:25:56,356 INFO OpenAI API usage: {'prompt_tokens': 781, 'completion_tokens': 113, 'total_tokens': 894, 'cached_prompt_tokens': 0}
+2026-06-01 13:25:56,362 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:25:58,506 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:00,142 INFO OpenAI API usage: {'prompt_tokens': 396, 'completion_tokens': 83, 'total_tokens': 479, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:00,145 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:02,705 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:02,716 INFO Flow started with ID: 9d817027-0922-40cc-b136-09e15916b4ca
+2026-06-01 13:26:07,226 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 217, 'total_tokens': 1024, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:07,232 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:12,596 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:13,226 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:17,245 INFO OpenAI API usage: {'prompt_tokens': 1016, 'completion_tokens': 138, 'total_tokens': 1154, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:17,250 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:20,078 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:22,443 INFO OpenAI API usage: {'prompt_tokens': 790, 'completion_tokens': 105, 'total_tokens': 895, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:22,450 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:24,462 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:28,508 INFO OpenAI API usage: {'prompt_tokens': 388, 'completion_tokens': 214, 'total_tokens': 602, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:28,515 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:31,488 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:31,494 INFO   T=fallback KH=fallback  gs_T=0.674 gs_KH=0.681  (52.7s)
+2026-06-01 13:26:31,494 INFO Pass 1 [3/20] q03 (in_domain, expected=deliver)
+2026-06-01 13:26:31,500 INFO Flow started with ID: b1ab3c92-7fc0-44f0-944b-aa07c0063437
+2026-06-01 13:26:31,514 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:26:35,984 INFO OpenAI API usage: {'prompt_tokens': 696, 'completion_tokens': 203, 'total_tokens': 899, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:35,991 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:40,286 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:40,989 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:44,688 INFO OpenAI API usage: {'prompt_tokens': 893, 'completion_tokens': 142, 'total_tokens': 1035, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:44,695 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:47,965 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:53,290 INFO OpenAI API usage: {'prompt_tokens': 780, 'completion_tokens': 256, 'total_tokens': 1036, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:53,297 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:26:55,849 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:26:59,749 INFO OpenAI API usage: {'prompt_tokens': 408, 'completion_tokens': 108, 'total_tokens': 516, 'cached_prompt_tokens': 0}
+2026-06-01 13:26:59,754 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:02,097 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:02,113 INFO Flow started with ID: 517d7fdd-3923-46ce-9ab0-75759bec3c19
+2026-06-01 13:27:05,680 INFO OpenAI API usage: {'prompt_tokens': 698, 'completion_tokens': 190, 'total_tokens': 888, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:05,686 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:10,808 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:11,754 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:15,513 INFO OpenAI API usage: {'prompt_tokens': 880, 'completion_tokens': 157, 'total_tokens': 1037, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:15,518 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:18,807 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:22,170 INFO OpenAI API usage: {'prompt_tokens': 783, 'completion_tokens': 122, 'total_tokens': 905, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:22,177 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:24,230 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:26,886 INFO OpenAI API usage: {'prompt_tokens': 398, 'completion_tokens': 151, 'total_tokens': 549, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:26,893 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:29,233 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:29,238 INFO   T=fallback KH=fallback  gs_T=0.533 gs_KH=0.581  (57.7s)
+2026-06-01 13:27:29,239 INFO Pass 1 [4/20] q04 (in_domain, expected=deliver)
+2026-06-01 13:27:29,252 INFO Flow started with ID: 437e61ce-448a-474e-9238-7766f02507e4
+2026-06-01 13:27:29,265 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:27:32,558 INFO OpenAI API usage: {'prompt_tokens': 700, 'completion_tokens': 175, 'total_tokens': 875, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:32,565 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:37,937 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:38,596 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:42,546 INFO OpenAI API usage: {'prompt_tokens': 869, 'completion_tokens': 94, 'total_tokens': 963, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:42,552 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:44,490 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:47,358 INFO OpenAI API usage: {'prompt_tokens': 710, 'completion_tokens': 99, 'total_tokens': 809, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:47,365 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:49,201 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:51,848 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 80, 'total_tokens': 469, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:51,854 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:27:53,722 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:27:53,732 INFO Flow started with ID: df28dd25-209d-4c8a-8e10-57475bf7daa0
+2026-06-01 13:27:56,778 INFO OpenAI API usage: {'prompt_tokens': 702, 'completion_tokens': 189, 'total_tokens': 891, 'cached_prompt_tokens': 0}
+2026-06-01 13:27:56,784 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:00,830 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:01,723 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:05,677 INFO OpenAI API usage: {'prompt_tokens': 883, 'completion_tokens': 100, 'total_tokens': 983, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:05,684 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:07,634 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:09,887 INFO OpenAI API usage: {'prompt_tokens': 730, 'completion_tokens': 96, 'total_tokens': 826, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:09,894 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:11,444 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:14,497 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 158, 'total_tokens': 536, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:14,504 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:16,959 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:16,965 INFO   T=fallback KH=fallback  gs_T=0.488 gs_KH=0.590  (47.7s)
+2026-06-01 13:28:16,965 INFO Pass 1 [5/20] q05 (in_domain, expected=deliver)
+2026-06-01 13:28:16,977 INFO Flow started with ID: 6df7c3ef-f110-4001-ba81-4810a0080df7
+2026-06-01 13:28:16,991 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:28:21,150 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 234, 'total_tokens': 959, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:21,156 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:26,030 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:26,923 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:31,397 INFO OpenAI API usage: {'prompt_tokens': 949, 'completion_tokens': 177, 'total_tokens': 1126, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:31,403 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:35,190 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:38,402 INFO OpenAI API usage: {'prompt_tokens': 844, 'completion_tokens': 108, 'total_tokens': 952, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:38,408 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:40,607 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:42,552 INFO OpenAI API usage: {'prompt_tokens': 377, 'completion_tokens': 113, 'total_tokens': 490, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:42,558 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:44,624 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:44,635 INFO Flow started with ID: 275cc4c2-0c28-4efc-b013-5dc01a33e35c
+2026-06-01 13:28:47,469 INFO OpenAI API usage: {'prompt_tokens': 727, 'completion_tokens': 208, 'total_tokens': 935, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:47,475 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:28:51,367 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:52,022 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:28:59,037 INFO OpenAI API usage: {'prompt_tokens': 923, 'completion_tokens': 327, 'total_tokens': 1250, 'cached_prompt_tokens': 0}
+2026-06-01 13:28:59,045 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:01,497 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:04,158 INFO OpenAI API usage: {'prompt_tokens': 757, 'completion_tokens': 127, 'total_tokens': 884, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:04,164 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:06,309 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:09,790 INFO OpenAI API usage: {'prompt_tokens': 392, 'completion_tokens': 170, 'total_tokens': 562, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:09,796 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:13,179 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:13,183 INFO   T=fallback KH=fallback  gs_T=0.521 gs_KH=0.583  (56.2s)
+2026-06-01 13:29:13,183 INFO Pass 1 [6/20] q06 (in_domain, expected=deliver)
+2026-06-01 13:29:13,195 INFO Flow started with ID: 42ba4bd0-2813-4c18-a615-41416930382b
+2026-06-01 13:29:13,208 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:29:16,753 INFO OpenAI API usage: {'prompt_tokens': 723, 'completion_tokens': 202, 'total_tokens': 925, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:16,760 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:21,055 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:21,656 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:26,174 INFO OpenAI API usage: {'prompt_tokens': 914, 'completion_tokens': 117, 'total_tokens': 1031, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:26,185 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:28,652 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:32,421 INFO OpenAI API usage: {'prompt_tokens': 744, 'completion_tokens': 144, 'total_tokens': 888, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:32,426 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:34,570 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:36,422 INFO OpenAI API usage: {'prompt_tokens': 373, 'completion_tokens': 71, 'total_tokens': 444, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:36,427 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:38,258 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:38,275 INFO Flow started with ID: ac2450f0-f045-4740-8f94-0fb49d53500e
+2026-06-01 13:29:42,353 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 225, 'total_tokens': 950, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:42,359 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:46,553 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:50,062 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:53,926 INFO OpenAI API usage: {'prompt_tokens': 937, 'completion_tokens': 125, 'total_tokens': 1062, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:53,932 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:29:55,971 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:29:58,021 INFO OpenAI API usage: {'prompt_tokens': 769, 'completion_tokens': 97, 'total_tokens': 866, 'cached_prompt_tokens': 0}
+2026-06-01 13:29:58,028 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:03,661 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:08,779 INFO OpenAI API usage: {'prompt_tokens': 361, 'completion_tokens': 142, 'total_tokens': 503, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:08,785 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:11,333 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:11,340 INFO   T=fallback KH=fallback  gs_T=0.609 gs_KH=0.640  (58.2s)
+2026-06-01 13:30:11,340 INFO Pass 1 [7/20] q07 (in_domain, expected=deliver)
+2026-06-01 13:30:11,354 INFO Flow started with ID: 25496877-6ad4-4022-a7cb-14e582fb6f6e
+2026-06-01 13:30:11,367 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:30:16,044 INFO OpenAI API usage: {'prompt_tokens': 688, 'completion_tokens': 243, 'total_tokens': 931, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:16,050 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:23,110 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:23,709 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:27,727 INFO OpenAI API usage: {'prompt_tokens': 920, 'completion_tokens': 148, 'total_tokens': 1068, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:27,734 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:33,248 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:36,013 INFO OpenAI API usage: {'prompt_tokens': 821, 'completion_tokens': 115, 'total_tokens': 936, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:36,019 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:41,542 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:43,800 INFO OpenAI API usage: {'prompt_tokens': 384, 'completion_tokens': 97, 'total_tokens': 481, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:43,805 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:46,428 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:46,439 INFO Flow started with ID: 4df95088-e592-4c3b-8bd1-a27be9d48d88
+2026-06-01 13:30:51,577 INFO OpenAI API usage: {'prompt_tokens': 690, 'completion_tokens': 199, 'total_tokens': 889, 'cached_prompt_tokens': 0}
+2026-06-01 13:30:51,584 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:30:56,307 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:30:57,170 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:02,338 INFO OpenAI API usage: {'prompt_tokens': 876, 'completion_tokens': 147, 'total_tokens': 1023, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:02,345 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:06,429 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:08,779 INFO OpenAI API usage: {'prompt_tokens': 777, 'completion_tokens': 115, 'total_tokens': 892, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:08,786 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:11,026 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:14,964 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 172, 'total_tokens': 561, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:14,970 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:19,538 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:19,545 INFO   T=fallback KH=fallback  gs_T=0.605 gs_KH=0.608  (68.2s)
+2026-06-01 13:31:19,545 INFO Pass 1 [8/20] q08 (in_domain, expected=deliver)
+2026-06-01 13:31:19,557 INFO Flow started with ID: 7251adcb-cc62-423d-b5e1-d8f9b536dd95
+2026-06-01 13:31:19,570 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:31:23,526 INFO OpenAI API usage: {'prompt_tokens': 710, 'completion_tokens': 176, 'total_tokens': 886, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:23,532 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:27,831 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:28,489 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:32,844 INFO OpenAI API usage: {'prompt_tokens': 875, 'completion_tokens': 100, 'total_tokens': 975, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:32,851 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:35,714 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:37,657 INFO OpenAI API usage: {'prompt_tokens': 699, 'completion_tokens': 85, 'total_tokens': 784, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:37,664 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:39,091 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:41,855 INFO OpenAI API usage: {'prompt_tokens': 363, 'completion_tokens': 88, 'total_tokens': 451, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:41,861 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:43,905 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:43,916 INFO Flow started with ID: 490c534b-ba91-4e47-a08c-12f941ff40b8
+2026-06-01 13:31:48,102 INFO OpenAI API usage: {'prompt_tokens': 712, 'completion_tokens': 222, 'total_tokens': 934, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:48,109 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:31:52,953 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:53,601 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:31:58,548 INFO OpenAI API usage: {'prompt_tokens': 921, 'completion_tokens': 125, 'total_tokens': 1046, 'cached_prompt_tokens': 0}
+2026-06-01 13:31:58,555 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:01,417 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:04,384 INFO OpenAI API usage: {'prompt_tokens': 765, 'completion_tokens': 102, 'total_tokens': 867, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:04,391 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:06,353 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:12,269 INFO OpenAI API usage: {'prompt_tokens': 372, 'completion_tokens': 196, 'total_tokens': 568, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:12,275 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:15,656 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:15,661 INFO   T=fallback KH=fallback  gs_T=0.690 gs_KH=0.706  (56.1s)
+2026-06-01 13:32:15,661 INFO Pass 1 [9/20] q09 (in_domain, expected=deliver)
+2026-06-01 13:32:15,672 INFO Flow started with ID: 1f0174bf-6dbe-44bb-9063-8756606042c2
+2026-06-01 13:32:15,685 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:32:19,232 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 179, 'total_tokens': 986, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:19,239 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:23,432 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:24,092 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:27,628 INFO OpenAI API usage: {'prompt_tokens': 980, 'completion_tokens': 122, 'total_tokens': 1102, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:27,635 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:30,292 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:33,466 INFO OpenAI API usage: {'prompt_tokens': 765, 'completion_tokens': 113, 'total_tokens': 878, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:33,473 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:35,310 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:38,184 INFO OpenAI API usage: {'prompt_tokens': 416, 'completion_tokens': 102, 'total_tokens': 518, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:38,190 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:40,668 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:40,680 INFO Flow started with ID: a6e41cbc-6bb5-4101-aa0f-55402bc0f809
+2026-06-01 13:32:44,240 INFO OpenAI API usage: {'prompt_tokens': 809, 'completion_tokens': 194, 'total_tokens': 1003, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:44,246 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:48,111 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:48,675 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:53,331 INFO OpenAI API usage: {'prompt_tokens': 994, 'completion_tokens': 145, 'total_tokens': 1139, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:53,335 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:32:56,396 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:32:58,556 INFO OpenAI API usage: {'prompt_tokens': 802, 'completion_tokens': 92, 'total_tokens': 894, 'cached_prompt_tokens': 0}
+2026-06-01 13:32:58,562 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:00,399 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:04,698 INFO OpenAI API usage: {'prompt_tokens': 414, 'completion_tokens': 198, 'total_tokens': 612, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:04,705 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:09,417 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:09,422 INFO   T=fallback KH=fallback  gs_T=0.551 gs_KH=0.657  (53.8s)
+2026-06-01 13:33:09,422 INFO Pass 1 [10/20] q10 (in_domain, expected=deliver)
+2026-06-01 13:33:09,434 INFO Flow started with ID: 3459cbbe-2d08-403b-91dd-79f9c2541665
+2026-06-01 13:33:09,447 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:33:12,954 INFO OpenAI API usage: {'prompt_tokens': 770, 'completion_tokens': 180, 'total_tokens': 950, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:12,959 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:16,543 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:17,395 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:20,886 INFO OpenAI API usage: {'prompt_tokens': 944, 'completion_tokens': 110, 'total_tokens': 1054, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:20,889 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:26,052 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:28,560 INFO OpenAI API usage: {'prompt_tokens': 734, 'completion_tokens': 115, 'total_tokens': 849, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:28,566 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:30,699 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:32,577 INFO OpenAI API usage: {'prompt_tokens': 413, 'completion_tokens': 86, 'total_tokens': 499, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:32,584 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:34,702 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:34,713 INFO Flow started with ID: 96584890-baf5-4fd8-818b-e9eaee25cfe6
+2026-06-01 13:33:38,491 INFO OpenAI API usage: {'prompt_tokens': 772, 'completion_tokens': 189, 'total_tokens': 961, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:38,497 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:42,691 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:43,236 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:47,781 INFO OpenAI API usage: {'prompt_tokens': 953, 'completion_tokens': 173, 'total_tokens': 1126, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:47,787 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:51,458 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:33:54,992 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 149, 'total_tokens': 954, 'cached_prompt_tokens': 0}
+2026-06-01 13:33:54,999 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:33:57,975 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:01,450 INFO OpenAI API usage: {'prompt_tokens': 408, 'completion_tokens': 180, 'total_tokens': 588, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:01,456 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:04,335 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:04,343 INFO   T=fallback KH=fallback  gs_T=0.536 gs_KH=0.557  (54.9s)
+2026-06-01 13:34:04,343 INFO Pass 1 [11/20] q11 (in_domain, expected=deliver)
+2026-06-01 13:34:04,356 INFO Flow started with ID: 00fedace-f6b6-42d2-96d8-c216d7142723
+2026-06-01 13:34:04,369 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:34:08,008 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 196, 'total_tokens': 992, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:08,014 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:11,816 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:12,546 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:16,716 INFO OpenAI API usage: {'prompt_tokens': 986, 'completion_tokens': 161, 'total_tokens': 1147, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:16,722 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:20,609 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:23,066 INFO OpenAI API usage: {'prompt_tokens': 794, 'completion_tokens': 95, 'total_tokens': 889, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:23,072 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:24,604 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:26,343 INFO OpenAI API usage: {'prompt_tokens': 373, 'completion_tokens': 93, 'total_tokens': 466, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:26,350 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:28,802 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:28,813 INFO Flow started with ID: 60c3d6b9-73ab-40f3-b6ef-79c28ace9b83
+2026-06-01 13:34:32,084 INFO OpenAI API usage: {'prompt_tokens': 798, 'completion_tokens': 200, 'total_tokens': 998, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:32,089 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:37,099 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:37,810 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:41,720 INFO OpenAI API usage: {'prompt_tokens': 990, 'completion_tokens': 110, 'total_tokens': 1100, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:41,726 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:43,448 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:47,896 INFO OpenAI API usage: {'prompt_tokens': 749, 'completion_tokens': 123, 'total_tokens': 872, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:47,902 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:50,206 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:53,072 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 158, 'total_tokens': 547, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:53,078 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:34:55,231 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:34:55,237 INFO   T=fallback KH=fallback  gs_T=0.649 gs_KH=0.651  (50.9s)
+2026-06-01 13:34:55,237 INFO Pass 1 [12/20] q12 (in_domain, expected=deliver)
+2026-06-01 13:34:55,247 INFO Flow started with ID: a2d51810-a410-4415-b7fc-f7aabc1fc408
+2026-06-01 13:34:55,260 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:34:59,012 INFO OpenAI API usage: {'prompt_tokens': 718, 'completion_tokens': 206, 'total_tokens': 924, 'cached_prompt_tokens': 0}
+2026-06-01 13:34:59,018 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:02,698 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:03,364 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:08,251 INFO OpenAI API usage: {'prompt_tokens': 918, 'completion_tokens': 139, 'total_tokens': 1057, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:08,258 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:10,870 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:13,142 INFO OpenAI API usage: {'prompt_tokens': 793, 'completion_tokens': 96, 'total_tokens': 889, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:13,149 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:14,717 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:16,422 INFO OpenAI API usage: {'prompt_tokens': 380, 'completion_tokens': 80, 'total_tokens': 460, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:16,427 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:18,247 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:18,270 INFO Flow started with ID: 9f126b76-b443-41a8-b9f4-498c529ec9c9
+2026-06-01 13:35:21,233 INFO OpenAI API usage: {'prompt_tokens': 720, 'completion_tokens': 168, 'total_tokens': 888, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:21,239 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:24,513 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:25,355 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:29,631 INFO OpenAI API usage: {'prompt_tokens': 880, 'completion_tokens': 115, 'total_tokens': 995, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:29,636 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:31,474 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:33,319 INFO OpenAI API usage: {'prompt_tokens': 733, 'completion_tokens': 85, 'total_tokens': 818, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:33,325 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:34,632 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:36,945 INFO OpenAI API usage: {'prompt_tokens': 388, 'completion_tokens': 121, 'total_tokens': 509, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:36,951 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:38,849 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:38,856 INFO   T=fallback KH=fallback  gs_T=0.470 gs_KH=0.571  (43.6s)
+2026-06-01 13:35:38,856 INFO Pass 1 [13/20] q13 (in_domain, expected=deliver)
+2026-06-01 13:35:38,869 INFO Flow started with ID: ff075b6c-f219-4054-80b5-1f47e1bbe879
+2026-06-01 13:35:38,883 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:35:45,299 INFO OpenAI API usage: {'prompt_tokens': 717, 'completion_tokens': 202, 'total_tokens': 919, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:45,305 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:48,473 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:49,162 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:53,283 INFO OpenAI API usage: {'prompt_tokens': 913, 'completion_tokens': 118, 'total_tokens': 1031, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:53,288 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:35:55,437 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:35:58,884 INFO OpenAI API usage: {'prompt_tokens': 775, 'completion_tokens': 136, 'total_tokens': 911, 'cached_prompt_tokens': 0}
+2026-06-01 13:35:58,890 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:01,069 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:02,912 INFO OpenAI API usage: {'prompt_tokens': 406, 'completion_tokens': 85, 'total_tokens': 491, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:02,919 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:04,659 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:04,675 INFO Flow started with ID: 9928e8bc-666b-4cd8-aae9-76b258fa9187
+2026-06-01 13:36:07,424 INFO OpenAI API usage: {'prompt_tokens': 719, 'completion_tokens': 156, 'total_tokens': 875, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:07,430 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:11,313 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:13,477 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:18,067 INFO OpenAI API usage: {'prompt_tokens': 867, 'completion_tokens': 148, 'total_tokens': 1015, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:18,074 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:21,269 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:24,313 INFO OpenAI API usage: {'prompt_tokens': 759, 'completion_tokens': 125, 'total_tokens': 884, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:24,320 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:27,489 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:30,800 INFO OpenAI API usage: {'prompt_tokens': 404, 'completion_tokens': 169, 'total_tokens': 573, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:30,806 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:33,172 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:33,179 INFO   T=fallback KH=fallback  gs_T=0.524 gs_KH=0.670  (54.3s)
+2026-06-01 13:36:33,180 INFO Pass 1 [14/20] q14 (in_domain, expected=deliver)
+2026-06-01 13:36:33,192 INFO Flow started with ID: 5faa1003-de34-4eaa-bf8e-99db6b225000
+2026-06-01 13:36:33,207 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:36:36,703 INFO OpenAI API usage: {'prompt_tokens': 714, 'completion_tokens': 170, 'total_tokens': 884, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:36,710 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:40,391 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:41,064 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:46,329 INFO OpenAI API usage: {'prompt_tokens': 878, 'completion_tokens': 143, 'total_tokens': 1021, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:46,335 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:48,993 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:51,961 INFO OpenAI API usage: {'prompt_tokens': 770, 'completion_tokens': 118, 'total_tokens': 888, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:51,967 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:55,342 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:57,594 INFO OpenAI API usage: {'prompt_tokens': 469, 'completion_tokens': 89, 'total_tokens': 558, 'cached_prompt_tokens': 0}
+2026-06-01 13:36:57,601 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:36:59,028 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:36:59,039 INFO Flow started with ID: af7b9e4c-ad3a-4a17-8108-2b8666ee62ae
+2026-06-01 13:37:02,670 INFO OpenAI API usage: {'prompt_tokens': 716, 'completion_tokens': 231, 'total_tokens': 947, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:02,676 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:06,202 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:07,002 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:11,578 INFO OpenAI API usage: {'prompt_tokens': 939, 'completion_tokens': 117, 'total_tokens': 1056, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:11,584 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:13,765 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:16,163 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 101, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:16,169 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:17,835 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:21,612 INFO OpenAI API usage: {'prompt_tokens': 392, 'completion_tokens': 179, 'total_tokens': 571, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:21,615 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:24,120 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:24,124 INFO   T=fallback KH=fallback  gs_T=0.658 gs_KH=0.602  (50.9s)
+2026-06-01 13:37:24,125 INFO Pass 1 [15/20] q15 (ood, expected=fallback)
+2026-06-01 13:37:24,133 INFO Flow started with ID: fc00abfd-2c26-494a-8a8d-026fcc81546b
+2026-06-01 13:37:24,143 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:37:27,900 INFO OpenAI API usage: {'prompt_tokens': 630, 'completion_tokens': 189, 'total_tokens': 819, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:27,907 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:32,820 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:34,015 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:37,735 INFO OpenAI API usage: {'prompt_tokens': 813, 'completion_tokens': 114, 'total_tokens': 927, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:37,742 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:39,805 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:42,957 INFO OpenAI API usage: {'prompt_tokens': 755, 'completion_tokens': 144, 'total_tokens': 899, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:42,963 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:45,312 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:47,620 INFO OpenAI API usage: {'prompt_tokens': 386, 'completion_tokens': 98, 'total_tokens': 484, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:47,628 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:49,033 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:49,044 INFO Flow started with ID: 25986d9e-cfaf-4796-aa2e-435c1e741357
+2026-06-01 13:37:53,266 INFO OpenAI API usage: {'prompt_tokens': 632, 'completion_tokens': 229, 'total_tokens': 861, 'cached_prompt_tokens': 0}
+2026-06-01 13:37:53,272 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:37:57,301 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:37:58,045 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:02,106 INFO OpenAI API usage: {'prompt_tokens': 853, 'completion_tokens': 165, 'total_tokens': 1018, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:02,113 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:05,182 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:09,116 INFO OpenAI API usage: {'prompt_tokens': 847, 'completion_tokens': 112, 'total_tokens': 959, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:09,123 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:11,481 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:15,010 INFO OpenAI API usage: {'prompt_tokens': 406, 'completion_tokens': 172, 'total_tokens': 578, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:15,017 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:17,264 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:17,272 INFO   T=fallback KH=fallback  gs_T=0.449 gs_KH=0.463  (53.1s)
+2026-06-01 13:38:17,272 INFO Pass 1 [16/20] q16 (ood, expected=fallback)
+2026-06-01 13:38:17,285 INFO Flow started with ID: 56a55785-ab1a-409a-853e-807929a40995
+2026-06-01 13:38:17,298 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:38:21,723 INFO OpenAI API usage: {'prompt_tokens': 574, 'completion_tokens': 236, 'total_tokens': 810, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:21,729 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:26,418 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:27,127 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:31,496 INFO OpenAI API usage: {'prompt_tokens': 803, 'completion_tokens': 150, 'total_tokens': 953, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:31,501 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:34,979 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:37,844 INFO OpenAI API usage: {'prompt_tokens': 826, 'completion_tokens': 128, 'total_tokens': 954, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:37,851 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:39,896 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:42,556 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 118, 'total_tokens': 496, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:42,562 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:49,650 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:49,658 INFO Flow started with ID: 7df5dc2b-0d7b-4238-92fa-bf45cf1649c5
+2026-06-01 13:38:52,386 INFO OpenAI API usage: {'prompt_tokens': 576, 'completion_tokens': 172, 'total_tokens': 748, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:52,393 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:38:55,664 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:56,237 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:38:59,862 INFO OpenAI API usage: {'prompt_tokens': 739, 'completion_tokens': 137, 'total_tokens': 876, 'cached_prompt_tokens': 0}
+2026-06-01 13:38:59,869 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:01,807 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:04,691 INFO OpenAI API usage: {'prompt_tokens': 747, 'completion_tokens': 107, 'total_tokens': 854, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:04,697 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:09,693 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:13,385 INFO OpenAI API usage: {'prompt_tokens': 377, 'completion_tokens': 214, 'total_tokens': 591, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:13,390 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:16,146 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:16,153 INFO   T=fallback KH=fallback  gs_T=0.396 gs_KH=0.407  (58.9s)
+2026-06-01 13:39:16,153 INFO Pass 1 [17/20] q17 (ood, expected=fallback)
+2026-06-01 13:39:16,162 INFO Flow started with ID: 940f58ae-0fdb-446a-9c0e-c9fbf0100b02
+2026-06-01 13:39:16,181 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:39:19,553 INFO OpenAI API usage: {'prompt_tokens': 568, 'completion_tokens': 192, 'total_tokens': 760, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:19,559 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:23,416 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:24,069 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:29,865 INFO OpenAI API usage: {'prompt_tokens': 754, 'completion_tokens': 147, 'total_tokens': 901, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:29,872 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:32,952 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:35,291 INFO OpenAI API usage: {'prompt_tokens': 788, 'completion_tokens': 120, 'total_tokens': 908, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:35,298 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:37,443 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:39,071 INFO OpenAI API usage: {'prompt_tokens': 373, 'completion_tokens': 100, 'total_tokens': 473, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:39,076 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:40,834 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:40,852 INFO Flow started with ID: 409f2dc8-c248-4bed-a9ed-f35731372eda
+2026-06-01 13:39:44,305 INFO OpenAI API usage: {'prompt_tokens': 570, 'completion_tokens': 228, 'total_tokens': 798, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:44,311 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:48,740 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:49,489 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:53,009 INFO OpenAI API usage: {'prompt_tokens': 790, 'completion_tokens': 111, 'total_tokens': 901, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:53,015 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:39:55,054 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:39:58,333 INFO OpenAI API usage: {'prompt_tokens': 788, 'completion_tokens': 116, 'total_tokens': 904, 'cached_prompt_tokens': 0}
+2026-06-01 13:39:58,340 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:00,519 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:03,555 INFO OpenAI API usage: {'prompt_tokens': 380, 'completion_tokens': 154, 'total_tokens': 534, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:03,561 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:06,423 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:06,432 INFO   T=fallback KH=fallback  gs_T=0.463 gs_KH=0.470  (50.3s)
+2026-06-01 13:40:06,432 INFO Pass 1 [18/20] q18 (ood, expected=fallback)
+2026-06-01 13:40:06,445 INFO Flow started with ID: 507f3326-fb22-4e20-a2d6-af63a517c5ca
+2026-06-01 13:40:06,458 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:40:09,853 INFO OpenAI API usage: {'prompt_tokens': 534, 'completion_tokens': 195, 'total_tokens': 729, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:09,859 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:13,184 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:13,836 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:20,041 INFO OpenAI API usage: {'prompt_tokens': 723, 'completion_tokens': 144, 'total_tokens': 867, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:20,048 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:22,910 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:26,172 INFO OpenAI API usage: {'prompt_tokens': 790, 'completion_tokens': 138, 'total_tokens': 928, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:26,178 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:28,552 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:30,586 INFO OpenAI API usage: {'prompt_tokens': 392, 'completion_tokens': 98, 'total_tokens': 490, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:30,592 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:32,332 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:32,349 INFO Flow started with ID: 4cd52adc-8063-4c4d-8464-708858529fc0
+2026-06-01 13:40:35,199 INFO OpenAI API usage: {'prompt_tokens': 536, 'completion_tokens': 175, 'total_tokens': 711, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:35,206 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:39,095 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:39,877 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:44,414 INFO OpenAI API usage: {'prompt_tokens': 703, 'completion_tokens': 144, 'total_tokens': 847, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:44,421 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:46,929 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:49,025 INFO OpenAI API usage: {'prompt_tokens': 775, 'completion_tokens': 117, 'total_tokens': 892, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:49,031 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:51,275 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:54,269 INFO OpenAI API usage: {'prompt_tokens': 391, 'completion_tokens': 198, 'total_tokens': 589, 'cached_prompt_tokens': 0}
+2026-06-01 13:40:54,275 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:40:56,555 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:40:56,563 INFO   T=fallback KH=fallback  gs_T=0.341 gs_KH=0.334  (50.1s)
+2026-06-01 13:40:56,563 INFO Pass 1 [19/20] q19 (ood, expected=fallback)
+2026-06-01 13:40:56,576 INFO Flow started with ID: 0bf26289-0852-413c-8623-c93292d3dc71
+2026-06-01 13:40:56,589 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:41:02,138 INFO OpenAI API usage: {'prompt_tokens': 534, 'completion_tokens': 261, 'total_tokens': 795, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:02,143 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:10,527 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:11,267 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:15,135 INFO OpenAI API usage: {'prompt_tokens': 789, 'completion_tokens': 141, 'total_tokens': 930, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:15,142 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:17,593 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:19,959 INFO OpenAI API usage: {'prompt_tokens': 856, 'completion_tokens': 126, 'total_tokens': 982, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:19,965 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:21,892 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:24,556 INFO OpenAI API usage: {'prompt_tokens': 387, 'completion_tokens': 102, 'total_tokens': 489, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:24,563 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:27,014 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:27,027 INFO Flow started with ID: 1bef539e-0706-4f31-8b22-09b09ea4fe89
+2026-06-01 13:41:30,290 INFO OpenAI API usage: {'prompt_tokens': 536, 'completion_tokens': 213, 'total_tokens': 749, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:30,296 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:34,385 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:35,237 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:38,800 INFO OpenAI API usage: {'prompt_tokens': 741, 'completion_tokens': 123, 'total_tokens': 864, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:38,807 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:40,738 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:43,806 INFO OpenAI API usage: {'prompt_tokens': 790, 'completion_tokens': 114, 'total_tokens': 904, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:43,813 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:46,472 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:50,566 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 186, 'total_tokens': 564, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:50,573 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:41:52,990 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:41:52,998 INFO   T=fallback KH=fallback  gs_T=0.399 gs_KH=0.452  (56.4s)
+2026-06-01 13:41:52,998 INFO Pass 1 [20/20] q20 (ood, expected=fallback)
+2026-06-01 13:41:53,011 INFO Flow started with ID: 91b0fa59-8785-42f4-9346-954bc3e46760
+2026-06-01 13:41:53,025 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:41:56,659 INFO OpenAI API usage: {'prompt_tokens': 693, 'completion_tokens': 209, 'total_tokens': 902, 'cached_prompt_tokens': 0}
+2026-06-01 13:41:56,665 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:01,011 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:01,774 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:06,949 INFO OpenAI API usage: {'prompt_tokens': 896, 'completion_tokens': 158, 'total_tokens': 1054, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:06,956 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:09,920 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:12,278 INFO OpenAI API usage: {'prompt_tokens': 828, 'completion_tokens': 116, 'total_tokens': 944, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:12,284 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:14,323 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:15,773 INFO OpenAI API usage: {'prompt_tokens': 397, 'completion_tokens': 75, 'total_tokens': 472, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:15,780 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:17,401 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:17,411 INFO Flow started with ID: 12fa42a9-8cd3-4f47-b77f-3e029e0c2df9
+2026-06-01 13:42:20,671 INFO OpenAI API usage: {'prompt_tokens': 695, 'completion_tokens': 192, 'total_tokens': 887, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:20,676 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:25,177 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:26,059 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:32,140 INFO OpenAI API usage: {'prompt_tokens': 879, 'completion_tokens': 175, 'total_tokens': 1054, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:32,147 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:36,135 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:38,699 INFO OpenAI API usage: {'prompt_tokens': 827, 'completion_tokens': 127, 'total_tokens': 954, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:38,705 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:40,967 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:43,711 INFO OpenAI API usage: {'prompt_tokens': 398, 'completion_tokens': 136, 'total_tokens': 534, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:43,717 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:45,965 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:45,973 INFO   T=fallback KH=fallback  gs_T=0.437 gs_KH=0.494  (53.0s)
+2026-06-01 13:42:45,973 INFO No OOD delivers in pass 1 — reactive recheck skipped.
+2026-06-01 13:42:45,973 INFO === PASS 2: 14 in-domain queries ===
+2026-06-01 13:42:45,973 INFO Pass 2 [1/14] q01 (in_domain, expected=deliver)
+2026-06-01 13:42:45,986 INFO Flow started with ID: 13ca4e2e-bf26-4c32-9e97-3e8a050ccc0c
+2026-06-01 13:42:46,000 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:42:49,668 INFO OpenAI API usage: {'prompt_tokens': 803, 'completion_tokens': 183, 'total_tokens': 986, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:49,674 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:42:53,808 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:54,523 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:42:58,867 INFO OpenAI API usage: {'prompt_tokens': 980, 'completion_tokens': 169, 'total_tokens': 1149, 'cached_prompt_tokens': 0}
+2026-06-01 13:42:58,873 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:01,734 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:05,012 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 115, 'total_tokens': 911, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:05,018 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:07,264 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:09,536 INFO OpenAI API usage: {'prompt_tokens': 400, 'completion_tokens': 108, 'total_tokens': 508, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:09,543 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:12,188 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:12,198 INFO Flow started with ID: 44cb2fc1-077e-49fe-9873-1036a68419c2
+2026-06-01 13:43:15,222 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 191, 'total_tokens': 996, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:15,228 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:19,899 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:20,705 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:28,440 INFO OpenAI API usage: {'prompt_tokens': 988, 'completion_tokens': 356, 'total_tokens': 1344, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:28,446 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:32,057 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:34,418 INFO OpenAI API usage: {'prompt_tokens': 797, 'completion_tokens': 95, 'total_tokens': 892, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:34,424 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:35,837 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:39,020 INFO OpenAI API usage: {'prompt_tokens': 384, 'completion_tokens': 169, 'total_tokens': 553, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:39,024 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:42,083 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:42,092 INFO   T=fallback KH=fallback  gs_T=0.537 gs_KH=0.588  (56.1s)
+2026-06-01 13:43:42,092 INFO Pass 2 [2/14] q02 (in_domain, expected=deliver)
+2026-06-01 13:43:42,105 INFO Flow started with ID: 00e586e0-37db-444c-8512-4931f7865469
+2026-06-01 13:43:42,119 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:43:45,870 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 195, 'total_tokens': 1000, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:45,876 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:49,763 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:50,613 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:43:55,096 INFO OpenAI API usage: {'prompt_tokens': 994, 'completion_tokens': 159, 'total_tokens': 1153, 'cached_prompt_tokens': 0}
+2026-06-01 13:43:55,103 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:43:57,646 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:00,308 INFO OpenAI API usage: {'prompt_tokens': 794, 'completion_tokens': 111, 'total_tokens': 905, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:00,315 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:02,253 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:04,302 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 96, 'total_tokens': 485, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:04,309 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:06,043 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:06,054 INFO Flow started with ID: 43a4cc37-4d3f-438d-9886-1328dbac047d
+2026-06-01 13:44:09,317 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 234, 'total_tokens': 1041, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:09,323 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:14,347 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:15,020 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:21,169 INFO OpenAI API usage: {'prompt_tokens': 1033, 'completion_tokens': 362, 'total_tokens': 1395, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:21,175 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:23,973 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:27,240 INFO OpenAI API usage: {'prompt_tokens': 800, 'completion_tokens': 133, 'total_tokens': 933, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:27,247 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:29,496 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:32,770 INFO OpenAI API usage: {'prompt_tokens': 396, 'completion_tokens': 180, 'total_tokens': 576, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:32,776 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:35,944 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:35,953 INFO   T=fallback KH=fallback  gs_T=0.641 gs_KH=0.766  (53.9s)
+2026-06-01 13:44:35,953 INFO Pass 2 [3/14] q03 (in_domain, expected=deliver)
+2026-06-01 13:44:35,959 INFO Flow started with ID: 2ae450ce-c3c7-4b03-b43c-5726e4fd46da
+2026-06-01 13:44:35,973 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:44:40,142 INFO OpenAI API usage: {'prompt_tokens': 696, 'completion_tokens': 202, 'total_tokens': 898, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:40,148 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:43,625 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:44,471 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:48,335 INFO OpenAI API usage: {'prompt_tokens': 892, 'completion_tokens': 111, 'total_tokens': 1003, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:48,342 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:50,733 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:53,354 INFO OpenAI API usage: {'prompt_tokens': 750, 'completion_tokens': 103, 'total_tokens': 853, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:53,360 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:54,992 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:57,141 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 114, 'total_tokens': 503, 'cached_prompt_tokens': 0}
+2026-06-01 13:44:57,148 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:44:59,292 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:44:59,309 INFO Flow started with ID: d75cb63a-2591-47da-8664-e6b512e850d9
+2026-06-01 13:45:01,757 INFO OpenAI API usage: {'prompt_tokens': 698, 'completion_tokens': 160, 'total_tokens': 858, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:01,762 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:04,720 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:05,334 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:08,404 INFO OpenAI API usage: {'prompt_tokens': 850, 'completion_tokens': 106, 'total_tokens': 956, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:08,411 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:12,094 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:14,857 INFO OpenAI API usage: {'prompt_tokens': 702, 'completion_tokens': 101, 'total_tokens': 803, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:14,864 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:17,009 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:20,609 INFO OpenAI API usage: {'prompt_tokens': 405, 'completion_tokens': 185, 'total_tokens': 590, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:20,616 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:23,672 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:23,678 INFO   T=fallback KH=fallback  gs_T=0.545 gs_KH=0.598  (47.7s)
+2026-06-01 13:45:23,678 INFO Pass 2 [4/14] q04 (in_domain, expected=deliver)
+2026-06-01 13:45:23,686 INFO Flow started with ID: a69c99b6-493f-4a9a-aa16-eaa25c1efb9d
+2026-06-01 13:45:23,694 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:45:27,083 INFO OpenAI API usage: {'prompt_tokens': 700, 'completion_tokens': 168, 'total_tokens': 868, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:27,089 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:31,140 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:31,718 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:36,362 INFO OpenAI API usage: {'prompt_tokens': 862, 'completion_tokens': 106, 'total_tokens': 968, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:36,368 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:39,485 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:41,583 INFO OpenAI API usage: {'prompt_tokens': 715, 'completion_tokens': 92, 'total_tokens': 807, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:41,590 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:46,192 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:47,942 INFO OpenAI API usage: {'prompt_tokens': 377, 'completion_tokens': 79, 'total_tokens': 456, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:47,947 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:49,572 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:49,584 INFO Flow started with ID: f0b2b812-8476-45eb-b493-ad0beb2259d0
+2026-06-01 13:45:53,155 INFO OpenAI API usage: {'prompt_tokens': 702, 'completion_tokens': 204, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 13:45:53,162 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:45:57,663 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:45:58,406 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:06,170 INFO OpenAI API usage: {'prompt_tokens': 898, 'completion_tokens': 326, 'total_tokens': 1224, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:06,177 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:09,028 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:11,075 INFO OpenAI API usage: {'prompt_tokens': 763, 'completion_tokens': 108, 'total_tokens': 871, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:11,083 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:13,038 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:15,683 INFO OpenAI API usage: {'prompt_tokens': 382, 'completion_tokens': 152, 'total_tokens': 534, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:15,690 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:17,835 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:17,845 INFO   T=fallback KH=fallback  gs_T=0.607 gs_KH=0.617  (54.2s)
+2026-06-01 13:46:17,845 INFO Pass 2 [5/14] q05 (in_domain, expected=deliver)
+2026-06-01 13:46:17,857 INFO Flow started with ID: 98bfa91c-86f6-419f-abac-680bdd9b5174
+2026-06-01 13:46:17,871 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:46:22,238 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 220, 'total_tokens': 945, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:22,244 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:28,075 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:28,823 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:33,194 INFO OpenAI API usage: {'prompt_tokens': 934, 'completion_tokens': 174, 'total_tokens': 1108, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:33,201 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:38,008 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:41,182 INFO OpenAI API usage: {'prompt_tokens': 826, 'completion_tokens': 118, 'total_tokens': 944, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:41,188 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:43,455 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:45,584 INFO OpenAI API usage: {'prompt_tokens': 391, 'completion_tokens': 92, 'total_tokens': 483, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:45,591 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:47,430 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:47,441 INFO Flow started with ID: b1642c1d-61fd-4b9f-badb-8cc4c3a47985
+2026-06-01 13:46:53,164 INFO OpenAI API usage: {'prompt_tokens': 727, 'completion_tokens': 208, 'total_tokens': 935, 'cached_prompt_tokens': 0}
+2026-06-01 13:46:53,167 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:46:58,289 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:46:59,029 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:03,370 INFO OpenAI API usage: {'prompt_tokens': 923, 'completion_tokens': 168, 'total_tokens': 1091, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:03,375 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:09,814 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:14,020 INFO OpenAI API usage: {'prompt_tokens': 802, 'completion_tokens': 119, 'total_tokens': 921, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:14,028 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:16,101 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:20,715 INFO OpenAI API usage: {'prompt_tokens': 384, 'completion_tokens': 214, 'total_tokens': 598, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:20,721 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:23,678 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:23,689 INFO   T=fallback KH=fallback  gs_T=0.539 gs_KH=0.558  (65.8s)
+2026-06-01 13:47:23,689 INFO Pass 2 [6/14] q06 (in_domain, expected=deliver)
+2026-06-01 13:47:23,702 INFO Flow started with ID: 968d9933-839c-4c9a-9872-740162a6d75e
+2026-06-01 13:47:23,716 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:47:28,798 INFO OpenAI API usage: {'prompt_tokens': 723, 'completion_tokens': 222, 'total_tokens': 945, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:28,805 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:34,534 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:35,155 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:38,528 INFO OpenAI API usage: {'prompt_tokens': 934, 'completion_tokens': 112, 'total_tokens': 1046, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:38,534 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:40,985 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:45,489 INFO OpenAI API usage: {'prompt_tokens': 759, 'completion_tokens': 139, 'total_tokens': 898, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:45,495 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:48,255 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:50,404 INFO OpenAI API usage: {'prompt_tokens': 362, 'completion_tokens': 72, 'total_tokens': 434, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:50,411 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:52,044 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:47:52,055 INFO Flow started with ID: afc31cf4-1504-4e58-926c-55cd1bacfc7d
+2026-06-01 13:47:55,635 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 192, 'total_tokens': 917, 'cached_prompt_tokens': 0}
+2026-06-01 13:47:55,640 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:47:59,939 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:06,104 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:09,657 INFO OpenAI API usage: {'prompt_tokens': 904, 'completion_tokens': 115, 'total_tokens': 1019, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:09,664 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:13,047 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:16,109 INFO OpenAI API usage: {'prompt_tokens': 732, 'completion_tokens': 101, 'total_tokens': 833, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:16,115 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:18,392 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:20,879 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 117, 'total_tokens': 495, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:20,886 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:22,970 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:22,980 INFO   T=fallback KH=fallback  gs_T=0.588 gs_KH=0.642  (59.3s)
+2026-06-01 13:48:22,980 INFO Pass 2 [7/14] q07 (in_domain, expected=deliver)
+2026-06-01 13:48:22,992 INFO Flow started with ID: 565e92ba-d805-4077-b21f-b44fa3c5f9a4
+2026-06-01 13:48:23,005 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:48:27,507 INFO OpenAI API usage: {'prompt_tokens': 688, 'completion_tokens': 232, 'total_tokens': 920, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:27,513 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:33,415 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:34,108 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:38,329 INFO OpenAI API usage: {'prompt_tokens': 909, 'completion_tokens': 159, 'total_tokens': 1068, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:38,336 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:42,122 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:45,909 INFO OpenAI API usage: {'prompt_tokens': 821, 'completion_tokens': 106, 'total_tokens': 927, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:45,914 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:48,338 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:50,996 INFO OpenAI API usage: {'prompt_tokens': 390, 'completion_tokens': 101, 'total_tokens': 491, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:51,003 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:48:52,758 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:48:52,769 INFO Flow started with ID: 2e443c41-f631-4585-a24a-b9d4fa1c1b78
+2026-06-01 13:48:56,518 INFO OpenAI API usage: {'prompt_tokens': 690, 'completion_tokens': 215, 'total_tokens': 905, 'cached_prompt_tokens': 0}
+2026-06-01 13:48:56,524 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:02,504 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:03,385 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:09,673 INFO OpenAI API usage: {'prompt_tokens': 892, 'completion_tokens': 330, 'total_tokens': 1222, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:09,680 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:12,020 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:14,068 INFO OpenAI API usage: {'prompt_tokens': 755, 'completion_tokens': 91, 'total_tokens': 846, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:14,074 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:15,707 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:18,470 INFO OpenAI API usage: {'prompt_tokens': 395, 'completion_tokens': 175, 'total_tokens': 570, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:18,477 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:23,694 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:23,704 INFO   T=fallback KH=fallback  gs_T=0.531 gs_KH=0.631  (60.7s)
+2026-06-01 13:49:23,704 INFO Pass 2 [8/14] q08 (in_domain, expected=deliver)
+2026-06-01 13:49:23,717 INFO Flow started with ID: cca36b29-5361-4b1c-b530-fa989dd87796
+2026-06-01 13:49:23,731 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:49:28,277 INFO OpenAI API usage: {'prompt_tokens': 710, 'completion_tokens': 219, 'total_tokens': 929, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:28,283 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:32,193 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:32,983 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:37,216 INFO OpenAI API usage: {'prompt_tokens': 918, 'completion_tokens': 100, 'total_tokens': 1018, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:37,223 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:39,669 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:41,876 INFO OpenAI API usage: {'prompt_tokens': 742, 'completion_tokens': 106, 'total_tokens': 848, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:41,883 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:43,371 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:44,993 INFO OpenAI API usage: {'prompt_tokens': 366, 'completion_tokens': 76, 'total_tokens': 442, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:44,999 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:46,632 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:46,644 INFO Flow started with ID: 8cfe5170-2e74-47e3-83ab-446cff0c0a88
+2026-06-01 13:49:50,317 INFO OpenAI API usage: {'prompt_tokens': 712, 'completion_tokens': 207, 'total_tokens': 919, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:50,323 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:49:53,901 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:54,678 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:49:59,325 INFO OpenAI API usage: {'prompt_tokens': 906, 'completion_tokens': 121, 'total_tokens': 1027, 'cached_prompt_tokens': 0}
+2026-06-01 13:49:59,331 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:01,789 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:07,505 INFO OpenAI API usage: {'prompt_tokens': 746, 'completion_tokens': 279, 'total_tokens': 1025, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:07,512 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:09,058 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:12,948 INFO OpenAI API usage: {'prompt_tokens': 373, 'completion_tokens': 171, 'total_tokens': 544, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:12,955 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:15,613 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:15,622 INFO   T=fallback KH=fallback  gs_T=0.628 gs_KH=0.647  (51.9s)
+2026-06-01 13:50:15,622 INFO Pass 2 [9/14] q09 (in_domain, expected=deliver)
+2026-06-01 13:50:15,635 INFO Flow started with ID: 48cf1e41-f1ee-42a8-8d2e-f731954712ea
+2026-06-01 13:50:15,648 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:50:19,456 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 223, 'total_tokens': 1030, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:19,462 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:24,623 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:25,453 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:28,967 INFO OpenAI API usage: {'prompt_tokens': 1024, 'completion_tokens': 107, 'total_tokens': 1131, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:28,974 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:31,690 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:33,678 INFO OpenAI API usage: {'prompt_tokens': 794, 'completion_tokens': 79, 'total_tokens': 873, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:33,685 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:35,785 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:37,423 INFO OpenAI API usage: {'prompt_tokens': 409, 'completion_tokens': 87, 'total_tokens': 496, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:37,430 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:39,471 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:39,489 INFO Flow started with ID: fe29c867-509a-4606-b916-fb475a018aaa
+2026-06-01 13:50:42,446 INFO OpenAI API usage: {'prompt_tokens': 809, 'completion_tokens': 213, 'total_tokens': 1022, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:42,451 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:45,671 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:46,256 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:49,916 INFO OpenAI API usage: {'prompt_tokens': 1014, 'completion_tokens': 138, 'total_tokens': 1152, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:49,923 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:52,784 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:55,444 INFO OpenAI API usage: {'prompt_tokens': 815, 'completion_tokens': 107, 'total_tokens': 922, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:55,451 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:50:56,880 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:50:59,850 INFO OpenAI API usage: {'prompt_tokens': 436, 'completion_tokens': 180, 'total_tokens': 616, 'cached_prompt_tokens': 0}
+2026-06-01 13:50:59,856 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:02,104 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:02,115 INFO   T=fallback KH=fallback  gs_T=0.583 gs_KH=0.611  (46.5s)
+2026-06-01 13:51:02,115 INFO Pass 2 [10/14] q10 (in_domain, expected=deliver)
+2026-06-01 13:51:02,127 INFO Flow started with ID: 02ef84ee-45a4-482b-8bd8-173325500f70
+2026-06-01 13:51:02,140 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:51:05,276 INFO OpenAI API usage: {'prompt_tokens': 770, 'completion_tokens': 172, 'total_tokens': 942, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:05,283 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:08,144 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:08,791 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:12,957 INFO OpenAI API usage: {'prompt_tokens': 936, 'completion_tokens': 171, 'total_tokens': 1107, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:12,964 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:16,946 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:19,306 INFO OpenAI API usage: {'prompt_tokens': 787, 'completion_tokens': 104, 'total_tokens': 891, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:19,312 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:24,639 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:26,472 INFO OpenAI API usage: {'prompt_tokens': 408, 'completion_tokens': 85, 'total_tokens': 493, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:26,479 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:28,662 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:28,673 INFO Flow started with ID: cc6f83a5-b803-4438-ae1f-6eab15eb5155
+2026-06-01 13:51:31,594 INFO OpenAI API usage: {'prompt_tokens': 772, 'completion_tokens': 193, 'total_tokens': 965, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:31,599 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:35,485 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:36,122 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:39,785 INFO OpenAI API usage: {'prompt_tokens': 957, 'completion_tokens': 142, 'total_tokens': 1099, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:39,792 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:46,851 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:49,308 INFO OpenAI API usage: {'prompt_tokens': 779, 'completion_tokens': 110, 'total_tokens': 889, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:49,315 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:51,102 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:54,635 INFO OpenAI API usage: {'prompt_tokens': 412, 'completion_tokens': 155, 'total_tokens': 567, 'cached_prompt_tokens': 0}
+2026-06-01 13:51:54,641 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:51:57,103 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:51:57,110 INFO   T=fallback KH=fallback  gs_T=0.547 gs_KH=0.597  (55.0s)
+2026-06-01 13:51:57,110 INFO Pass 2 [11/14] q11 (in_domain, expected=deliver)
+2026-06-01 13:51:57,116 INFO Flow started with ID: 40de1bc8-cd15-4b14-9721-ba2e2e13ffa3
+2026-06-01 13:51:57,124 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:52:01,086 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 194, 'total_tokens': 990, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:01,092 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:05,591 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:06,443 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:12,350 INFO OpenAI API usage: {'prompt_tokens': 984, 'completion_tokens': 164, 'total_tokens': 1148, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:12,357 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:15,626 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:18,493 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 99, 'total_tokens': 895, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:18,500 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:19,825 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:21,574 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 103, 'total_tokens': 481, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:21,580 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:23,615 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:23,633 INFO Flow started with ID: 6ec273c0-40e2-4a7c-acde-ffe7cd6ba828
+2026-06-01 13:52:27,403 INFO OpenAI API usage: {'prompt_tokens': 798, 'completion_tokens': 201, 'total_tokens': 999, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:27,410 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:31,405 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:31,968 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:35,902 INFO OpenAI API usage: {'prompt_tokens': 991, 'completion_tokens': 125, 'total_tokens': 1116, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:35,909 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:38,565 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:41,431 INFO OpenAI API usage: {'prompt_tokens': 764, 'completion_tokens': 113, 'total_tokens': 877, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:41,438 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:43,378 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:46,525 INFO OpenAI API usage: {'prompt_tokens': 383, 'completion_tokens': 153, 'total_tokens': 536, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:46,531 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:49,215 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:49,226 INFO   T=fallback KH=fallback  gs_T=0.626 gs_KH=0.646  (52.1s)
+2026-06-01 13:52:49,226 INFO Pass 2 [12/14] q12 (in_domain, expected=deliver)
+2026-06-01 13:52:49,239 INFO Flow started with ID: 903c8016-c1ea-4f1f-87ee-06928e9b77e5
+2026-06-01 13:52:49,252 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:52:52,502 INFO OpenAI API usage: {'prompt_tokens': 718, 'completion_tokens': 164, 'total_tokens': 882, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:52,509 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:52:55,462 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:56,249 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:52:59,971 INFO OpenAI API usage: {'prompt_tokens': 876, 'completion_tokens': 132, 'total_tokens': 1008, 'cached_prompt_tokens': 0}
+2026-06-01 13:52:59,976 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:02,387 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:04,984 INFO OpenAI API usage: {'prompt_tokens': 743, 'completion_tokens': 110, 'total_tokens': 853, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:04,990 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:07,755 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:09,489 INFO OpenAI API usage: {'prompt_tokens': 397, 'completion_tokens': 91, 'total_tokens': 488, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:09,496 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:11,129 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:11,141 INFO Flow started with ID: c8cb0f3f-fc93-4136-9fab-aad87db1c6a1
+2026-06-01 13:53:14,309 INFO OpenAI API usage: {'prompt_tokens': 720, 'completion_tokens': 186, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:14,313 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:18,297 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:18,955 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:22,914 INFO OpenAI API usage: {'prompt_tokens': 898, 'completion_tokens': 149, 'total_tokens': 1047, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:22,921 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:25,979 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:28,537 INFO OpenAI API usage: {'prompt_tokens': 782, 'completion_tokens': 105, 'total_tokens': 887, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:28,543 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:30,300 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:33,145 INFO OpenAI API usage: {'prompt_tokens': 389, 'completion_tokens': 111, 'total_tokens': 500, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:33,151 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:35,243 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:35,253 INFO   T=fallback KH=fallback  gs_T=0.558 gs_KH=0.570  (46.0s)
+2026-06-01 13:53:35,253 INFO Pass 2 [13/14] q13 (in_domain, expected=deliver)
+2026-06-01 13:53:35,266 INFO Flow started with ID: af790c19-4c72-4ce3-ace1-eac8603c7a2e
+2026-06-01 13:53:35,279 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:53:38,879 INFO OpenAI API usage: {'prompt_tokens': 717, 'completion_tokens': 176, 'total_tokens': 893, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:38,885 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:43,078 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:43,724 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:47,993 INFO OpenAI API usage: {'prompt_tokens': 887, 'completion_tokens': 130, 'total_tokens': 1017, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:47,999 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:50,254 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:52,702 INFO OpenAI API usage: {'prompt_tokens': 761, 'completion_tokens': 104, 'total_tokens': 865, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:52,709 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:54,035 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:56,082 INFO OpenAI API usage: {'prompt_tokens': 396, 'completion_tokens': 71, 'total_tokens': 467, 'cached_prompt_tokens': 0}
+2026-06-01 13:53:56,089 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:53:57,619 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:53:57,631 INFO Flow started with ID: 798fbf13-5eee-4754-a3e3-0392ae3c62b3
+2026-06-01 13:54:00,390 INFO OpenAI API usage: {'prompt_tokens': 719, 'completion_tokens': 173, 'total_tokens': 892, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:00,396 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:03,456 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:04,088 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:07,551 INFO OpenAI API usage: {'prompt_tokens': 884, 'completion_tokens': 132, 'total_tokens': 1016, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:07,558 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:10,830 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:12,671 INFO OpenAI API usage: {'prompt_tokens': 760, 'completion_tokens': 88, 'total_tokens': 848, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:12,678 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:14,208 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:18,308 INFO OpenAI API usage: {'prompt_tokens': 395, 'completion_tokens': 142, 'total_tokens': 537, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:18,315 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:20,557 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:20,568 INFO   T=fallback KH=fallback  gs_T=0.572 gs_KH=0.617  (45.3s)
+2026-06-01 13:54:20,569 INFO Pass 2 [14/14] q14 (in_domain, expected=deliver)
+2026-06-01 13:54:20,581 INFO Flow started with ID: e70f94d9-8350-4a26-8456-9a032bff7ebe
+2026-06-01 13:54:20,594 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:54:23,936 INFO OpenAI API usage: {'prompt_tokens': 714, 'completion_tokens': 203, 'total_tokens': 917, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:23,943 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:30,081 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:30,804 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:36,940 INFO OpenAI API usage: {'prompt_tokens': 911, 'completion_tokens': 144, 'total_tokens': 1055, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:36,946 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:39,706 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:43,494 INFO OpenAI API usage: {'prompt_tokens': 804, 'completion_tokens': 157, 'total_tokens': 961, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:43,501 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:45,797 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:47,898 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 90, 'total_tokens': 468, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:47,904 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:50,050 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:50,061 INFO Flow started with ID: 90cea6a1-b6e0-4fe1-8fc3-217634bc4a22
+2026-06-01 13:54:52,915 INFO OpenAI API usage: {'prompt_tokens': 716, 'completion_tokens': 195, 'total_tokens': 911, 'cached_prompt_tokens': 0}
+2026-06-01 13:54:52,921 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:54:57,942 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:54:58,594 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:04,146 INFO OpenAI API usage: {'prompt_tokens': 903, 'completion_tokens': 156, 'total_tokens': 1059, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:04,153 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:07,774 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:11,041 INFO OpenAI API usage: {'prompt_tokens': 808, 'completion_tokens': 120, 'total_tokens': 928, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:11,049 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:15,158 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:18,414 INFO OpenAI API usage: {'prompt_tokens': 392, 'completion_tokens': 167, 'total_tokens': 559, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:18,420 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:21,190 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:21,201 INFO   T=fallback KH=fallback  gs_T=0.624 gs_KH=0.640  (60.6s)
+2026-06-01 13:55:21,201 INFO === PASS 3: 14 in-domain queries ===
+2026-06-01 13:55:21,201 INFO Pass 3 [1/14] q01 (in_domain, expected=deliver)
+2026-06-01 13:55:21,207 INFO Flow started with ID: 7ecd7f3b-acea-4d59-8d5a-d65d37d213cf
+2026-06-01 13:55:21,225 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:55:24,967 INFO OpenAI API usage: {'prompt_tokens': 803, 'completion_tokens': 192, 'total_tokens': 995, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:24,974 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:29,374 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:30,137 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:34,285 INFO OpenAI API usage: {'prompt_tokens': 989, 'completion_tokens': 161, 'total_tokens': 1150, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:34,293 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:37,784 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:41,146 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 110, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:41,153 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:43,093 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:45,653 INFO OpenAI API usage: {'prompt_tokens': 401, 'completion_tokens': 106, 'total_tokens': 507, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:45,659 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:47,803 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:47,815 INFO Flow started with ID: 0304ce1b-63f9-4826-986d-e09e6573dbe4
+2026-06-01 13:55:50,669 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 187, 'total_tokens': 992, 'cached_prompt_tokens': 0}
+2026-06-01 13:55:50,676 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:55:55,593 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:55:56,276 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:00,345 INFO OpenAI API usage: {'prompt_tokens': 984, 'completion_tokens': 147, 'total_tokens': 1131, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:00,351 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:03,573 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:06,400 INFO OpenAI API usage: {'prompt_tokens': 777, 'completion_tokens': 159, 'total_tokens': 936, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:06,406 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:10,332 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:14,222 INFO OpenAI API usage: {'prompt_tokens': 378, 'completion_tokens': 175, 'total_tokens': 553, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:14,229 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:17,610 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:17,619 INFO   T=fallback KH=fallback  gs_T=0.509 gs_KH=0.595  (56.4s)
+2026-06-01 13:56:17,619 INFO Pass 3 [2/14] q02 (in_domain, expected=deliver)
+2026-06-01 13:56:17,625 INFO Flow started with ID: 00dc8496-e8d8-4612-94f7-0b048efc7c7a
+2026-06-01 13:56:17,642 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:56:22,006 INFO OpenAI API usage: {'prompt_tokens': 805, 'completion_tokens': 230, 'total_tokens': 1035, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:22,012 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:26,105 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:26,771 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:34,088 INFO OpenAI API usage: {'prompt_tokens': 1029, 'completion_tokens': 340, 'total_tokens': 1369, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:34,095 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:36,957 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:39,721 INFO OpenAI API usage: {'prompt_tokens': 778, 'completion_tokens': 116, 'total_tokens': 894, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:39,728 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:41,459 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:42,997 INFO OpenAI API usage: {'prompt_tokens': 393, 'completion_tokens': 79, 'total_tokens': 472, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:43,003 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:44,834 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:44,845 INFO Flow started with ID: 104483a3-d6ae-493b-972a-1ed998c5ff4d
+2026-06-01 13:56:47,196 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 167, 'total_tokens': 974, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:47,201 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:50,481 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:51,234 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:56:57,436 INFO OpenAI API usage: {'prompt_tokens': 966, 'completion_tokens': 287, 'total_tokens': 1253, 'cached_prompt_tokens': 0}
+2026-06-01 13:56:57,443 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:56:59,279 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:01,634 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 89, 'total_tokens': 814, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:01,640 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:03,172 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:06,447 INFO OpenAI API usage: {'prompt_tokens': 392, 'completion_tokens': 177, 'total_tokens': 569, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:06,454 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:09,827 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:09,839 INFO   T=fallback KH=fallback  gs_T=0.718 gs_KH=0.739  (52.2s)
+2026-06-01 13:57:09,839 INFO Pass 3 [3/14] q03 (in_domain, expected=deliver)
+2026-06-01 13:57:09,847 INFO Flow started with ID: 8908764d-b457-46ca-9087-55e634dfbab5
+2026-06-01 13:57:09,865 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:57:13,922 INFO OpenAI API usage: {'prompt_tokens': 696, 'completion_tokens': 157, 'total_tokens': 853, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:13,928 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:17,420 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:18,225 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:21,191 INFO OpenAI API usage: {'prompt_tokens': 847, 'completion_tokens': 104, 'total_tokens': 951, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:21,198 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:23,084 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:25,706 INFO OpenAI API usage: {'prompt_tokens': 698, 'completion_tokens': 100, 'total_tokens': 798, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:25,708 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:27,440 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:28,875 INFO OpenAI API usage: {'prompt_tokens': 388, 'completion_tokens': 99, 'total_tokens': 487, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:28,881 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:30,574 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:30,585 INFO Flow started with ID: c4daf75f-4dc8-4bdc-b818-c46eaac8a576
+2026-06-01 13:57:33,379 INFO OpenAI API usage: {'prompt_tokens': 698, 'completion_tokens': 181, 'total_tokens': 879, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:33,385 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:37,792 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:38,401 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:42,389 INFO OpenAI API usage: {'prompt_tokens': 871, 'completion_tokens': 145, 'total_tokens': 1016, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:42,395 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:45,359 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:49,456 INFO OpenAI API usage: {'prompt_tokens': 761, 'completion_tokens': 101, 'total_tokens': 862, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:49,464 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:50,890 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:54,373 INFO OpenAI API usage: {'prompt_tokens': 390, 'completion_tokens': 173, 'total_tokens': 563, 'cached_prompt_tokens': 0}
+2026-06-01 13:57:54,379 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:57:58,263 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:57:58,275 INFO   T=fallback KH=fallback  gs_T=0.540 gs_KH=0.595  (48.4s)
+2026-06-01 13:57:58,275 INFO Pass 3 [4/14] q04 (in_domain, expected=deliver)
+2026-06-01 13:57:58,283 INFO Flow started with ID: b1176770-bdfe-4e8e-b132-fadb53d5b042
+2026-06-01 13:57:58,301 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:58:01,647 INFO OpenAI API usage: {'prompt_tokens': 700, 'completion_tokens': 203, 'total_tokens': 903, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:01,653 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:07,377 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:08,203 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:12,293 INFO OpenAI API usage: {'prompt_tokens': 897, 'completion_tokens': 127, 'total_tokens': 1024, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:12,299 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:14,965 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:18,755 INFO OpenAI API usage: {'prompt_tokens': 769, 'completion_tokens': 104, 'total_tokens': 873, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:18,762 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:20,485 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:22,224 INFO OpenAI API usage: {'prompt_tokens': 377, 'completion_tokens': 98, 'total_tokens': 475, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:22,231 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:24,178 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:24,188 INFO Flow started with ID: 6874ab3e-37d3-44d6-a781-d841e6c8e5fb
+2026-06-01 13:58:27,655 INFO OpenAI API usage: {'prompt_tokens': 702, 'completion_tokens': 225, 'total_tokens': 927, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:27,661 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:31,851 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:32,516 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:37,380 INFO OpenAI API usage: {'prompt_tokens': 919, 'completion_tokens': 132, 'total_tokens': 1051, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:37,387 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:39,633 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:41,774 INFO OpenAI API usage: {'prompt_tokens': 791, 'completion_tokens': 112, 'total_tokens': 903, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:41,781 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:45,148 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:47,524 INFO OpenAI API usage: {'prompt_tokens': 385, 'completion_tokens': 158, 'total_tokens': 543, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:47,530 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:49,772 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:49,784 INFO   T=fallback KH=fallback  gs_T=0.600 gs_KH=0.607  (51.5s)
+2026-06-01 13:58:49,784 INFO Pass 3 [5/14] q05 (in_domain, expected=deliver)
+2026-06-01 13:58:49,797 INFO Flow started with ID: f0aa65a7-a5c5-498f-a878-d150abe7811c
+2026-06-01 13:58:49,811 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:58:54,174 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 225, 'total_tokens': 950, 'cached_prompt_tokens': 0}
+2026-06-01 13:58:54,180 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:58:58,579 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:58:59,127 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:06,257 INFO OpenAI API usage: {'prompt_tokens': 940, 'completion_tokens': 361, 'total_tokens': 1301, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:06,265 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:08,991 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:11,889 INFO OpenAI API usage: {'prompt_tokens': 819, 'completion_tokens': 121, 'total_tokens': 940, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:11,895 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:14,040 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:15,679 INFO OpenAI API usage: {'prompt_tokens': 385, 'completion_tokens': 94, 'total_tokens': 479, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:15,685 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:17,522 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:17,532 INFO Flow started with ID: 6b79606f-17d3-4ea0-9c87-c63b633d80d7
+2026-06-01 13:59:20,805 INFO OpenAI API usage: {'prompt_tokens': 727, 'completion_tokens': 233, 'total_tokens': 960, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:20,811 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:25,305 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:25,877 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:30,435 INFO OpenAI API usage: {'prompt_tokens': 948, 'completion_tokens': 188, 'total_tokens': 1136, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:30,442 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:33,293 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:35,750 INFO OpenAI API usage: {'prompt_tokens': 847, 'completion_tokens': 125, 'total_tokens': 972, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:35,756 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:37,593 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:40,255 INFO OpenAI API usage: {'prompt_tokens': 396, 'completion_tokens': 177, 'total_tokens': 573, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:40,262 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:42,302 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:42,315 INFO   T=fallback KH=fallback  gs_T=0.557 gs_KH=0.551  (52.5s)
+2026-06-01 13:59:42,315 INFO Pass 3 [6/14] q06 (in_domain, expected=deliver)
+2026-06-01 13:59:42,322 INFO Flow started with ID: f7a4aa6d-3c01-44f5-a0e6-20559a47de94
+2026-06-01 13:59:42,340 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 13:59:45,889 INFO OpenAI API usage: {'prompt_tokens': 723, 'completion_tokens': 193, 'total_tokens': 916, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:45,894 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:49,573 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:50,436 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:54,081 INFO OpenAI API usage: {'prompt_tokens': 905, 'completion_tokens': 96, 'total_tokens': 1001, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:54,088 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:56,440 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 13:59:58,073 INFO OpenAI API usage: {'prompt_tokens': 707, 'completion_tokens': 98, 'total_tokens': 805, 'cached_prompt_tokens': 0}
+2026-06-01 13:59:58,080 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 13:59:59,848 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:01,247 INFO OpenAI API usage: {'prompt_tokens': 364, 'completion_tokens': 70, 'total_tokens': 434, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:01,254 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:03,296 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:03,308 INFO Flow started with ID: 2da15636-0aab-479e-98af-7358cc25e688
+2026-06-01 14:00:06,139 INFO OpenAI API usage: {'prompt_tokens': 725, 'completion_tokens': 186, 'total_tokens': 911, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:06,145 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:11,084 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:11,731 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:16,102 INFO OpenAI API usage: {'prompt_tokens': 898, 'completion_tokens': 176, 'total_tokens': 1074, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:16,108 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:19,065 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:21,522 INFO OpenAI API usage: {'prompt_tokens': 787, 'completion_tokens': 101, 'total_tokens': 888, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:21,528 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:23,163 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:25,705 INFO OpenAI API usage: {'prompt_tokens': 371, 'completion_tokens': 148, 'total_tokens': 519, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:25,711 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:29,817 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:29,828 INFO   T=fallback KH=fallback  gs_T=0.642 gs_KH=0.661  (47.5s)
+2026-06-01 14:00:29,828 INFO Pass 3 [7/14] q07 (in_domain, expected=deliver)
+2026-06-01 14:00:29,834 INFO Flow started with ID: a9c5df41-69fc-420e-8375-f7db62fbd639
+2026-06-01 14:00:29,850 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:00:33,709 INFO OpenAI API usage: {'prompt_tokens': 688, 'completion_tokens': 227, 'total_tokens': 915, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:33,716 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:37,293 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:38,504 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:42,619 INFO OpenAI API usage: {'prompt_tokens': 904, 'completion_tokens': 149, 'total_tokens': 1053, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:42,626 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:45,895 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:50,502 INFO OpenAI API usage: {'prompt_tokens': 806, 'completion_tokens': 100, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:50,509 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:52,039 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:53,849 INFO OpenAI API usage: {'prompt_tokens': 383, 'completion_tokens': 70, 'total_tokens': 453, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:53,856 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:00:55,727 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:00:55,739 INFO Flow started with ID: 8b696581-e978-4343-9773-b6ec1cf135b3
+2026-06-01 14:00:58,908 INFO OpenAI API usage: {'prompt_tokens': 690, 'completion_tokens': 231, 'total_tokens': 921, 'cached_prompt_tokens': 0}
+2026-06-01 14:00:58,914 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:03,611 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:04,372 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:09,226 INFO OpenAI API usage: {'prompt_tokens': 908, 'completion_tokens': 192, 'total_tokens': 1100, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:09,233 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:13,250 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:16,308 INFO OpenAI API usage: {'prompt_tokens': 852, 'completion_tokens': 142, 'total_tokens': 994, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:16,314 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:18,665 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:22,458 INFO OpenAI API usage: {'prompt_tokens': 377, 'completion_tokens': 175, 'total_tokens': 552, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:22,464 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:25,407 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:25,419 INFO   T=fallback KH=fallback  gs_T=0.563 gs_KH=0.578  (55.6s)
+2026-06-01 14:01:25,419 INFO Pass 3 [8/14] q08 (in_domain, expected=deliver)
+2026-06-01 14:01:25,426 INFO Flow started with ID: ab2784e8-4485-40e4-84e3-f8cda083179e
+2026-06-01 14:01:25,444 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:01:30,954 INFO OpenAI API usage: {'prompt_tokens': 710, 'completion_tokens': 193, 'total_tokens': 903, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:30,961 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:35,052 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:35,820 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:39,757 INFO OpenAI API usage: {'prompt_tokens': 892, 'completion_tokens': 105, 'total_tokens': 997, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:39,764 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:42,318 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:45,427 INFO OpenAI API usage: {'prompt_tokens': 722, 'completion_tokens': 98, 'total_tokens': 820, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:45,434 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:47,029 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:48,564 INFO OpenAI API usage: {'prompt_tokens': 365, 'completion_tokens': 79, 'total_tokens': 444, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:48,571 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:50,100 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:50,107 INFO Flow started with ID: 35a67cc5-d730-4146-8cbc-26f068cb0f32
+2026-06-01 14:01:53,696 INFO OpenAI API usage: {'prompt_tokens': 712, 'completion_tokens': 195, 'total_tokens': 907, 'cached_prompt_tokens': 0}
+2026-06-01 14:01:53,703 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:01:58,913 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:01:59,943 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:18,876 INFO OpenAI API usage: {'prompt_tokens': 894, 'completion_tokens': 129, 'total_tokens': 1023, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:18,883 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:21,746 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:24,553 INFO OpenAI API usage: {'prompt_tokens': 741, 'completion_tokens': 104, 'total_tokens': 845, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:24,561 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:26,659 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:28,602 INFO OpenAI API usage: {'prompt_tokens': 364, 'completion_tokens': 163, 'total_tokens': 527, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:28,609 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:30,972 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:30,982 INFO   T=fallback KH=fallback  gs_T=0.690 gs_KH=0.622  (65.6s)
+2026-06-01 14:02:30,982 INFO Pass 3 [9/14] q09 (in_domain, expected=deliver)
+2026-06-01 14:02:30,988 INFO Flow started with ID: 825f06e8-3d34-4b2c-930f-a435f568564d
+2026-06-01 14:02:31,002 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:02:35,055 INFO OpenAI API usage: {'prompt_tokens': 807, 'completion_tokens': 219, 'total_tokens': 1026, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:35,061 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:39,021 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:39,815 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:43,333 INFO OpenAI API usage: {'prompt_tokens': 1020, 'completion_tokens': 123, 'total_tokens': 1143, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:43,338 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:45,526 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:49,496 INFO OpenAI API usage: {'prompt_tokens': 806, 'completion_tokens': 100, 'total_tokens': 906, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:49,503 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:51,440 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:55,126 INFO OpenAI API usage: {'prompt_tokens': 402, 'completion_tokens': 106, 'total_tokens': 508, 'cached_prompt_tokens': 0}
+2026-06-01 14:02:55,133 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:02:57,206 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:02:57,217 INFO Flow started with ID: 42968e52-289a-47ce-8ed0-1ed1376ec1e5
+2026-06-01 14:03:00,758 INFO OpenAI API usage: {'prompt_tokens': 809, 'completion_tokens': 216, 'total_tokens': 1025, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:00,764 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:05,550 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:06,421 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:10,691 INFO OpenAI API usage: {'prompt_tokens': 1017, 'completion_tokens': 146, 'total_tokens': 1163, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:10,698 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:13,867 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:15,854 INFO OpenAI API usage: {'prompt_tokens': 825, 'completion_tokens': 98, 'total_tokens': 923, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:15,856 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:18,031 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:22,989 INFO OpenAI API usage: {'prompt_tokens': 417, 'completion_tokens': 188, 'total_tokens': 605, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:22,992 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:25,794 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:25,801 INFO   T=fallback KH=fallback  gs_T=0.578 gs_KH=0.622  (54.8s)
+2026-06-01 14:03:25,801 INFO Pass 3 [10/14] q10 (in_domain, expected=deliver)
+2026-06-01 14:03:25,809 INFO Flow started with ID: 5d1d73a7-80f6-49e3-8903-0479b3856575
+2026-06-01 14:03:25,817 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:03:30,148 INFO OpenAI API usage: {'prompt_tokens': 770, 'completion_tokens': 220, 'total_tokens': 990, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:30,154 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:34,809 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:35,362 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:39,976 INFO OpenAI API usage: {'prompt_tokens': 984, 'completion_tokens': 159, 'total_tokens': 1143, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:39,982 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:43,722 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:50,218 INFO OpenAI API usage: {'prompt_tokens': 816, 'completion_tokens': 121, 'total_tokens': 937, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:50,225 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:52,167 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:54,317 INFO OpenAI API usage: {'prompt_tokens': 408, 'completion_tokens': 91, 'total_tokens': 499, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:54,323 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:03:56,461 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:03:56,472 INFO Flow started with ID: 773528e5-5102-42b8-90d0-a606c9872bf0
+2026-06-01 14:03:59,231 INFO OpenAI API usage: {'prompt_tokens': 772, 'completion_tokens': 169, 'total_tokens': 941, 'cached_prompt_tokens': 0}
+2026-06-01 14:03:59,238 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:02,818 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:03,548 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:07,435 INFO OpenAI API usage: {'prompt_tokens': 933, 'completion_tokens': 172, 'total_tokens': 1105, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:07,441 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:10,462 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:14,130 INFO OpenAI API usage: {'prompt_tokens': 784, 'completion_tokens': 123, 'total_tokens': 907, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:14,137 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:15,843 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:18,218 INFO OpenAI API usage: {'prompt_tokens': 401, 'completion_tokens': 126, 'total_tokens': 527, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:18,226 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:20,632 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:20,645 INFO   T=fallback KH=fallback  gs_T=0.530 gs_KH=0.543  (54.8s)
+2026-06-01 14:04:20,645 INFO Pass 3 [11/14] q11 (in_domain, expected=deliver)
+2026-06-01 14:04:20,652 INFO Flow started with ID: 58036d90-978f-4063-abc4-4a8ee17f9e3f
+2026-06-01 14:04:20,671 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:04:23,908 INFO OpenAI API usage: {'prompt_tokens': 796, 'completion_tokens': 184, 'total_tokens': 980, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:23,915 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:27,707 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:28,342 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:33,432 INFO OpenAI API usage: {'prompt_tokens': 974, 'completion_tokens': 146, 'total_tokens': 1120, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:33,439 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:36,300 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:40,877 INFO OpenAI API usage: {'prompt_tokens': 766, 'completion_tokens': 104, 'total_tokens': 870, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:40,882 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:42,798 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:44,695 INFO OpenAI API usage: {'prompt_tokens': 375, 'completion_tokens': 100, 'total_tokens': 475, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:44,701 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:47,258 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:47,269 INFO Flow started with ID: 06c66c0d-538d-41a6-b7f6-63d5f3dec109
+2026-06-01 14:04:50,020 INFO OpenAI API usage: {'prompt_tokens': 798, 'completion_tokens': 158, 'total_tokens': 956, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:50,027 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:04:52,998 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:53,529 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:04:57,394 INFO OpenAI API usage: {'prompt_tokens': 948, 'completion_tokens': 134, 'total_tokens': 1082, 'cached_prompt_tokens': 0}
+2026-06-01 14:04:57,401 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:00,365 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:02,264 INFO OpenAI API usage: {'prompt_tokens': 730, 'completion_tokens': 93, 'total_tokens': 823, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:02,267 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:04,598 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:07,390 INFO OpenAI API usage: {'prompt_tokens': 379, 'completion_tokens': 135, 'total_tokens': 514, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:07,394 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:09,741 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:09,752 INFO   T=fallback KH=fallback  gs_T=0.633 gs_KH=0.620  (49.1s)
+2026-06-01 14:05:09,752 INFO Pass 3 [12/14] q12 (in_domain, expected=deliver)
+2026-06-01 14:05:09,762 INFO Flow started with ID: fecb7fa7-f1e2-493e-9981-59f496878af9
+2026-06-01 14:05:09,772 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:05:12,854 INFO OpenAI API usage: {'prompt_tokens': 718, 'completion_tokens': 168, 'total_tokens': 886, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:12,861 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:16,596 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:17,492 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:25,453 INFO OpenAI API usage: {'prompt_tokens': 880, 'completion_tokens': 159, 'total_tokens': 1039, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:25,460 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:28,422 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:30,573 INFO OpenAI API usage: {'prompt_tokens': 776, 'completion_tokens': 105, 'total_tokens': 881, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:30,580 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:32,250 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:34,010 INFO OpenAI API usage: {'prompt_tokens': 388, 'completion_tokens': 74, 'total_tokens': 462, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:34,017 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:35,590 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:35,601 INFO Flow started with ID: fd871f9c-3990-4410-831e-14de6cacf0d7
+2026-06-01 14:05:39,180 INFO OpenAI API usage: {'prompt_tokens': 720, 'completion_tokens': 187, 'total_tokens': 907, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:39,186 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:42,758 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:43,371 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:46,955 INFO OpenAI API usage: {'prompt_tokens': 899, 'completion_tokens': 110, 'total_tokens': 1009, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:46,961 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:49,413 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:52,437 INFO OpenAI API usage: {'prompt_tokens': 747, 'completion_tokens': 121, 'total_tokens': 868, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:52,444 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:54,873 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:57,324 INFO OpenAI API usage: {'prompt_tokens': 393, 'completion_tokens': 125, 'total_tokens': 518, 'cached_prompt_tokens': 0}
+2026-06-01 14:05:57,330 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:05:59,342 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:05:59,355 INFO   T=fallback KH=fallback  gs_T=0.524 gs_KH=0.515  (49.6s)
+2026-06-01 14:05:59,355 INFO Pass 3 [13/14] q13 (in_domain, expected=deliver)
+2026-06-01 14:05:59,368 INFO Flow started with ID: 93166161-35d7-4500-a2d7-8183625bd1b6
+2026-06-01 14:05:59,381 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:06:02,317 INFO OpenAI API usage: {'prompt_tokens': 717, 'completion_tokens': 204, 'total_tokens': 921, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:02,323 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:05,805 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:06,551 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:10,617 INFO OpenAI API usage: {'prompt_tokens': 915, 'completion_tokens': 153, 'total_tokens': 1068, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:10,622 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:14,317 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:17,164 INFO OpenAI API usage: {'prompt_tokens': 812, 'completion_tokens': 111, 'total_tokens': 923, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:17,171 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:19,437 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:20,972 INFO OpenAI API usage: {'prompt_tokens': 393, 'completion_tokens': 80, 'total_tokens': 473, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:20,978 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:22,796 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:22,813 INFO Flow started with ID: 88523ade-14c4-4e02-845a-31c3daeb39fc
+2026-06-01 14:06:26,995 INFO OpenAI API usage: {'prompt_tokens': 719, 'completion_tokens': 201, 'total_tokens': 920, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:27,001 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:30,273 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:31,018 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:35,084 INFO OpenAI API usage: {'prompt_tokens': 912, 'completion_tokens': 147, 'total_tokens': 1059, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:35,091 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:38,054 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:40,616 INFO OpenAI API usage: {'prompt_tokens': 803, 'completion_tokens': 105, 'total_tokens': 908, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:40,622 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:42,253 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:44,608 INFO OpenAI API usage: {'prompt_tokens': 406, 'completion_tokens': 127, 'total_tokens': 533, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:44,614 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:46,758 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:46,773 INFO   T=fallback KH=fallback  gs_T=0.576 gs_KH=0.614  (47.4s)
+2026-06-01 14:06:46,773 INFO Pass 3 [14/14] q14 (in_domain, expected=deliver)
+2026-06-01 14:06:46,785 INFO Flow started with ID: 34cf2a41-619a-4a83-aaed-82b46ecc94f3
+2026-06-01 14:06:46,798 INFO Loaded FAISS index from data/rag/faiss_index (6713 vectors).
+2026-06-01 14:06:50,731 INFO OpenAI API usage: {'prompt_tokens': 714, 'completion_tokens': 200, 'total_tokens': 914, 'cached_prompt_tokens': 0}
+2026-06-01 14:06:50,737 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:06:55,613 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:06:56,516 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:04,941 INFO OpenAI API usage: {'prompt_tokens': 908, 'completion_tokens': 318, 'total_tokens': 1226, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:04,947 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:07,151 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:09,684 INFO OpenAI API usage: {'prompt_tokens': 767, 'completion_tokens': 122, 'total_tokens': 889, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:09,691 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:11,541 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:13,588 INFO OpenAI API usage: {'prompt_tokens': 400, 'completion_tokens': 91, 'total_tokens': 491, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:13,595 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:15,330 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:15,341 INFO Flow started with ID: e23c28f7-07a4-41d5-9f69-052ff8d7527d
+2026-06-01 14:07:17,895 INFO OpenAI API usage: {'prompt_tokens': 716, 'completion_tokens': 149, 'total_tokens': 865, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:17,902 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:21,062 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:21,705 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:27,105 INFO OpenAI API usage: {'prompt_tokens': 857, 'completion_tokens': 161, 'total_tokens': 1018, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:27,113 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:31,612 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:36,117 INFO OpenAI API usage: {'prompt_tokens': 767, 'completion_tokens': 200, 'total_tokens': 967, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:36,124 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:38,779 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:41,960 INFO OpenAI API usage: {'prompt_tokens': 403, 'completion_tokens': 156, 'total_tokens': 559, 'cached_prompt_tokens': 0}
+2026-06-01 14:07:41,966 INFO 
+LiteLLM completion() model= gpt-4o-mini; provider = openai
+2026-06-01 14:07:45,027 INFO Wrapper: Completed Call, calling success_handler
+2026-06-01 14:07:45,041 INFO   T=fallback KH=fallback  gs_T=0.583 gs_KH=0.608  (58.3s)
+2026-06-01 14:07:45,041 INFO === MEASUREMENT COMPLETE: 48 total records ===
+2026-06-01 14:07:45,041 INFO Results written to: results/evaluation_day12.json

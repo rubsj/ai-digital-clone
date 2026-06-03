@@ -384,7 +384,7 @@ New `tests/integration/test_gatekeeper.py` — all 17 passed: `_compute_flags` a
 
 ### STOP GATE 1.7 result
 
-Pending Ruby's keyword. All verification surfaces pasted in the gate output above.
+**CLEARED (2026-06-02).** Rename verified: zero logic changed, no remaining `GatekeeperAgent`/`gatekeeper_agent` references in `src/` or `tests/`, 17 new deterministic tests pass, ADR-014 inventory corrected. Phase 2 unblocked from the structural side; remains blocked on Torvalds floor not cleared.
 
 ---
 
@@ -421,7 +421,6 @@ Pending Ruby's keyword. All verification surfaces pasted in the gate output abov
 
 | Item | Blocked on |
 |---|---|
-| STOP GATE 1.7 keyword | Ruby's gate decision |
 | CONFIDENCE_MIN calibration | Post-1.6 re-eval data |
 | `_parse_review` removal | Day-13 latency item; needs CrewAI task `expected_output` update to suppress "Flags:" section in `.raw` |
 | Phase 2 (cli.py / visualization.py refactor, v1 retirement, Notion sync) | STOP GATE 1.6b + STOP GATE 1.7 cleared; also Torvalds floor not cleared |

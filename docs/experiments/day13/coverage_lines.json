@@ -1,0 +1,604 @@
+[
+  {
+    "query_id": "q01",
+    "query": "Why does L2 regularization tend to spread weight magnitudes more evenly than L1, and when would you actually prefer L1?",
+    "category": "statistical_learning_ml",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      493,
+      386,
+      435,
+      493,
+      395
+    ],
+    "chunk_topics": [
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications."
+    ],
+    "top_noun_phrases": [
+      [
+        "regularization",
+        14
+      ],
+      [
+        "coefficients",
+        8
+      ],
+      [
+        "lasso",
+        6
+      ],
+      [
+        "regression",
+        6
+      ],
+      [
+        "model",
+        6
+      ]
+    ],
+    "total_chunk_chars": 2202
+  },
+  {
+    "query_id": "q02",
+    "query": "What is actually happening when an SVM uses a kernel function instead of explicitly mapping data into a higher-dimensional space?",
+    "category": "statistical_learning_ml",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      445,
+      498,
+      499,
+      499,
+      435
+    ],
+    "chunk_topics": [
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications."
+    ],
+    "top_noun_phrases": [
+      [
+        "kernel",
+        17
+      ],
+      [
+        "space",
+        12
+      ],
+      [
+        "data",
+        10
+      ],
+      [
+        "function",
+        7
+      ],
+      [
+        "higher",
+        6
+      ]
+    ],
+    "total_chunk_chars": 2376
+  },
+  {
+    "query_id": "q03",
+    "query": "How does the bias-variance tradeoff change as you add hidden layers to a neural network?",
+    "category": "statistical_learning_ml",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      417,
+      283,
+      283,
+      283,
+      469
+    ],
+    "chunk_topics": [
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications."
+    ],
+    "top_noun_phrases": [
+      [
+        "bias",
+        16
+      ],
+      [
+        "variance",
+        16
+      ],
+      [
+        "model",
+        5
+      ],
+      [
+        "tradeoff",
+        5
+      ],
+      [
+        "decrease",
+        4
+      ]
+    ],
+    "total_chunk_chars": 1735
+  },
+  {
+    "query_id": "q04",
+    "query": "Why do we use cross-validation instead of just splitting the data once into a train set and a test set?",
+    "category": "statistical_learning_ml",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      371,
+      270,
+      428,
+      377,
+      462
+    ],
+    "chunk_topics": [
+      "Statistical Learning Theory and Applications.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications.",
+      "Statistical Learning Theory and Applications."
+    ],
+    "top_noun_phrases": [
+      [
+        "model",
+        13
+      ],
+      [
+        "validation",
+        11
+      ],
+      [
+        "performance",
+        10
+      ],
+      [
+        "data",
+        9
+      ],
+      [
+        "training",
+        9
+      ]
+    ],
+    "total_chunk_chars": 1908
+  },
+  {
+    "query_id": "q05",
+    "query": "Why does k-nearest-neighbors fall apart in high-dimensional spaces, and what does the curse of dimensionality actually mean for it?",
+    "category": "data_mining",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      325,
+      369,
+      487,
+      366,
+      440
+    ],
+    "chunk_topics": [
+      "Data Mining.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining."
+    ],
+    "top_noun_phrases": [
+      [
+        "data",
+        8
+      ],
+      [
+        "nearest",
+        6
+      ],
+      [
+        "neighbors",
+        6
+      ],
+      [
+        "algorithm",
+        6
+      ],
+      [
+        "exercise",
+        4
+      ]
+    ],
+    "total_chunk_chars": 1987
+  },
+  {
+    "query_id": "q06",
+    "query": "What is the difference between forward selection and backward selection for feature selection, and when does one beat the other?",
+    "category": "data_mining",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      463,
+      421,
+      351,
+      484,
+      489
+    ],
+    "chunk_topics": [
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining."
+    ],
+    "top_noun_phrases": [
+      [
+        "selection",
+        19
+      ],
+      [
+        "variables",
+        14
+      ],
+      [
+        "backward",
+        11
+      ],
+      [
+        "forward",
+        8
+      ],
+      [
+        "model",
+        8
+      ]
+    ],
+    "total_chunk_chars": 2208
+  },
+  {
+    "query_id": "q07",
+    "query": "How does a confusion matrix help you tell the difference between a model that is biased toward one class and a model that is just bad overall?",
+    "category": "data_mining",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      300,
+      300,
+      300,
+      454,
+      454
+    ],
+    "chunk_topics": [
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining."
+    ],
+    "top_noun_phrases": [
+      [
+        "matrix",
+        10
+      ],
+      [
+        "confusion",
+        8
+      ],
+      [
+        "model",
+        8
+      ],
+      [
+        "performance",
+        6
+      ],
+      [
+        "labels",
+        6
+      ]
+    ],
+    "total_chunk_chars": 1808
+  },
+  {
+    "query_id": "q08",
+    "query": "What makes user-based collaborative filtering different from item-based collaborative filtering, and why does one usually scale better?",
+    "category": "data_mining",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      489,
+      460,
+      374,
+      468,
+      435
+    ],
+    "chunk_topics": [
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining.",
+      "Data Mining."
+    ],
+    "top_noun_phrases": [
+      [
+        "filtering",
+        16
+      ],
+      [
+        "based",
+        15
+      ],
+      [
+        "collaborative",
+        15
+      ],
+      [
+        "similar",
+        13
+      ],
+      [
+        "items",
+        13
+      ]
+    ],
+    "total_chunk_chars": 2226
+  },
+  {
+    "query_id": "q09",
+    "query": "When does the trapezoidal rule give you a reasonable answer for numerical integration, and when do you need Simpson's rule or something fancier?",
+    "category": "numerical_methods",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      384,
+      384,
+      384,
+      462,
+      427
+    ],
+    "chunk_topics": [
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Introduction to Computers and Engineering Problem Solving copy."
+    ],
+    "top_noun_phrases": [
+      [
+        "rule",
+        10
+      ],
+      [
+        "trapezoidal",
+        7
+      ],
+      [
+        "function",
+        7
+      ],
+      [
+        "accuracy",
+        6
+      ],
+      [
+        "number",
+        6
+      ]
+    ],
+    "total_chunk_chars": 2041
+  },
+  {
+    "query_id": "q10",
+    "query": "How does fixed-point iteration work as a method for solving nonlinear equations, and what determines whether it converges?",
+    "category": "numerical_methods",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      303,
+      303,
+      303,
+      360,
+      360
+    ],
+    "chunk_topics": [
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering."
+    ],
+    "top_noun_phrases": [
+      [
+        "fixed",
+        14
+      ],
+      [
+        "point",
+        14
+      ],
+      [
+        "iteration",
+        11
+      ],
+      [
+        "function",
+        10
+      ],
+      [
+        "method",
+        7
+      ]
+    ],
+    "total_chunk_chars": 1629
+  },
+  {
+    "query_id": "q11",
+    "query": "Why do sparse matrix representations make Gaussian elimination practical for systems with thousands of variables?",
+    "category": "numerical_methods",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      471,
+      497,
+      493,
+      493,
+      493
+    ],
+    "chunk_topics": [
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering.",
+      "Numerical Methods Applied to Chemical Engineering."
+    ],
+    "top_noun_phrases": [
+      [
+        "sparse",
+        14
+      ],
+      [
+        "matrix",
+        13
+      ],
+      [
+        "matrices",
+        11
+      ],
+      [
+        "large",
+        7
+      ],
+      [
+        "section",
+        6
+      ]
+    ],
+    "total_chunk_chars": 2447
+  },
+  {
+    "query_id": "q12",
+    "query": "How does binary search work and what is its time complexity?",
+    "category": "programming_fundamentals",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      489,
+      337,
+      416,
+      273,
+      411
+    ],
+    "chunk_topics": [
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy."
+    ],
+    "top_noun_phrases": [
+      [
+        "search",
+        13
+      ],
+      [
+        "binary",
+        8
+      ],
+      [
+        "searching",
+        8
+      ],
+      [
+        "item",
+        7
+      ],
+      [
+        "list",
+        6
+      ]
+    ],
+    "total_chunk_chars": 1926
+  },
+  {
+    "query_id": "q13",
+    "query": "What is the difference between a stack and a queue, and when is each used?",
+    "category": "programming_fundamentals",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      423,
+      493,
+      446,
+      284,
+      328
+    ],
+    "chunk_topics": [
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy."
+    ],
+    "top_noun_phrases": [
+      [
+        "stacks",
+        9
+      ],
+      [
+        "queues",
+        9
+      ],
+      [
+        "data",
+        8
+      ],
+      [
+        "first",
+        6
+      ],
+      [
+        "lists",
+        5
+      ]
+    ],
+    "total_chunk_chars": 1974
+  },
+  {
+    "query_id": "q14",
+    "query": "When would you reach for recursion over an iterative loop, and what is the actual cost in practice?",
+    "category": "programming_fundamentals",
+    "chunk_count": 5,
+    "chunk_lengths": [
+      419,
+      431,
+      431,
+      350,
+      330
+    ],
+    "chunk_topics": [
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy.",
+      "Introduction to Computers and Engineering Problem Solving copy."
+    ],
+    "top_noun_phrases": [
+      [
+        "recursion",
+        12
+      ],
+      [
+        "iteration",
+        12
+      ],
+      [
+        "involves",
+        6
+      ],
+      [
+        "solving",
+        6
+      ],
+      [
+        "problem",
+        6
+      ]
+    ],
+    "total_chunk_chars": 1961
+  }
+]
