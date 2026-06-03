@@ -1,0 +1,58 @@
+{
+  "q01": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q02": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q03": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q04": {
+    "A": "kroah_hartman",
+    "B": "torvalds"
+  },
+  "q05": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q06": {
+    "A": "kroah_hartman",
+    "B": "torvalds"
+  },
+  "q07": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q08": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q09": {
+    "A": "kroah_hartman",
+    "B": "torvalds"
+  },
+  "q10": {
+    "A": "kroah_hartman",
+    "B": "torvalds"
+  },
+  "q11": {
+    "A": "kroah_hartman",
+    "B": "torvalds"
+  },
+  "q12": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q13": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  },
+  "q14": {
+    "A": "torvalds",
+    "B": "kroah_hartman"
+  }
+}
