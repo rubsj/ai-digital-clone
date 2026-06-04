@@ -206,3 +206,49 @@ q06 is the clearest failure: oracle T=0.963 vs KH=0.944, HHEM scores KH=0.743 vs
 - Path selection: Ruby's decision. All three are documented; none has been implemented.
 - W1b.1 implementation (scorer code in `src/evaluation/`, wire `scoring_engine.py`): blocked on path selection.
 - W1b.2 (GROUNDEDNESS_MIN derivation): blocked on W1b.1.
+
+---
+
+## Phase W1b.1 — Vendor HHEM and wire into ScoringEngine
+
+### Built
+- `src/evaluation/hhem/` — vendored `modeling_hhem_v2.py` and `configuration_hhem_v2.py` pinned to hub commit `8e4a2e6e96c708cc76c2344f7e4757df2515292c`. One fix applied: `all_tied_weights_keys: dict = {}` on `HHEMv2ForSequenceClassification`. `trust_remote_code` removed. `PROVENANCE.md` records source, commit, change, and why.
+- `src/evaluation/groundedness_scorer.py` — rewritten around `HHEMGroundednessScorer`. Cosine path removed. V0 aggregation preserved: per-sentence `model.predict()`, max over top-5 chunks per sentence, mean over sentences.
+- `src/components/scoring_engine.py` — `ScoringEngine.__init__` added; loads `HHEMGroundednessScorer` once at construction (FAISS-index lifecycle). `score()` calls `self._gscorer.score()`.
+- `tests/test_groundedness_scorer.py` and `tests/test_components_scoring_engine.py` — rewritten to mock `HHEMGroundednessScorer`; cosine-shape tests replaced with HHEM scorer shape tests.
+
+### Why
+- Path 2 (vendor) selected, as documented in the precondition investigation.
+- `sentencepiece` was already in main deps from the bakeoff setup. No additional dep change needed.
+
+### Surprising
+**The `all_tied_weights_keys: dict = {}` fix is necessary but not sufficient.** Under transformers 5.x the loader replaces tensor objects rather than copying into them, which silently breaks T5's `encoder.embed_tokens → shared` weight tying after loading. Without re-tying, `model.predict()` returns flat **~0.50** on all pairs (not the 0.29 pipeline-path failure — a different, subtler fault). The fix is one line in `HHEMGroundednessScorer.__init__` after `from_pretrained`: `self._model.t5.tie_weights()`. This restores the correct scores immediately.
+
+The session-notes precondition entry said "The `predict()` call path does not touch the `all_tied_weights_keys` machinery at all." That remains true — the `all_tied_weights_keys` fix is load-only. The tying issue is a separate mechanism: tensor-replace vs tensor-copy on load. Both fixes are needed together.
+
+### Smoke-check scores (Step 2 gate, passed before wiring)
+
+| Pair | Score |
+|---|---|
+| Grounded: "The buddy allocator manages physical memory pages in Linux." vs kernel chunk | **0.9699** |
+| Grounded: "Linux uses a buddy allocator for physical memory management." vs kernel chunk | **0.9349** |
+| Ungrounded: "Python is a high-level scripting language for web development." vs kernel chunk | **0.0142** |
+| Ungrounded: "The Moon is made of green cheese and orbits Neptune." vs kernel chunk | **0.0015** |
+| Gap | **0.9627** (threshold 0.30) — PASS |
+
+### Architecture-honesty check
+- No `final_score`, no weighted formula, no LLM routing number in changed files.
+- `GROUNDEDNESS_MIN = 0.60` in `evaluator_agent.py` — **unchanged**.
+- Scorer stays deterministic and Component-owned; no Agent/Component boundary move.
+- Zero paid API calls; all inference local and in-process.
+
+### Test suite
+- 26 scorer + engine tests green. 494 passed, 37 skipped, 8 pre-existing failures (all pre-date this branch).
+
+### Deferred
+- W1b.2 — threshold derivation on HHEM's scale against the oracle; `GROUNDEDNESS_MIN` not yet set.
+- ADR-020 completion and ADR-004 amendment — blocked on W1b.2.
+- W3 re-gate (metric effect, retrieval effect) — blocked on threshold.
+
+### ADR candidates
+- ADR-020: model confirmed = HHEM-2.1-Open, aggregation = V0 max-over-chunks. One additional fix needed beyond documented: `t5.tie_weights()` post-load under transformers 5.x. Consequences paragraph should note this. GROUNDEDNESS_MIN still pending W1b.2.
