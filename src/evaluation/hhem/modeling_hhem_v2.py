@@ -48,6 +48,17 @@ class HHEMv2ForSequenceClassification(PreTrainedModel):
     #     combined_model = PeftModel.from_pretrained(base_model, checkpoint, is_trainable=False)
     #     self.t5 = combined_model
 
+    def tie_weights(self, **kwargs) -> None:
+        # transformers 5.x weight loading replaces tensor objects rather than
+        # copying into them, breaking T5's encoder.embed_tokens → shared weight
+        # tying that T5ForTokenClassification establishes in its __init__.
+        # from_pretrained calls tie_weights(**kwargs) after loading; this override
+        # restores the T5-internal tie at that point so predict() scores are
+        # correct regardless of how the model is constructed.
+        # kwargs (missing_keys, recompute_mapping) apply to the outer model only.
+        super().tie_weights(**kwargs)
+        self.t5.tie_weights()
+
     def forward(self, **kwargs): # To cope with `text-classiication` pipeline
         self.t5.eval()
         with torch.no_grad():

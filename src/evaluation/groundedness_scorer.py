@@ -46,11 +46,6 @@ class HHEMGroundednessScorer:
             revision=_HHEM_REVISION,
             local_files_only=True,
         )
-        # transformers 5.x loading replaces shared tensor objects rather than
-        # copying into them, which breaks T5's encoder.embed_tokens → shared
-        # weight tying. Re-tying here restores correct scores; without it the
-        # model returns flat ~0.5 regardless of input.
-        self._model.t5.tie_weights()
         self._model.eval()
 
     def score(
