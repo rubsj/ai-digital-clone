@@ -1,0 +1,647 @@
+{
+  "run": "hhem_probe_a_aggregation_day14",
+  "date": "2026-06-04",
+  "api_calls": 0,
+  "model_id": "vectara/hallucination_evaluation_model",
+  "transformers_version": "4.44.2",
+  "device": "mps",
+  "calibration_note": "Monotonic calibration excluded: a leader-blind monotonic transform preserves per-query T-KH direction. G2 is direction-agreement. Calibration cannot improve G2, so cannot clear a bar requiring both G1 and G2.",
+  "baseline": {
+    "g1_mean_diff": 0.0597,
+    "g2_agree": 6,
+    "g4_auc": 0.9415,
+    "tiebreak_auc": 0.8576
+  },
+  "pre_registered_bar": {
+    "g1": "materially below 0.0597, toward 0.05",
+    "g2": "above 6/14, toward 12/14",
+    "g4": ">= 0.90",
+    "condition": "G1 AND G2 improve while G4 >= 0.90"
+  },
+  "variants": {
+    "V0_max_baseline": {
+      "g1_mean_diff": 0.0597,
+      "g1_lean_counts": {
+        "torvalds": 1,
+        "kroah_hartman": 6
+      },
+      "g1_per_q": {
+        "q12": {
+          "t": 0.4368,
+          "kh": 0.4615,
+          "diff": 0.0247,
+          "lean": "kroah_hartman"
+        },
+        "q13": {
+          "t": 0.6175,
+          "kh": 0.663,
+          "diff": 0.0454,
+          "lean": "kroah_hartman"
+        },
+        "q01": {
+          "t": 0.4389,
+          "kh": 0.5491,
+          "diff": 0.1102,
+          "lean": "kroah_hartman"
+        },
+        "q05": {
+          "t": 0.2506,
+          "kh": 0.2755,
+          "diff": 0.0249,
+          "lean": "kroah_hartman"
+        },
+        "q06": {
+          "t": 0.6098,
+          "kh": 0.743,
+          "diff": 0.1332,
+          "lean": "kroah_hartman"
+        },
+        "q02": {
+          "t": 0.7868,
+          "kh": 0.804,
+          "diff": 0.0172,
+          "lean": "kroah_hartman"
+        },
+        "q04": {
+          "t": 0.6268,
+          "kh": 0.5641,
+          "diff": 0.0626,
+          "lean": "torvalds"
+        }
+      },
+      "g2_agree": 6,
+      "g2_per_q": {
+        "q01": {
+          "model_t": 0.4389,
+          "model_kh": 0.5491,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q02": {
+          "model_t": 0.7868,
+          "model_kh": 0.804,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q03": {
+          "model_t": 0.3848,
+          "model_kh": 0.4813,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q04": {
+          "model_t": 0.6268,
+          "model_kh": 0.5641,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q05": {
+          "model_t": 0.2506,
+          "model_kh": 0.2755,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q06": {
+          "model_t": 0.6098,
+          "model_kh": 0.743,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q07": {
+          "model_t": 0.2852,
+          "model_kh": 0.2524,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q08": {
+          "model_t": 0.7265,
+          "model_kh": 0.7214,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q09": {
+          "model_t": 0.3778,
+          "model_kh": 0.3426,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q10": {
+          "model_t": 0.5528,
+          "model_kh": 0.6004,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q11": {
+          "model_t": 0.5994,
+          "model_kh": 0.7245,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q12": {
+          "model_t": 0.4368,
+          "model_kh": 0.4615,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q13": {
+          "model_t": 0.6175,
+          "model_kh": 0.663,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q14": {
+          "model_t": 0.3687,
+          "model_kh": 0.4414,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        }
+      },
+      "g4_auc": 0.9415,
+      "tiebreak_auc": 0.8576,
+      "clears_bar": false,
+      "description": "max over 5 chunks (current baseline)"
+    },
+    "V1_mean_over_chunks": {
+      "g1_mean_diff": 0.0351,
+      "g1_lean_counts": {
+        "torvalds": 3,
+        "kroah_hartman": 4
+      },
+      "g1_per_q": {
+        "q12": {
+          "t": 0.2159,
+          "kh": 0.2029,
+          "diff": 0.013,
+          "lean": "torvalds"
+        },
+        "q13": {
+          "t": 0.2,
+          "kh": 0.1803,
+          "diff": 0.0197,
+          "lean": "torvalds"
+        },
+        "q01": {
+          "t": 0.1384,
+          "kh": 0.1858,
+          "diff": 0.0474,
+          "lean": "kroah_hartman"
+        },
+        "q05": {
+          "t": 0.0849,
+          "kh": 0.1016,
+          "diff": 0.0167,
+          "lean": "kroah_hartman"
+        },
+        "q06": {
+          "t": 0.2179,
+          "kh": 0.3037,
+          "diff": 0.0859,
+          "lean": "kroah_hartman"
+        },
+        "q02": {
+          "t": 0.3448,
+          "kh": 0.3581,
+          "diff": 0.0133,
+          "lean": "kroah_hartman"
+        },
+        "q04": {
+          "t": 0.2617,
+          "kh": 0.2118,
+          "diff": 0.05,
+          "lean": "torvalds"
+        }
+      },
+      "g2_agree": 5,
+      "g2_per_q": {
+        "q01": {
+          "model_t": 0.1384,
+          "model_kh": 0.1858,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q02": {
+          "model_t": 0.3448,
+          "model_kh": 0.3581,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q03": {
+          "model_t": 0.1806,
+          "model_kh": 0.2167,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q04": {
+          "model_t": 0.2617,
+          "model_kh": 0.2118,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q05": {
+          "model_t": 0.0849,
+          "model_kh": 0.1016,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q06": {
+          "model_t": 0.2179,
+          "model_kh": 0.3037,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q07": {
+          "model_t": 0.1805,
+          "model_kh": 0.1743,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q08": {
+          "model_t": 0.3491,
+          "model_kh": 0.3555,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q09": {
+          "model_t": 0.2347,
+          "model_kh": 0.216,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q10": {
+          "model_t": 0.2983,
+          "model_kh": 0.3721,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q11": {
+          "model_t": 0.2089,
+          "model_kh": 0.2745,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q12": {
+          "model_t": 0.2159,
+          "model_kh": 0.2029,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q13": {
+          "model_t": 0.2,
+          "model_kh": 0.1803,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q14": {
+          "model_t": 0.1649,
+          "model_kh": 0.2425,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        }
+      },
+      "g4_auc": 0.9653,
+      "tiebreak_auc": 0.8399,
+      "clears_bar": false,
+      "description": "mean over all 5 chunks"
+    },
+    "V2_top2_mean": {
+      "g1_mean_diff": 0.05,
+      "g1_lean_counts": {
+        "torvalds": 3,
+        "kroah_hartman": 4
+      },
+      "g1_per_q": {
+        "q12": {
+          "t": 0.3353,
+          "kh": 0.3352,
+          "diff": 0.0001,
+          "lean": "torvalds"
+        },
+        "q13": {
+          "t": 0.3892,
+          "kh": 0.3829,
+          "diff": 0.0063,
+          "lean": "torvalds"
+        },
+        "q01": {
+          "t": 0.2961,
+          "kh": 0.3977,
+          "diff": 0.1016,
+          "lean": "kroah_hartman"
+        },
+        "q05": {
+          "t": 0.1661,
+          "kh": 0.1918,
+          "diff": 0.0257,
+          "lean": "kroah_hartman"
+        },
+        "q06": {
+          "t": 0.429,
+          "kh": 0.5693,
+          "diff": 0.1403,
+          "lean": "kroah_hartman"
+        },
+        "q02": {
+          "t": 0.5948,
+          "kh": 0.6091,
+          "diff": 0.0144,
+          "lean": "kroah_hartman"
+        },
+        "q04": {
+          "t": 0.4419,
+          "kh": 0.3805,
+          "diff": 0.0614,
+          "lean": "torvalds"
+        }
+      },
+      "g2_agree": 5,
+      "g2_per_q": {
+        "q01": {
+          "model_t": 0.2961,
+          "model_kh": 0.3977,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q02": {
+          "model_t": 0.5948,
+          "model_kh": 0.6091,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q03": {
+          "model_t": 0.3029,
+          "model_kh": 0.3703,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q04": {
+          "model_t": 0.4419,
+          "model_kh": 0.3805,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q05": {
+          "model_t": 0.1661,
+          "model_kh": 0.1918,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q06": {
+          "model_t": 0.429,
+          "model_kh": 0.5693,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q07": {
+          "model_t": 0.2852,
+          "model_kh": 0.2524,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q08": {
+          "model_t": 0.5578,
+          "model_kh": 0.5628,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q09": {
+          "model_t": 0.3602,
+          "model_kh": 0.3215,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q10": {
+          "model_t": 0.5528,
+          "model_kh": 0.6004,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q11": {
+          "model_t": 0.3845,
+          "model_kh": 0.4975,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q12": {
+          "model_t": 0.3353,
+          "model_kh": 0.3352,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q13": {
+          "model_t": 0.3892,
+          "model_kh": 0.3829,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q14": {
+          "model_t": 0.2747,
+          "model_kh": 0.3713,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        }
+      },
+      "g4_auc": 0.9464,
+      "tiebreak_auc": 0.8581,
+      "clears_bar": false,
+      "description": "mean of top-2 chunk scores per span"
+    },
+    "V3_softmax3_weighted": {
+      "g1_mean_diff": 0.0487,
+      "g1_lean_counts": {
+        "torvalds": 1,
+        "kroah_hartman": 6
+      },
+      "g1_per_q": {
+        "q12": {
+          "t": 0.3502,
+          "kh": 0.3628,
+          "diff": 0.0125,
+          "lean": "kroah_hartman"
+        },
+        "q13": {
+          "t": 0.4856,
+          "kh": 0.4996,
+          "diff": 0.014,
+          "lean": "kroah_hartman"
+        },
+        "q01": {
+          "t": 0.3142,
+          "kh": 0.4046,
+          "diff": 0.0903,
+          "lean": "kroah_hartman"
+        },
+        "q05": {
+          "t": 0.1595,
+          "kh": 0.1707,
+          "diff": 0.0113,
+          "lean": "kroah_hartman"
+        },
+        "q06": {
+          "t": 0.444,
+          "kh": 0.5555,
+          "diff": 0.1114,
+          "lean": "kroah_hartman"
+        },
+        "q02": {
+          "t": 0.6026,
+          "kh": 0.6459,
+          "diff": 0.0433,
+          "lean": "kroah_hartman"
+        },
+        "q04": {
+          "t": 0.4551,
+          "kh": 0.3971,
+          "diff": 0.058,
+          "lean": "torvalds"
+        }
+      },
+      "g2_agree": 5,
+      "g2_per_q": {
+        "q01": {
+          "model_t": 0.3142,
+          "model_kh": 0.4046,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q02": {
+          "model_t": 0.6026,
+          "model_kh": 0.6459,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q03": {
+          "model_t": 0.2892,
+          "model_kh": 0.3881,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q04": {
+          "model_t": 0.4551,
+          "model_kh": 0.3971,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q05": {
+          "model_t": 0.1595,
+          "model_kh": 0.1707,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q06": {
+          "model_t": 0.444,
+          "model_kh": 0.5555,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q07": {
+          "model_t": 0.2374,
+          "model_kh": 0.2154,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q08": {
+          "model_t": 0.5704,
+          "model_kh": 0.5833,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q09": {
+          "model_t": 0.325,
+          "model_kh": 0.284,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q10": {
+          "model_t": 0.4888,
+          "model_kh": 0.5435,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q11": {
+          "model_t": 0.4521,
+          "model_kh": 0.5738,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q12": {
+          "model_t": 0.3502,
+          "model_kh": 0.3628,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q13": {
+          "model_t": 0.4856,
+          "model_kh": 0.4996,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q14": {
+          "model_t": 0.2592,
+          "model_kh": 0.3316,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        }
+      },
+      "g4_auc": 0.9435,
+      "tiebreak_auc": 0.859,
+      "clears_bar": false,
+      "description": "softmax-weighted mean, sharpness=3"
+    }
+  }
+}

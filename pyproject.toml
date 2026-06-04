@@ -23,6 +23,7 @@ dependencies = [
     "sentence-transformers>=3.0.0",
     "datasets>=2.0.0",
     "langchain-text-splitters>=0.2.0",
+    "sentencepiece>=0.2.0",
 ]
 
 [dependency-groups]
