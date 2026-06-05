@@ -1,7 +1,7 @@
 # ADR-020: Replace cosine groundedness with a local entailment scorer (HHEM-2.1-Open)
 
-- Status: Accepted. Model resolved: HHEM-2.1-Open. Routing threshold pending W1b.2.
-- Date: 2026-06-03 (decided), completed 2026-06-04 (model resolved by bake-off)
+- Status: Accepted. Model resolved: HHEM-2.1-Open. Routing threshold GROUNDEDNESS_MIN = 0.40.
+- Date: 2026-06-03 (decided), completed 2026-06-04 (model resolved by bake-off; threshold derived W1b.2)
 - Project: P6 Digital Clone (v2)
 - Relates: follows ADR-019 (confound); residual bias handled in ADR-021; keeps ADR-009/014/018 (boundary, deterministic router); amends ADR-004 (pending, end of W1b)
 
@@ -17,7 +17,7 @@ Replace cosine with **HHEM-2.1-Open** (Vectara), a local FLAN-T5-based factual-c
 
 The number stays deterministic and Component-owned. There is no Agent/Component boundary move, so ADR-009, ADR-014, and ADR-018 hold. The metric is local and in-process: weights pinned at build time, loaded at startup like the FAISS index, no external call on the routing path.
 
-HHEM was selected by the pre-registered bake-off against the Day-13 containment oracle (no API spend, no generation). The bake-off returned **none clears**: no candidate passed all four pre-registered gates. HHEM was chosen as the best-aligned and least-confounded model in the field, not as a gate-passer. Its residual held-equal paraphrase bias is accepted and handled at the per-leader floor per ADR-021, rather than treated as disqualifying. The routing threshold is derived on HHEM's scale against the oracle at W1b.2 and recorded in the ADR-004 amendment.
+HHEM was selected by the pre-registered bake-off against the Day-13 containment oracle (no API spend, no generation). The bake-off returned **none clears**: no candidate passed all four pre-registered gates. HHEM was chosen as the best-aligned and least-confounded model in the field, not as a gate-passer. Its residual held-equal paraphrase bias is accepted and handled at the per-leader floor per ADR-021, rather than treated as disqualifying. The routing threshold was derived at W1b.2 (`GROUNDEDNESS_MIN = 0.40`, see Quantified Validation) and is recorded with the supersede note in the ADR-004 amendment.
 
 ## Alternatives Considered
 
@@ -39,7 +39,9 @@ Bake-off against the Day-13 oracle, four pre-registered gates, no spend. None cl
 
 Probe A (metric reshape, no spend) tested four aggregations over HHEM's per-pair scores against a pre-registered bar (improve G1 and G2 while holding G4 >= 0.90). None cleared. Mean-over-chunks gave the best G1 (0.035) but dropped G2 to 5/14; top-2 and softmax variants behaved the same way. A leader-blind monotonic calibration was excluded by construction, since it cannot change per-query direction and so cannot move G2. The held-equal lean is intrinsic at the per-(span, chunk) level and aggregation-invariant. This evidence is the basis for ADR-021.
 
-Pending: the routing threshold (W1b.2, derived on HHEM's scale against the oracle), and the corrected re-gate (W3a metric effect, W3b retrieval effect).
+Pending: the corrected re-gate (W3a metric effect, W3b retrieval effect) and the W3c per-leader floor.
+
+Threshold derivation (W1b.2, no spend, oracle labels). `GROUNDEDNESS_MIN = 0.40` on HHEM's scale, derived by a pre-registered safety-asymmetric rule: maximize grounded deliver rate subject to catching at least 90 percent of should-fall-back content (ungrounded plus OOD), on a query-level train split, validated held-out. The cosine-era 0.60 does not transfer; at 0.60 HHEM would route about 42 percent of oracle-grounded content to fallback, because HHEM's entailment scores run lower than cosine's lexical-echo-inflated scores. The safety-constrained train point was 0.4368 and 0.40 was chosen over it for robustness: 0.40 sits mid-band in the [0.38, 0.44] stability interval and does not balance the zero-bias property on a single response's score. The oracle deliver-versus-fallback cutoff (grounded < 0.50) is an analyst choice, not pre-registered, and is recorded as such.
 
 ## Consequences
 

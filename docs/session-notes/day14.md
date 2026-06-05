@@ -252,3 +252,141 @@ The session-notes precondition entry said "The `predict()` call path does not to
 
 ### ADR candidates
 - ADR-020: model confirmed = HHEM-2.1-Open, aggregation = V0 max-over-chunks. One additional fix needed beyond documented: `t5.tie_weights()` post-load under transformers 5.x. Consequences paragraph should note this. GROUNDEDNESS_MIN still pending W1b.2.
+
+---
+
+## Phase W1b.1 post-hoc — `tie_weights` fix relocated to vendored model
+
+### Built
+- The `t5.tie_weights()` call moved from `HHEMGroundednessScorer.__init__` into a `tie_weights(**kwargs)` override on `HHEMv2ForSequenceClassification` in the vendored `modeling_hhem_v2.py`. The override calls `super().tie_weights(**kwargs)` then `self.t5.tie_weights()`.
+- `PROVENANCE.md` updated with Change 2, including the smoke-check results and the why.
+
+### Why
+The `__init__` call was a workaround; the right owner is the model class. Any caller constructing `HHEMv2ForSequenceClassification` directly (not via `HHEMGroundednessScorer`) would have gotten a silently broken model without the override. Making it an override ensures correctness for any future caller and is the principled location for a post-load operation that the model spec requires.
+
+### Surprising
+Nothing new: the relocation confirmed what the W1b.1 note said. Smoke-check scores unchanged (grounded ≈ 0.97, ungrounded ≈ 0.007, gap ≈ 0.963).
+
+### Deferred
+Same as W1b.1.
+
+---
+
+## Phase TEST-FIX — Routing/evaluation test stale fixes (ADR-017 / ADR-018)
+
+### Built
+- 7 previously-failing tests fixed across two files; no production code touched.
+- `tests/integration/test_fallback_agent.py` — 6 tests updated to the ADR-018 `_build_task_description` and `_build_crew` signatures (8 and 9 parameters respectively: `query`, `trigger_reason`/`leader`, `chunks`, `trigger_category`, `groundedness_score`, `style_score`, `confidence_score`, `style_profile`). ADR-018 behavioral assertions added beyond arity: `"Failure category: {trigger_category}"` line appears when set; `"groundedness=0.450"` score line appears when scores are provided; `"Style examples from your own emails"` appears when `style_profile` has `sample_emails` populated.
+- `tests/test_evaluator_agent.py` — `test_run_propagates_flags` updated. Removed `flags=["low_style", "low_groundedness"]` from `_ReviewDraft(...)` (Pydantic silently ignores extra fields; `_ReviewDraft` has no `flags` field). Assertion changed to `["low_groundedness", "low_style", "low_confidence"]` — the ADR-017 RC-1 spec-correct order (groundedness first as the safety gate) with all three flags present (confidence=0.5 is below CONFIDENCE_MIN=0.80).
+
+### Classification of the 7 failures (all TEST-STALE)
+All 7 were stale assertions against production code that had correctly moved ahead per the ADRs. None were INCOMPLETE, ARCH-VIOLATION, or LOGIC-CHANGED.
+
+| Failures | Root cause |
+|---|---|
+| 1–6 (FallbackAgent arity) | `_build_task_description` and `_build_crew` signatures enriched by ADR-018 (trigger_category + 3 scores + style_profile); tests still called the old shorter signature |
+| 7 (test_run_propagates_flags) | Old test: wrong flag order (style first), missing third flag (confidence), and passed `flags=` kwarg to `_ReviewDraft` which has no such field — all three errors in one assertion |
+
+### Exit check (confirmed terminal output)
+- 7 previously-failing tests: all pass.
+- Full suite: 501 passed, 1 failed, 37 skipped. The 1 remaining failure is `tests/test_query_loader.py::test_load_queries_canonical_file` — pre-existing missing data file (W4, out of scope).
+- `git diff HEAD -- src/ | wc -c` = 0. `GROUNDEDNESS_MIN` unchanged.
+
+### Why
+The tests were the obligation — they guard the groundedness sentinel signal and the routing path. Without green coverage asserting ADR-017 and ADR-018 behavior, the threshold derivation in W1b.2 would be running on an untested routing path.
+
+### Surprising
+- `_ReviewDraft` silently drops `flags=[...]` kwargs because Pydantic ignores extra fields by default. The test appeared to be asserting flag behavior but was asserting nothing about flags — the `flags=` argument was never stored anywhere.
+- The three bugs in `test_run_propagates_flags` (order, missing flag, invalid kwarg) were independent; any one of them would have produced a different wrong result.
+
+### Deferred
+- W1b.2 threshold derivation: unblocked by this phase.
+
+---
+
+## Phase W1b.2 — GROUNDEDNESS_MIN derivation on HHEM's scale (DERIVE AND SURFACE ONLY)
+
+### Built
+- `scripts/w1b2_threshold_derivation.py` — threshold analysis script. Zero paid API calls; all local.
+- `results/w1b2_threshold_day14.json` — full sweep tables, per-leader bias, OOD individual scores.
+- OOD HHEM scores computed fresh (never stored individually in prior artifacts); in-domain scores reused from `bakeoff_hhem_isolated_day14.json`.
+
+### Method (pre-registered)
+- **Positive class (fallback):** oracle_gf < 0.50 in-domain + all OOD records.
+- **Negative class (deliver-worthy):** oracle_gf ≥ 0.50 in-domain.
+- **Score:** HHEM V0 aggregation (same path as the live gate).
+- **Split:** held-equal 7 queries (train); non-held-equal 7 (held-out). OOD included in both.
+- **Selection:** highest T with fallback-recall ≥ 0.90 and GDR maximized (train-derived).
+
+### Dataset
+- 23 oracle-grounded (deliver), 5 oracle-ungrounded in-domain (fallback), 12 OOD (fallback). Total 40 data points.
+- In-domain fallback scores: q05 T (0.251), q05 KH (0.276), q07 KH (0.252), q09 T (0.378), q09 KH (0.343).
+- OOD scores: range 0.021–0.571, mean 0.139. One outlier: q20 KH (0.571) — the sole OOD response that scores above 0.40 and would escape the proposed threshold.
+
+### Threshold sweep (compact)
+
+**Train (12 deliver, 14 fallback):**
+
+| T | Fallback-Recall | GDR | J |
+|---|---|---|---|
+| 0.28 | 0.929 | 1.000 | 0.929 |
+| 0.35 | 0.929 | 1.000 | 0.929 |
+| 0.40 | 0.929 | 1.000 | 0.929 |
+| **0.4368** | **0.929** | **1.000** | **0.929** | ← safety-constrained + Youden both |
+| 0.45 | 0.929 | 0.833 | 0.762 |
+| 0.60 | 1.000 | 0.583 | 0.583 | ← current GROUNDEDNESS_MIN |
+
+The J=0.929 plateau spans T∈[0.276, 0.4368]. The safety-constrained and Youden points are identical in performance; the selection rule (highest T maximizing GDR subject to safety) pins the operating point at T=0.4368.
+
+**Held-out (11 deliver, 15 fallback):**
+
+| T | Fallback-Recall | GDR | J |
+|---|---|---|---|
+| 0.27 | 0.800 | 1.000 | 0.800 | ← Youden (below safety constraint) |
+| 0.35 | 0.867 | 0.909 | 0.776 |
+| **0.3848** | **0.933** | **0.818** | **0.751** | ← safety-constrained |
+| 0.40 | 0.933 | 0.727 | 0.661 |
+| 0.60 | 1.000 | 0.364 | 0.364 |
+
+### Train-held-out divergence
+Train safety threshold 0.4368, held-out 0.3848 — gap of 0.052. Expected at N=14. Stability interval: [0.38, 0.44] satisfies the safety constraint on both splits. The held-out GDR cost (0.818 at T=0.385, 0.727 at T=0.40–0.44) comes from three Torvalds responses on harder queries scoring below the proposed threshold — the paraphrase bias operating on non-held-equal queries.
+
+Held-out responses that would be mis-routed at T=0.40 (oracle-grounded, HHEM too low):
+- q14 T: oracle_gf=0.734, HHEM=0.369
+- q07 T: oracle_gf=0.536, HHEM=0.285
+- q03 T: oracle_gf=0.642, HHEM=0.385
+
+All three are Torvalds responses; all three reflect the paraphrase bias. W3c addresses them.
+
+### Per-leader deliver-rate gap on held-equal oracle-grounded queries
+
+| T | Torvalds | KH | Gap |
+|---|---|---|---|
+| 0.40 | 6/6 = 1.000 | 6/6 = 1.000 | **0.000** |
+| 0.4368 | 6/6 = 1.000 | 6/6 = 1.000 | **0.000** |
+| 0.44 | 4/6 = 0.667 | 6/6 = 1.000 | **−0.333** |
+
+The per-leader deliver-rate gap is zero at T≤0.4368. The 0.06 mean absolute score gap (ADR-021 G1 raw number) does not translate to a deliver-rate gap at the proposed threshold. The gap first activates above T=0.4368 (Torvalds' minimum held-equal oracle-grounded score). The proposed threshold sits at the exact boundary.
+
+### Current GROUNDEDNESS_MIN=0.60 assessment
+T=0.60 was calibrated for the cosine scorer, which inflated scores via lexical echo. At T=0.60 on train: GDR=0.583 — only 7 of 12 oracle-grounded train responses correctly delivered (~42% routed incorrectly to fallback). The value cannot carry over to HHEM.
+
+### Proposed operating point
+T=0.43 — a round number just below the train-derived T=0.4368, preserving train GDR=1.000 (q12 T score 0.4368 > 0.43, correctly delivered). Satisfies safety on both splits. Per-leader bias zero at T=0.43 on held-equal oracle-grounded queries. Held-out GDR=0.727 (q07 T, q14 T, q03 T scored below threshold due to paraphrase bias — W3c addresses). The range [0.38, 0.43] is defensible; uncertainty is ±0.05 given N=14.
+
+**GROUNDEDNESS_MIN not written. Awaiting Ruby confirmation of operating point.**
+
+### Why
+The train J=0.929 plateau being flat across a wide range ([0.276, 0.4368]) means the data cannot distinguish between 0.28 and 0.44 on performance; the selection rule breaks the tie. The held-out validates the train-derived point as reasonable (safety constraint holds, GDR cost is the known bias, not a metric failure).
+
+### Surprising
+- The safety-constrained and Youden thresholds converge to the same J=0.929 on train. The plateau is unusually flat because GDR=1.000 and fallback-recall=0.929 both hold across a 0.16-wide threshold range.
+- The per-leader deliver-rate gap is exactly zero at the proposed threshold. The 0.06 raw score gap from the bake-off translates to zero operational impact at T≤0.4368 — the bias only activates above the Torvalds minimum score.
+- One OOD response (q20 KH: HHEM=0.571) scores well above the OOD cluster (mean 0.139) and above the proposed threshold — it would be delivered rather than routed to fallback. This is the sole safety miss at T=0.43.
+
+### Deferred
+- `GROUNDEDNESS_MIN` code write: blocked on Ruby confirmation of T=0.43.
+- ADR-020 completion and ADR-004 amendment: blocked on code write.
+- W3 re-gate (metric effect, retrieval effect, per-leader floor): blocked on threshold.
+- W3c per-leader floor: blocked on W3a/W3b; will address the q07 T, q14 T, q03 T mis-routing.
+- q20 KH OOD outlier: investigate whether the response scored high due to topical overlap between the OOD query and the retrieved chunks (retrieval artifact) vs genuine model failure.

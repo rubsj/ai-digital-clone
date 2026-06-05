@@ -185,7 +185,7 @@ def test_run_llm_parse_uses_temperature_zero():
 
 def test_run_propagates_flags():
     scores = Scores(0.4, 0.3, 0.5)
-    draft = _ReviewDraft(explanation="Weak grounding.", flags=["low_style", "low_groundedness"])
+    draft = _ReviewDraft(explanation="Weak grounding.")
     mock_scoring, kickoff_p, instr_p, _ = _patch_run(scores, "verdict", draft)
 
     with kickoff_p, instr_p:
@@ -193,7 +193,9 @@ def test_run_propagates_flags():
             "q", "r", _make_profile(), [_make_result()]
         )
 
-    assert result.flags == ["low_style", "low_groundedness"]
+    # ADR-017 RC-1: groundedness is the safety-critical flag and is emitted first.
+    # All three scores (style=0.4, groundedness=0.3, confidence=0.5) are below their floors.
+    assert result.flags == ["low_groundedness", "low_style", "low_confidence"]
 
 
 def test_run_result_has_no_final_score():
