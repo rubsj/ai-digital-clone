@@ -390,3 +390,140 @@ The train J=0.929 plateau being flat across a wide range ([0.276, 0.4368]) means
 - W3 re-gate (metric effect, retrieval effect, per-leader floor): blocked on threshold.
 - W3c per-leader floor: blocked on W3a/W3b; will address the q07 T, q14 T, q03 T mis-routing.
 - q20 KH OOD outlier: investigate whether the response scored high due to topical overlap between the OOD query and the retrieved chunks (retrieval artifact) vs genuine model failure.
+
+---
+
+## Phase W1b.2 CLOSEOUT — GROUNDEDNESS_MIN = 0.40 confirmed and landed
+
+### Built
+- `src/agents/evaluator_agent.py` — `GROUNDEDNESS_MIN` changed from 0.60 to **0.40**. WHY comment added: explains that 0.40 is the W1b.2-derived HHEM operating point, that the cosine-era 0.60 does not transfer (HHEM scores run lower, carrying 0.60 would route ~42% of oracle-grounded content to fallback), and that per-leader floor is deferred to W3c.
+- `docs/adr/ADR-004-groundedness-scoring-approach.md` — replaced wholesale with merged version. Status set to **Superseded**. Amendment block (cosine superseded by ADR-020, threshold change, residual-bias note, cosine-in-retrieval carve-out) folded directly into the body. The staging file `ADR-004-amendment-block.md` deleted by Ruby before this session; not committed.
+- `docs/adr/ADR-020-replace-cosine-with-local-entailment-scorer.md` — pre-updated by Ruby: status line now records `GROUNDEDNESS_MIN = 0.40 (W1b.2, confirmed 2026-06-04)`; Date field extended to record both decision date and threshold-confirmed date; Decision paragraph updated to say threshold confirmed (not pending); Quantified Validation now carries the full W1b.2 threshold-derivation paragraph (safety-asymmetric rule, train T=0.4368, operating point T=0.40, stability interval [0.38, 0.44], per-leader gap = 0.000 at T=0.40, sole OOD miss q20 KH).
+- `docs/adr/ADR-021-ship-known-biased-gate-compensate-at-floor.md` — pre-updated by Ruby: Decision now frames bias as regime-dependent ("zero per-leader deliver-rate gap at T=0.40 on held-equal queries, real misroutes on harder queries"); "small in magnitude" removed. Quantified Validation adds the threshold-relative perspective: the operational bias is zero at the confirmed operating point; the honest statement is regime-dependent, not "small."
+- `docs/adr/ADR-019-groundedness-measures-lexical-echo.md` — confirmed unchanged on disk (reinforcement note already present from the bake-off phase). Not included in the commit.
+- `results/w1b2_threshold_day14.json` and `scripts/w1b2_threshold_derivation.py` — added to repo.
+- Commit: `08b43da` on `feat/day14-hhem-scorer`.
+
+### Operating point
+Ruby confirmed **T=0.40**, not T=0.43 as proposed. Both sit in the stability interval [0.38, 0.44]. 0.40 is slightly more conservative (further from the train ceiling of 0.4368), and is a cleaner round number on HHEM's scale.
+
+### Architecture-honesty check (confirmed clean)
+- Single definition: `GROUNDEDNESS_MIN = 0.40` in `evaluator_agent.py`. Imported (not redefined) by `gatekeeper.py`.
+- No per-leader floor, no `final_score`, no weighted formula, no LLM routing number introduced.
+- Two stale `"target > 0.60"` strings remain in LLM prompt text (`evaluator_agent.py:111`, `evaluation/evaluator.py:46`) — display-only, no routing effect. Noted for a future production-code pass.
+
+### Surprising
+- ADR-020 and ADR-021 were already pre-updated on disk by Ruby before the session; the code write was the only production change. ADR-004-amendment-block.md (the staging file from the prior phase) had been deleted.
+- ADR-004 was also absent from disk — Ruby deleted both ADR-004 files (the original and the amendment-block staging file) and wanted a single merged file written fresh.
+
+### Deferred
+- W3 re-gate (W3a metric effect, W3b retrieval effect, W3c per-leader floor): next phase, unblocked.
+- W3c per-leader floor: addresses q07 T (HHEM=0.285), q14 T (HHEM=0.369), q03 T (HHEM=0.385) — three oracle-grounded Torvalds responses mis-routed at T=0.40 due to paraphrase bias.
+- q20 KH OOD outlier (HHEM=0.571, sole safety miss): investigate before W3b.
+- ADR-004 amendment sync to Notion (the Notion version was pushed to Notion earlier in the session from the pre-merged disk state; Notion ADR-004 page needs updating to the merged/Superseded version).
+- Stale prompt strings (`"target > 0.60"` in LLM prompts): independent cleanup, not a routing issue.
+
+---
+
+## Phase TEST-FIX-2 — Gatekeeper routing test stale fixes
+
+### Built
+- `tests/integration/test_gatekeeper.py` — 4 failing tests fixed + 2 vacuously-passing stale tests updated. No production code touched.
+
+**4 failing tests (hardcoded cosine-era scores 0.55/0.50 now above the 0.40 floor):**
+
+| Test | Old value | New value |
+|---|---|---|
+| `test_compute_flags_low_groundedness` | `0.55` | `GROUNDEDNESS_MIN - 0.10` |
+| `test_compute_flags_multiple` | gs=`0.50` | `GROUNDEDNESS_MIN - 0.10` |
+| `test_run_falls_back_when_groundedness_below_floor` | `0.55`, `"0.55" in reason` | `gs = GROUNDEDNESS_MIN - 0.10`, `f"{gs:.2f}" in reason` |
+| `test_run_fallback_low_groundedness_with_low_confidence` | `0.55` | `GROUNDEDNESS_MIN - 0.10` |
+
+**2 stale passing tests also updated:**
+
+| Test | Change |
+|---|---|
+| `test_compute_flags_at_floor_is_clear` | score `0.60` → `GROUNDEDNESS_MIN`; comment updated |
+| `test_run_delivers_when_groundedness_at_floor` | score `0.60` → `GROUNDEDNESS_MIN`; comment added |
+
+`test_run_fallback_low_groundedness_quality_flags_no_blocking` (score 0.55) was passing vacuously (as a deliver path) — also updated to `GROUNDEDNESS_MIN - 0.10` so it tests the fallback path it was designed for.
+
+**Import added:** `from src.agents.evaluator_agent import GROUNDEDNESS_MIN` — test values derived from the constant, not bare literals, so they cannot silently flip on future threshold changes.
+
+### Classification (all TEST-STALE)
+Identical in kind to the 7 TEST-STALE fixes in the prior phase: stale assertions against production code that had correctly moved ahead. Not INCOMPLETE, ARCH-VIOLATION, or LOGIC-CHANGED.
+
+### Coverage check
+- Below-floor → fallback path: all four fixed tests.
+- Above-floor → deliver path: `test_run_delivers_when_groundedness_at_floor` (exactly `GROUNDEDNESS_MIN`) and `test_run_delivers_when_groundedness_above_floor` (0.80). Both sides of the 0.40 floor are exercised.
+
+### Exit check
+- Suite: **501 passed, 1 failed, 37 skipped**. The 1 failure is `test_load_queries_canonical_file` — pre-existing missing data file (W4, out of scope). Zero new failures.
+- `GROUNDEDNESS_MIN = 0.40` at its single definition; no stale routing literal anywhere in `src/`.
+
+### Surprising
+- `test_run_fallback_low_groundedness_quality_flags_no_blocking` was passing even with score 0.55 because with the new threshold the test was exercising the deliver path (where `low_groundedness` is also not in `quality_flags`). The test was vacuously correct for the wrong reason.
+
+### Deferred
+- W3 re-gate: unblocked.
+
+---
+
+## Phase W3a — Metric effect, isolated (no-spend re-gate)
+
+### Built
+- The W3a metric-effect measurement: re-thresholded the frozen stored outputs under two scorers on identical inputs (cosine at GROUNDEDNESS_MIN 0.60, HHEM at 0.40), holding the duplicate-laden retrieval fixed. No generation, no re-retrieval, no paid call (both scorers' per-record scores already existed on the frozen inputs). Results in results/w3a_metric_effect_day14.json.
+- Re-scorability precondition passed for all groups: 84/84 in-domain and 12/12 OOD records carried candidate text plus exact top-5 chunks. Nothing deferred to W3b. Granularity is per-(query, leader) mean, matching W1b.2 and ADR-021 so the number feeds W3c on the same basis.
+
+### Why
+- The metric swap and the pending retrieval fix are separate causes; entangling them would feed the W3c floor a number containing a retrieval artifact it must not compensate. W3a isolates the metric by re-scoring frozen inputs, so the cosine-vs-HHEM routing-verdict diff is the metric effect alone.
+
+### Findings (the isolated metric effect, input to W3c)
+- 10 of 28 verdicts flip on the swap. 9 flip fallback to deliver (cosine was over-conservative against synthesized prose, every flip lands on an oracle-deliver-worthy record); 1 flips deliver to fallback, q09 KH, a genuinely ungrounded response (oracle 0.198) that cosine's lexical echo had passed. The metric tightened where it should and loosened where the oracle agrees.
+- Deliver rate: Torvalds 28.6% to 64.3%, KH 57.1% to 78.6%. Under HHEM both leaders clear both the ADR-015 per-leader floors (Torvalds 42.9%, KH 35.7%) and the PRD 2.1 bars (E2 55%, E1 39%), on the still-buggy retrieval, before W3b.
+- KH-over-Torvalds direction narrows from a perfectly systematic 14/14 under cosine to 10/14 under HHEM. The residual is the ADR-021 paraphrase lean, now at score level only; it is the bias W3c compensates.
+- Regression anchors q12, q13: both fell back under cosine (3 of 4 cells), both deliver under HHEM, matching the oracle (both deliver-worthy). Anchors move the right way.
+
+### Surprising
+- Torvalds clears the 42.9% ADR-015 floor at 64.3% on the corrected metric before any retrieval fix. The floor this whole investigation was triggered by is cleared once the broken metric is replaced. The original "Torvalds groundedness deficit" was a measurement artifact, not a generation deficit. This confirms the Day-13 verdict at the routing level.
+- The OOD bar broke at one cell (q20 KH), see the flagged finding below.
+
+### Deferred / flagged finding — OOD defense gap (NOT a retrieval-workstream item)
+- q20 KH (an off-topic microcontroller-selection query) delivered under HHEM at 0.571, breaching the PRD 2.1 OOD-fallback=100% bar. The category-5 read on the delivered text: NOT a fabrication. It invents no false facts and faithfully paraphrases the retrieved chunks, which happened to contain topically-adjacent in-corpus sensor/microcontroller prose. Benign in content.
+- The mechanism is the important part. Groundedness measures response-versus-chunks support; it never sees the query. On an OOD query where retrieval surfaces topically-adjacent chunks, a faithful paraphrase of those wrong chunks scores HIGH, so the groundedness gate certifies it. Two failures compound: retrieval surfaces plausible chunks, and groundedness then certifies faithfulness-to-the-wrong-chunks. Groundedness alone cannot catch this class of OOD by construction.
+- This is an architectural limit of using groundedness as the sole OOD defense, and it predates HHEM. Cosine scored 12/12 OOD-fallback here by accident (its lexical-echo bias happened to push q20 KH below 0.60); HHEM scores the faithful paraphrase honestly at 0.571 and thereby exposes the gap cosine was masking. HHEM is not worse here; it is more honest.
+- NOT dedup-fixable: q20 is not in the dedup set (q03/q07/q09/q10/q11/q14), and even perfect dedup leaves the compound failure intact, since one plausible on-topic-looking chunk is enough. So this is explicitly not a W3b retrieval item.
+- Candidate remedy (surface, not decided): a query-relevance signal at the gate, distinct from groundedness, so the router can catch "answer is faithful to chunks that should not have been retrieved for this query." Disposition deferred to Ruby. Not a today ship-blocker (benign content), but a real OOD-containment gap to track.
+
+### ADR candidate
+- OOD defense gap: groundedness cannot catch topically-adjacent OOD; consider a query-relevance gate signal separate from groundedness. Flagged, not written; disposition is Ruby's.
+
+### Scope
+- No generation, no re-retrieval, no W2 fix, no floor change, GROUNDEDNESS_MIN untouched at 0.40, no ADR edits.
+
+---
+
+## Phase W2 — Retrieval dedup fix (fix-point A, dedup before rerank)
+
+### Built
+- A dedup step in Retriever.run between retrieve() and rerank_with_status: removes duplicate-content candidates from the FAISS pool before Cohere rerank, keeping the highest-scored copy (FAISS returns descending order, so keep first; deterministic tie-break). ~9 lines, rerank_with_status untouched, top_n_initial/top_n_final unchanged. Two zero-network unit tests: dedup removes duplicates order-preserving keeping the higher-scored copy, and is a no-op on already-distinct input.
+
+### Why
+- 6 of 14 in-domain queries returned the same passage 2-3 times in the top-5, cutting effective context to 2-4 distinct passages and depressing groundedness on those queries. Fixed at the retrieval layer, not the generation layer; a generation-side workaround would paper over a retrieval defect.
+- Fix-point A (before rerank) over B (after rerank) because HHEM V0 is max-over-chunks: B would shrink the max pool to 2-4 for affected queries, scoring them on fewer chunks than every other query, trading the context defect for an uneven-scoring defect. A backfills distinct passages from the 20-slot pool, keeping effective-k=5 across all queries, and gives Cohere a clean pool to pick the best 5 from.
+
+### Verified (zero paid spend)
+- All 6 affected queries: deduped pool fully distinct and 12+ entries, so Cohere's top-5 is 5 distinct passages by construction (no Cohere call needed to verify). 8 unaffected queries: no-op, effective-k stays 5. Suite green except the known unrelated test_load_queries_canonical_file.
+
+### Surprising
+- The duplication is pervasive, not confined to the 6 visibly-broken queries: 6 of the 8 "unaffected" queries also carry duplicate-content entries in their FAISS top-20; they just never had a duplicate win a final top-5 slot. So the retrieval-time dedup now protects every query, and the root cause is clearly index-wide.
+
+### Deferred finding — corpus-level duplication (root cause, masked not fixed)
+- The dedup bug's root cause is 857 duplicate-content entries in the persisted FAISS index (6,713 metadata entries for 5,856 unique strings), baked in at build time, not produced at query time. Fix-point A dedups at retrieval time, which fully corrects the gate behavior W3b measures, but it is a mask: the index still carries 857 redundant entries, the dedup invariant lives only in Retriever.run() so any caller reading metadata.json directly still sees duplicates, and every query searches a 6,713-entry index that should be 5,856. The duplication is pervasive (reaches 6 of the 8 "unaffected" queries' candidate pools too). The proper fix is a deduped index rebuild and re-embed, deferred out of the Day-14 sprint as heavier and not required for the gate. The build producing redundant entries (likely overlapping chunk windows or re-indexed documents) is plausibly a cross-project P5/RAG-pipeline data-quality issue worth checking there too. Tracked, not scoped today.
+
+### ADR candidate
+- ADR-002 amendment note (top-20 to up to 20 distinct): authored and landed this phase.
+- Corpus-level dedup rebuild: deferred; possible cross-project P5 data-quality issue.
+
+### Scope
+- Retriever.run plus one test file only. rerank_with_status untouched. No metric/floor/ADR-body change beyond the ADR-002 amendment note. Zero paid calls.

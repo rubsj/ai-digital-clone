@@ -1,0 +1,499 @@
+{
+  "run": "w3a_metric_effect_day14",
+  "date": "2026-06-04",
+  "api_calls": 0,
+  "granularity": "per-(query,leader) means; cosine averaged over 3 passes, HHEM per-query means reused from bakeoff",
+  "thresholds": {
+    "cosine": 0.6,
+    "hhem": 0.4
+  },
+  "router": "deterministic ADR-018: deliver iff chunks>0 and groundedness>=threshold (only low_groundedness blocks)",
+  "indomain": [
+    {
+      "qid": "q01",
+      "leader": "torvalds",
+      "cosine_mean": 0.5218724980950356,
+      "hhem": 0.4389,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.8123
+    },
+    {
+      "qid": "q01",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5825661031736268,
+      "hhem": 0.5491,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.8056
+    },
+    {
+      "qid": "q02",
+      "leader": "torvalds",
+      "cosine_mean": 0.659690720221353,
+      "hhem": 0.7868,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 1.0
+    },
+    {
+      "qid": "q02",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.7243148930489071,
+      "hhem": 0.804,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 1.0
+    },
+    {
+      "qid": "q03",
+      "leader": "torvalds",
+      "cosine_mean": 0.5547183848917484,
+      "hhem": 0.3848,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.6417
+    },
+    {
+      "qid": "q03",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5970278441002875,
+      "hhem": 0.4813,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.7955
+    },
+    {
+      "qid": "q04",
+      "leader": "torvalds",
+      "cosine_mean": 0.5808333147849355,
+      "hhem": 0.6268,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.8155
+    },
+    {
+      "qid": "q04",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.611697983174097,
+      "hhem": 0.5641,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.8571
+    },
+    {
+      "qid": "q05",
+      "leader": "torvalds",
+      "cosine_mean": 0.517930155661371,
+      "hhem": 0.2506,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.3519
+    },
+    {
+      "qid": "q05",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5601050588819716,
+      "hhem": 0.2755,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.3333
+    },
+    {
+      "qid": "q06",
+      "leader": "torvalds",
+      "cosine_mean": 0.6126372902481645,
+      "hhem": 0.6098,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.963
+    },
+    {
+      "qid": "q06",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.696536867706864,
+      "hhem": 0.743,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.9444
+    },
+    {
+      "qid": "q07",
+      "leader": "torvalds",
+      "cosine_mean": 0.5529694719013398,
+      "hhem": 0.2852,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.5364
+    },
+    {
+      "qid": "q07",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5748764331496897,
+      "hhem": 0.2524,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.4464
+    },
+    {
+      "qid": "q08",
+      "leader": "torvalds",
+      "cosine_mean": 0.6560491840245346,
+      "hhem": 0.7265,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.8586
+    },
+    {
+      "qid": "q08",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.6629987401266892,
+      "hhem": 0.7214,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.8
+    },
+    {
+      "qid": "q09",
+      "leader": "torvalds",
+      "cosine_mean": 0.569694089392821,
+      "hhem": 0.3778,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.4048
+    },
+    {
+      "qid": "q09",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.6371876065220151,
+      "hhem": 0.3426,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "fallback",
+      "flip": true,
+      "oracle_gf": 0.1984
+    },
+    {
+      "qid": "q10",
+      "leader": "torvalds",
+      "cosine_mean": 0.5441698972135782,
+      "hhem": 0.5528,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.888
+    },
+    {
+      "qid": "q10",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5989786958883679,
+      "hhem": 0.6004,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.6944
+    },
+    {
+      "qid": "q11",
+      "leader": "torvalds",
+      "cosine_mean": 0.6425903631108147,
+      "hhem": 0.5994,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.6488
+    },
+    {
+      "qid": "q11",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.658846064140557,
+      "hhem": 0.7245,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.7474
+    },
+    {
+      "qid": "q12",
+      "leader": "torvalds",
+      "cosine_mean": 0.5528626660151141,
+      "hhem": 0.4368,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.6071
+    },
+    {
+      "qid": "q12",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.5657509764035543,
+      "hhem": 0.4615,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.6528
+    },
+    {
+      "qid": "q13",
+      "leader": "torvalds",
+      "cosine_mean": 0.575350411078602,
+      "hhem": 0.6175,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver",
+      "flip": true,
+      "oracle_gf": 0.8631
+    },
+    {
+      "qid": "q13",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.60741391322679,
+      "hhem": 0.663,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.8611
+    },
+    {
+      "qid": "q14",
+      "leader": "torvalds",
+      "cosine_mean": 0.5790559783026024,
+      "hhem": 0.3687,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback",
+      "flip": false,
+      "oracle_gf": 0.7343
+    },
+    {
+      "qid": "q14",
+      "leader": "kroah_hartman",
+      "cosine_mean": 0.6231115828391421,
+      "hhem": 0.4414,
+      "verdict_cosine": "deliver",
+      "verdict_hhem": "deliver",
+      "flip": false,
+      "oracle_gf": 0.621
+    }
+  ],
+  "indomain_grid": {
+    "cosine": {
+      "torvalds": {
+        "deliver": 4,
+        "fallback": 10
+      },
+      "kroah_hartman": {
+        "deliver": 8,
+        "fallback": 6
+      }
+    },
+    "hhem": {
+      "torvalds": {
+        "deliver": 9,
+        "fallback": 5
+      },
+      "kroah_hartman": {
+        "deliver": 11,
+        "fallback": 3
+      }
+    }
+  },
+  "routing_verdict_diff": [
+    {
+      "qid": "q01",
+      "leader": "torvalds",
+      "cosine": 0.5218724980950356,
+      "hhem": 0.4389,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q01",
+      "leader": "kroah_hartman",
+      "cosine": 0.5825661031736268,
+      "hhem": 0.5491,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q03",
+      "leader": "kroah_hartman",
+      "cosine": 0.5970278441002875,
+      "hhem": 0.4813,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q04",
+      "leader": "torvalds",
+      "cosine": 0.5808333147849355,
+      "hhem": 0.6268,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q09",
+      "leader": "kroah_hartman",
+      "cosine": 0.6371876065220151,
+      "hhem": 0.3426,
+      "from_": "deliver",
+      "to": "fallback"
+    },
+    {
+      "qid": "q10",
+      "leader": "torvalds",
+      "cosine": 0.5441698972135782,
+      "hhem": 0.5528,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q10",
+      "leader": "kroah_hartman",
+      "cosine": 0.5989786958883679,
+      "hhem": 0.6004,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q12",
+      "leader": "torvalds",
+      "cosine": 0.5528626660151141,
+      "hhem": 0.4368,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q12",
+      "leader": "kroah_hartman",
+      "cosine": 0.5657509764035543,
+      "hhem": 0.4615,
+      "from_": "fallback",
+      "to": "deliver"
+    },
+    {
+      "qid": "q13",
+      "leader": "torvalds",
+      "cosine": 0.575350411078602,
+      "hhem": 0.6175,
+      "from_": "fallback",
+      "to": "deliver"
+    }
+  ],
+  "ood": [
+    {
+      "qid": "q15",
+      "leader": "torvalds",
+      "cosine": 0.4488667462553297,
+      "hhem": 0.2014,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q15",
+      "leader": "kroah_hartman",
+      "cosine": 0.46285054087638855,
+      "hhem": 0.1842,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q16",
+      "leader": "torvalds",
+      "cosine": 0.39579977095127106,
+      "hhem": 0.0384,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q16",
+      "leader": "kroah_hartman",
+      "cosine": 0.4070512155691783,
+      "hhem": 0.0245,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q17",
+      "leader": "torvalds",
+      "cosine": 0.46267291052000864,
+      "hhem": 0.0431,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q17",
+      "leader": "kroah_hartman",
+      "cosine": 0.46989187970757484,
+      "hhem": 0.0416,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q18",
+      "leader": "torvalds",
+      "cosine": 0.3409719206392765,
+      "hhem": 0.037,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q18",
+      "leader": "kroah_hartman",
+      "cosine": 0.33403686434030533,
+      "hhem": 0.0207,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q19",
+      "leader": "torvalds",
+      "cosine": 0.3986046016216278,
+      "hhem": 0.1404,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q19",
+      "leader": "kroah_hartman",
+      "cosine": 0.4517844058573246,
+      "hhem": 0.0922,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q20",
+      "leader": "torvalds",
+      "cosine": 0.43743427910588006,
+      "hhem": 0.2683,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "fallback"
+    },
+    {
+      "qid": "q20",
+      "leader": "kroah_hartman",
+      "cosine": 0.49385357797145846,
+      "hhem": 0.5707,
+      "verdict_cosine": "fallback",
+      "verdict_hhem": "deliver"
+    }
+  ],
+  "ood_fallback": {
+    "cosine": "12/12",
+    "hhem": "11/12"
+  }
+}
