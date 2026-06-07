@@ -738,3 +738,19 @@ Both leaders clear PRD §2.1 E2 ≥ 55% and E1 ≥ 39% on either counting method
 ### Deferred
 - W5: architecture diagram (Mermaid, `docs/architecture/`).
 - W6: §2.10 results-chart regeneration (gated on W3+W4b).
+
+---
+
+## Day 14 — CLOSED (2026-06-04 to 2026-06-06)
+
+Day 14 is complete. Three calendar days, one defect chased to ground and the system rebuilt around what it exposed.
+
+**What it was:** a reported Torvalds groundedness deficit (28.6% vs a 42.9% floor) turned out to be a measurement artifact. The cosine metric measured lexical echo, not containment, and punished the clone that paraphrased. Fixing the metric (HHEM entailment at GROUNDEDNESS_MIN 0.40), not the clone, lifted Torvalds to 64.3%.
+
+**Delivered:** metric replacement (ADR-019/020, HHEM vendored), threshold derivation (0.40, safety-asymmetric), bias disposition (ADR-021 Door C, regime-dependent), retrieval dedup (W2, ADR-002 amended), re-gate (W3a/W3b/W3c), v1 residue cleanup (W4a-d: evaluator.py and rag_agent.py retired, cli/visualization/streamlit refactored, prompt strings fixed), ADR reconciliation (8 ADRs on disk + Notion), 5 phase journals + 1 capstone. Suite green: 532 passed, 0 failed.
+
+**Carried to Day 15 (deferred findings, see handover):** corpus-level index duplication (rebuild needed), OOD-defense gap (q20, query-relevance signal candidate), per-query paraphrase misroute (q07, accepted limitation), Wrap-time PRD reconciliation, prompt-vs-constant drift audit.
+
+**Day 15 is presentation, not fix:** archive results/ first, then a full multi-pass run on the fixed system (14x2x3, reported as a distribution, real spend), then charts (W6) and the architecture diagram (W5) from that canonical file, then README. A single run will not reproduce W3a's numbers (temp=0.3 is stochastic); that is variance, not regression.
+
+---
