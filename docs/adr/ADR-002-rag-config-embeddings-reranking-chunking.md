@@ -79,3 +79,15 @@ The Cohere dependency at query time is the main operational risk. A Cohere outag
 Embedding vectors are cached as MD5-keyed JSON files at `data/cache/embeddings_openai.json` and `data/cache/embeddings_minilm.json`. The cache grows unboundedly. For the 755K-chunk full corpus at 1536 floats per vector, that's ~4.6GB. At Day 3 scope (20-doc dev samples) JSON is fine. A key-value store like Redis or SQLite blobs would be the next step if I index the full corpus.
 
 The MiniLM baseline stays as `provider="minilm"` in `embed_chunks()` and `embed_query()` for offline development and A/B experiments down the line.
+
+---
+
+## Amendment (2026-06-04): retrieval-time dedup before rerank (W2)
+
+The Retriever now deduplicates the FAISS candidate pool by chunk content before passing it to Cohere rerank. This changes one literal in the Decision above: Cohere reranks **up to 20 distinct** FAISS candidates, not "the top-20 FAISS candidates," because duplicate-content entries are removed from the pool first. `top_n_initial` (20) and `top_n_final` (5) are unchanged; only the pool fed to rerank is deduped, and `rerank_with_status` is untouched.
+
+Why: 6 of 14 in-domain queries were returning the same passage 2-3 times in the top-5, cutting effective context to 2-4 distinct passages and depressing groundedness on those queries. Dedup-before-rerank restores effective-k to 5 for every query (the deduped pool holds 12 or more distinct entries, well above `top_n_final`) and lets Cohere select the best 5 from a clean, fully-distinct pool, which is what the original ADR-002 intent already wanted.
+
+Root cause is corpus-level and is not fixed here: the persisted FAISS index carries 857 duplicate-content entries (6,713 metadata entries for 5,856 unique strings), baked in at build time. The duplication is pervasive, reaching the candidate pools of 6 of the 8 previously-"unaffected" queries too; those simply never had a duplicate win a top-5 slot. The retrieval-time dedup masks this for every query but does not remove it. The proper fix is a deduped index rebuild and re-embed, deferred out of the Day-14 sprint and tracked as a likely cross-project P5 data-quality issue. The dedup invariant currently lives only in `Retriever.run`, so a caller reading the index directly still sees duplicates.
+
+Relates: W2 (Day 14).

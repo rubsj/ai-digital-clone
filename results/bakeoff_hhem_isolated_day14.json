@@ -1,0 +1,226 @@
+{
+  "run": "hhem_isolated_env_day14",
+  "date": "2026-06-03",
+  "api_calls": 0,
+  "model_id": "vectara/hallucination_evaluation_model",
+  "model_class": "HHEMv2ForSequenceClassification",
+  "foundation": "google/flan-t5-base",
+  "params_M": 110,
+  "transformers_version": "4.44.2",
+  "device": "mps",
+  "tokenizer_note": "Uses model.predict() with internal flan-t5-base tokenizer and prompt template",
+  "gates": {
+    "model": "hhem_2_1_open",
+    "gate1": {
+      "mean_abs_diff": 0.0597,
+      "threshold": 0.05,
+      "lean_counts": {
+        "torvalds": 1,
+        "kroah_hartman": 6
+      },
+      "systematic_lean": false,
+      "pass": false,
+      "per_query": {
+        "q05": {
+          "t": 0.2506,
+          "kh": 0.2755,
+          "diff": 0.0249,
+          "leans": "kroah_hartman"
+        },
+        "q04": {
+          "t": 0.6268,
+          "kh": 0.5641,
+          "diff": 0.0626,
+          "leans": "torvalds"
+        },
+        "q13": {
+          "t": 0.6175,
+          "kh": 0.663,
+          "diff": 0.0454,
+          "leans": "kroah_hartman"
+        },
+        "q12": {
+          "t": 0.4368,
+          "kh": 0.4615,
+          "diff": 0.0247,
+          "leans": "kroah_hartman"
+        },
+        "q02": {
+          "t": 0.7868,
+          "kh": 0.804,
+          "diff": 0.0172,
+          "leans": "kroah_hartman"
+        },
+        "q01": {
+          "t": 0.4389,
+          "kh": 0.5491,
+          "diff": 0.1102,
+          "leans": "kroah_hartman"
+        },
+        "q06": {
+          "t": 0.6098,
+          "kh": 0.743,
+          "diff": 0.1332,
+          "leans": "kroah_hartman"
+        }
+      }
+    },
+    "gate2": {
+      "agreements": 6,
+      "of": 14,
+      "threshold": 12,
+      "pass": false,
+      "per_query": {
+        "q01": {
+          "model_t": 0.4389,
+          "model_kh": 0.5491,
+          "oracle_t_gf": 0.8123,
+          "oracle_kh_gf": 0.8056,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q02": {
+          "model_t": 0.7868,
+          "model_kh": 0.804,
+          "oracle_t_gf": 1.0,
+          "oracle_kh_gf": 1.0,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q03": {
+          "model_t": 0.3848,
+          "model_kh": 0.4813,
+          "oracle_t_gf": 0.6417,
+          "oracle_kh_gf": 0.7955,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q04": {
+          "model_t": 0.6268,
+          "model_kh": 0.5641,
+          "oracle_t_gf": 0.8155,
+          "oracle_kh_gf": 0.8571,
+          "model_t_wins": true,
+          "oracle_t_wins": false,
+          "agree": false
+        },
+        "q05": {
+          "model_t": 0.2506,
+          "model_kh": 0.2755,
+          "oracle_t_gf": 0.3519,
+          "oracle_kh_gf": 0.3333,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q06": {
+          "model_t": 0.6098,
+          "model_kh": 0.743,
+          "oracle_t_gf": 0.963,
+          "oracle_kh_gf": 0.9444,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q07": {
+          "model_t": 0.2852,
+          "model_kh": 0.2524,
+          "oracle_t_gf": 0.5364,
+          "oracle_kh_gf": 0.4464,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q08": {
+          "model_t": 0.7265,
+          "model_kh": 0.7214,
+          "oracle_t_gf": 0.8586,
+          "oracle_kh_gf": 0.8,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q09": {
+          "model_t": 0.3778,
+          "model_kh": 0.3426,
+          "oracle_t_gf": 0.4048,
+          "oracle_kh_gf": 0.1984,
+          "model_t_wins": true,
+          "oracle_t_wins": true,
+          "agree": true
+        },
+        "q10": {
+          "model_t": 0.5528,
+          "model_kh": 0.6004,
+          "oracle_t_gf": 0.888,
+          "oracle_kh_gf": 0.6944,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q11": {
+          "model_t": 0.5994,
+          "model_kh": 0.7245,
+          "oracle_t_gf": 0.6488,
+          "oracle_kh_gf": 0.7474,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q12": {
+          "model_t": 0.4368,
+          "model_kh": 0.4615,
+          "oracle_t_gf": 0.6071,
+          "oracle_kh_gf": 0.6528,
+          "model_t_wins": false,
+          "oracle_t_wins": false,
+          "agree": true
+        },
+        "q13": {
+          "model_t": 0.6175,
+          "model_kh": 0.663,
+          "oracle_t_gf": 0.8631,
+          "oracle_kh_gf": 0.8611,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        },
+        "q14": {
+          "model_t": 0.3687,
+          "model_kh": 0.4414,
+          "oracle_t_gf": 0.7343,
+          "oracle_kh_gf": 0.621,
+          "model_t_wins": false,
+          "oracle_t_wins": true,
+          "agree": false
+        }
+      }
+    },
+    "gate3": {
+      "pearson_r": 0.1744,
+      "abs_r": 0.1744,
+      "p_value": 0.1125,
+      "threshold_abs_r": 0.2,
+      "pass": true
+    },
+    "gate4": {
+      "auc": 0.9415,
+      "threshold_auc": 0.85,
+      "all_ood_below_grounded_min": false,
+      "in_domain_min": 0.1794,
+      "ood_max": 0.5707,
+      "pass": true
+    },
+    "tiebreak_sentence_auc": 0.8576,
+    "all_gates_pass": false
+  },
+  "locked_criterion": {
+    "gate1": "mean |score_T - score_KH| <= 0.05 on 7 held-equal queries, no systematic lean",
+    "gate2": "per-query T-vs-KH direction agrees with oracle on >= 12/14",
+    "gate3": "|r(score, length)| <= 0.20 and p > 0.05",
+    "gate4": "grounded-vs-OOD AUC >= 0.85, or every OOD below grounded minimum"
+  }
+}

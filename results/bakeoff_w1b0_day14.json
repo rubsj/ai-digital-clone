@@ -1,0 +1,451 @@
+{
+  "run": "W1b0_bakeoff_day14",
+  "date": "2026-06-03",
+  "api_calls": 0,
+  "locked_criterion": {
+    "gate1": "mean |score_T - score_KH| <= 0.05 on 7 held-equal queries, no systematic lean",
+    "gate2": "per-query T-vs-KH direction agrees with oracle on >= 12/14",
+    "gate3": "|r(score, length)| <= 0.20 and p > 0.05",
+    "gate4": "grounded-vs-OOD AUC >= 0.85, or every OOD below grounded minimum",
+    "tiebreak": "highest sentence-level AUC vs oracle labels (grounded=1, other=0)"
+  },
+  "held_equal_queries": [
+    "q01",
+    "q02",
+    "q04",
+    "q05",
+    "q06",
+    "q12",
+    "q13"
+  ],
+  "model_ids": {
+    "deberta_v3_nli": "cross-encoder/nli-deberta-v3-base",
+    "hhem_2_1_open": "vectara/hallucination_evaluation_model",
+    "minicheck_flan_t5_large": "lytang/MiniCheck-Flan-T5-Large"
+  },
+  "gates": [
+    {
+      "model": "deberta_v3_nli",
+      "gate1": {
+        "mean_abs_diff": 0.0841,
+        "threshold": 0.05,
+        "lean_counts": {
+          "torvalds": 1,
+          "kroah_hartman": 6
+        },
+        "systematic_lean": false,
+        "pass": false,
+        "per_query": {
+          "q05": {
+            "t": 0.001,
+            "kh": 0.0008,
+            "diff": 0.0002,
+            "leans": "torvalds"
+          },
+          "q12": {
+            "t": 0.1329,
+            "kh": 0.1522,
+            "diff": 0.0193,
+            "leans": "kroah_hartman"
+          },
+          "q06": {
+            "t": 0.6011,
+            "kh": 0.6189,
+            "diff": 0.0178,
+            "leans": "kroah_hartman"
+          },
+          "q02": {
+            "t": 0.3637,
+            "kh": 0.5629,
+            "diff": 0.1993,
+            "leans": "kroah_hartman"
+          },
+          "q01": {
+            "t": 0.1329,
+            "kh": 0.2931,
+            "diff": 0.1602,
+            "leans": "kroah_hartman"
+          },
+          "q04": {
+            "t": 0.1862,
+            "kh": 0.2835,
+            "diff": 0.0972,
+            "leans": "kroah_hartman"
+          },
+          "q13": {
+            "t": 0.3291,
+            "kh": 0.4238,
+            "diff": 0.0947,
+            "leans": "kroah_hartman"
+          }
+        }
+      },
+      "gate2": {
+        "agreements": 8,
+        "of": 14,
+        "threshold": 12,
+        "pass": false,
+        "per_query": {
+          "q01": {
+            "model_t": 0.1329,
+            "model_kh": 0.2931,
+            "oracle_t_gf": 0.8123,
+            "oracle_kh_gf": 0.8056,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q02": {
+            "model_t": 0.3637,
+            "model_kh": 0.5629,
+            "oracle_t_gf": 1.0,
+            "oracle_kh_gf": 1.0,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q03": {
+            "model_t": 0.0759,
+            "model_kh": 0.2123,
+            "oracle_t_gf": 0.6417,
+            "oracle_kh_gf": 0.7955,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q04": {
+            "model_t": 0.1862,
+            "model_kh": 0.2835,
+            "oracle_t_gf": 0.8155,
+            "oracle_kh_gf": 0.8571,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q05": {
+            "model_t": 0.001,
+            "model_kh": 0.0008,
+            "oracle_t_gf": 0.3519,
+            "oracle_kh_gf": 0.3333,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          },
+          "q06": {
+            "model_t": 0.6011,
+            "model_kh": 0.6189,
+            "oracle_t_gf": 0.963,
+            "oracle_kh_gf": 0.9444,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q07": {
+            "model_t": 0.1304,
+            "model_kh": 0.0344,
+            "oracle_t_gf": 0.5364,
+            "oracle_kh_gf": 0.4464,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          },
+          "q08": {
+            "model_t": 0.4946,
+            "model_kh": 0.6331,
+            "oracle_t_gf": 0.8586,
+            "oracle_kh_gf": 0.8,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q09": {
+            "model_t": 0.1847,
+            "model_kh": 0.1502,
+            "oracle_t_gf": 0.4048,
+            "oracle_kh_gf": 0.1984,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          },
+          "q10": {
+            "model_t": 0.2508,
+            "model_kh": 0.3881,
+            "oracle_t_gf": 0.888,
+            "oracle_kh_gf": 0.6944,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q11": {
+            "model_t": 0.2157,
+            "model_kh": 0.3695,
+            "oracle_t_gf": 0.6488,
+            "oracle_kh_gf": 0.7474,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q12": {
+            "model_t": 0.1329,
+            "model_kh": 0.1522,
+            "oracle_t_gf": 0.6071,
+            "oracle_kh_gf": 0.6528,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q13": {
+            "model_t": 0.3291,
+            "model_kh": 0.4238,
+            "oracle_t_gf": 0.8631,
+            "oracle_kh_gf": 0.8611,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q14": {
+            "model_t": 0.1851,
+            "model_kh": 0.1724,
+            "oracle_t_gf": 0.7343,
+            "oracle_kh_gf": 0.621,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          }
+        }
+      },
+      "gate3": {
+        "pearson_r": 0.3068,
+        "abs_r": 0.3068,
+        "p_value": 0.0045,
+        "threshold_abs_r": 0.2,
+        "pass": false
+      },
+      "gate4": {
+        "auc": 0.875,
+        "threshold_auc": 0.85,
+        "all_ood_below_grounded_min": false,
+        "in_domain_min": 0.0004,
+        "ood_max": 0.3029,
+        "pass": true
+      },
+      "tiebreak_sentence_auc": 0.8001,
+      "tiebreak_sent_count": 691,
+      "all_gates_pass": false
+    },
+    {
+      "model": "minicheck_flan_t5_large",
+      "gate1": {
+        "mean_abs_diff": 0.0565,
+        "threshold": 0.05,
+        "lean_counts": {
+          "torvalds": 0,
+          "kroah_hartman": 7
+        },
+        "systematic_lean": true,
+        "pass": false,
+        "per_query": {
+          "q05": {
+            "t": 0.3423,
+            "kh": 0.4561,
+            "diff": 0.1138,
+            "leans": "kroah_hartman"
+          },
+          "q12": {
+            "t": 0.4707,
+            "kh": 0.4891,
+            "diff": 0.0185,
+            "leans": "kroah_hartman"
+          },
+          "q06": {
+            "t": 0.7393,
+            "kh": 0.7619,
+            "diff": 0.0226,
+            "leans": "kroah_hartman"
+          },
+          "q02": {
+            "t": 0.5901,
+            "kh": 0.5937,
+            "diff": 0.0037,
+            "leans": "kroah_hartman"
+          },
+          "q01": {
+            "t": 0.3826,
+            "kh": 0.435,
+            "diff": 0.0523,
+            "leans": "kroah_hartman"
+          },
+          "q04": {
+            "t": 0.5643,
+            "kh": 0.6462,
+            "diff": 0.082,
+            "leans": "kroah_hartman"
+          },
+          "q13": {
+            "t": 0.5069,
+            "kh": 0.6096,
+            "diff": 0.1026,
+            "leans": "kroah_hartman"
+          }
+        }
+      },
+      "gate2": {
+        "agreements": 6,
+        "of": 14,
+        "threshold": 12,
+        "pass": false,
+        "per_query": {
+          "q01": {
+            "model_t": 0.3826,
+            "model_kh": 0.435,
+            "oracle_t_gf": 0.8123,
+            "oracle_kh_gf": 0.8056,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q02": {
+            "model_t": 0.5901,
+            "model_kh": 0.5937,
+            "oracle_t_gf": 1.0,
+            "oracle_kh_gf": 1.0,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q03": {
+            "model_t": 0.5567,
+            "model_kh": 0.5407,
+            "oracle_t_gf": 0.6417,
+            "oracle_kh_gf": 0.7955,
+            "model_t_wins": true,
+            "oracle_t_wins": false,
+            "agree": false
+          },
+          "q04": {
+            "model_t": 0.5643,
+            "model_kh": 0.6462,
+            "oracle_t_gf": 0.8155,
+            "oracle_kh_gf": 0.8571,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q05": {
+            "model_t": 0.3423,
+            "model_kh": 0.4561,
+            "oracle_t_gf": 0.3519,
+            "oracle_kh_gf": 0.3333,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q06": {
+            "model_t": 0.7393,
+            "model_kh": 0.7619,
+            "oracle_t_gf": 0.963,
+            "oracle_kh_gf": 0.9444,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q07": {
+            "model_t": 0.2722,
+            "model_kh": 0.2044,
+            "oracle_t_gf": 0.5364,
+            "oracle_kh_gf": 0.4464,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          },
+          "q08": {
+            "model_t": 0.6133,
+            "model_kh": 0.7265,
+            "oracle_t_gf": 0.8586,
+            "oracle_kh_gf": 0.8,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q09": {
+            "model_t": 0.3064,
+            "model_kh": 0.2691,
+            "oracle_t_gf": 0.4048,
+            "oracle_kh_gf": 0.1984,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          },
+          "q10": {
+            "model_t": 0.633,
+            "model_kh": 0.6663,
+            "oracle_t_gf": 0.888,
+            "oracle_kh_gf": 0.6944,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q11": {
+            "model_t": 0.3907,
+            "model_kh": 0.5011,
+            "oracle_t_gf": 0.6488,
+            "oracle_kh_gf": 0.7474,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q12": {
+            "model_t": 0.4707,
+            "model_kh": 0.4891,
+            "oracle_t_gf": 0.6071,
+            "oracle_kh_gf": 0.6528,
+            "model_t_wins": false,
+            "oracle_t_wins": false,
+            "agree": true
+          },
+          "q13": {
+            "model_t": 0.5069,
+            "model_kh": 0.6096,
+            "oracle_t_gf": 0.8631,
+            "oracle_kh_gf": 0.8611,
+            "model_t_wins": false,
+            "oracle_t_wins": true,
+            "agree": false
+          },
+          "q14": {
+            "model_t": 0.4903,
+            "model_kh": 0.4345,
+            "oracle_t_gf": 0.7343,
+            "oracle_kh_gf": 0.621,
+            "model_t_wins": true,
+            "oracle_t_wins": true,
+            "agree": true
+          }
+        }
+      },
+      "gate3": {
+        "pearson_r": 0.0522,
+        "abs_r": 0.0522,
+        "p_value": 0.6372,
+        "threshold_abs_r": 0.2,
+        "pass": true
+      },
+      "gate4": {
+        "auc": 0.9395,
+        "threshold_auc": 0.85,
+        "all_ood_below_grounded_min": false,
+        "in_domain_min": 0.1507,
+        "ood_max": 0.428,
+        "pass": true
+      },
+      "tiebreak_sentence_auc": 0.8264,
+      "tiebreak_sent_count": 691,
+      "all_gates_pass": false
+    }
+  ],
+  "load_or_scoring_errors": {
+    "hhem_2_1_open": "'HHEMv2ForSequenceClassification' object has no attribute 'all_tied_weights_keys'"
+  },
+  "winner": null,
+  "winner_reason": "none_clears"
+}

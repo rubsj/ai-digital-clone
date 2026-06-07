@@ -1,14 +1,14 @@
 """ScoringEngine Component: three deterministic quality scores (ADR-007, ADR-011).
 
-LLM-free. Wraps the three v1 sub-scorers — style (cosine on 15-dim feature
-vectors), groundedness (sentence-level semantic similarity), and confidence
-(multi-factor heuristic) — into one score() call. No combined score and no
-routing decision: the EvaluatorAgent consumes these scores and the
-Gatekeeper owns routing. The scoring math (ADR-003/004) is unchanged.
+LLM-free. Wraps three sub-scorers — style (cosine on 15-dim feature vectors),
+groundedness (HHEM-2.1-Open local entailment; ADR-020), and confidence (multi-
+factor heuristic) — into one score() call. No combined score and no routing
+decision: the EvaluatorAgent consumes these scores and the Gatekeeper owns
+routing. The scoring math (ADR-003/004) is unchanged.
 
-Note: groundedness uses embeddings via src/rag/embedder (transitively LiteLLM).
-Embeddings are vector math on the frozen scoring path, not LLM reasoning; this
-module imports no litellm/openai/cohere/instructor directly.
+The HHEM model is loaded once in __init__ and held resident (same lifecycle as
+the FAISS index). Zero paid API calls; all groundedness inference local and
+in-process.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from typing import NamedTuple
 
 from src.evaluation.confidence_scorer import score_confidence
-from src.evaluation.groundedness_scorer import score_groundedness
+from src.evaluation.groundedness_scorer import HHEMGroundednessScorer
 from src.schemas import EmailMessage, RetrievalResult, StyleProfile
 from src.style.feature_extractor import extract_features
 from src.style.style_scorer import score_style
@@ -36,7 +36,18 @@ class Scores(NamedTuple):
 
 
 class ScoringEngine:
-    """Deterministic three-dimension scorer."""
+    """Deterministic three-dimension scorer.
+
+    The HHEM groundedness model is loaded at construction and held resident.
+    Pass a pre-constructed HHEMGroundednessScorer to share an already-loaded
+    instance (e.g. in tests or when multiple engines run in the same process).
+    """
+
+    def __init__(
+        self,
+        groundedness_scorer: HHEMGroundednessScorer | None = None,
+    ) -> None:
+        self._gscorer = groundedness_scorer or HHEMGroundednessScorer()
 
     def score(
         self,
@@ -62,6 +73,6 @@ class ScoringEngine:
         )
         return Scores(
             style_score=score_style(profile, response_features),
-            groundedness_score=score_groundedness(response, chunks),
+            groundedness_score=self._gscorer.score(response, chunks),
             confidence_score=score_confidence(query, response, chunks),
         )

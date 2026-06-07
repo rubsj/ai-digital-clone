@@ -928,3 +928,5 @@ Would have unblocked all three B5 blocked files in the same session. Rejected be
 
 Keeping timing_dual_leader.py as the compare_leaders() implementation.
 The script pre-dated the Flow abstraction and ran two crews manually with custom timing logic. After B1 introduced Flow[CloneState] with compare_leaders() properly wired and ADR-005 shared retrieval, the script duplicated the pipeline without the routing or fallback steps. No callers remained; keeping it would create a confusing second path that silently skips evaluation and routing. Retired in B5.
+
+# Day 14

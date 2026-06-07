@@ -34,7 +34,14 @@ _LLM_MAX_RETRIES = 2
 # ADR-017 RC-1 fix: flag thresholds as named constants, not LLM judgment.
 # Previously the thresholds lived only as f-string literals in natural-language
 # prose and the LLM drifted to flagging at ~0.70-0.75 instead of 0.60.
-GROUNDEDNESS_MIN: float = 0.60
+#
+# W1b.2 operating point (ADR-020): 0.40 on HHEM's entailment scale, derived by a
+# pre-registered safety-asymmetric rule against the Day-13 oracle (query-level
+# train/held-out split). The cosine-era 0.60 does not transfer — HHEM's entailment
+# scores run lower than cosine's echo-inflated scores, and carrying 0.60 would
+# route ~42 % of oracle-grounded content to fallback. Per-leader floor (W3c,
+# ADR-021) is handled separately and does not change this value.
+GROUNDEDNESS_MIN: float = 0.40
 # ADR-017 Amendment 1: corrected from 0.90 (synthetic-data calibration target per
 # ADR-003) to 0.70 (ADR-003 full-corpus self-similarity benchmark). The 0.90 was
 # never validated as a per-response flag threshold; 0.70 is the cosine proximity
@@ -100,9 +107,9 @@ def _build_task_description(query: str, response: str, scores: Scores,
         f"Response under review:\n{response}\n\n"
         f"Source chunks the response should be grounded in:\n{_format_chunks(chunks)}\n\n"
         f"Measured scores (0-1):\n"
-        f"  Style:        {scores.style_score:.3f} (target > 0.90)\n"
-        f"  Groundedness: {scores.groundedness_score:.3f} (target > 0.60)\n"
-        f"  Confidence:   {scores.confidence_score:.3f} (target > 0.80)\n\n"
+        f"  Style:        {scores.style_score:.3f} (stylistic match to the leader's voice)\n"
+        f"  Groundedness: {scores.groundedness_score:.3f} (HHEM entailment; well-grounded in the retrieved context)\n"
+        f"  Confidence:   {scores.confidence_score:.3f} (model's expressed certainty in the response)\n\n"
         "Write a concise explanation of the response's quality that references these "
         "scores and focuses on the weakest dimension."
     )

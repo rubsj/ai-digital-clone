@@ -1,0 +1,542 @@
+{
+  "run": "w3b_retrieval_effect_day14",
+  "date": "2026-06-05",
+  "status": "complete",
+  "n_passes": 3,
+  "threshold_hhem": 0.4,
+  "queries_scope": [
+    "q03",
+    "q07",
+    "q09",
+    "q10",
+    "q11",
+    "q14"
+  ],
+  "mechanism_note": "W2 dedup fix live in Retriever.run() throughout this run. HHEM@0.40 held fixed (metric unchanged from W3a). Delta vs W3a isolates the retrieval contribution only. Pre-registered interpretation: if delta <= 3-pass spread, honest result is 'retrieval fix did not move grounding measurably above generation noise'.",
+  "dedup_evidence": {
+    "q11": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    },
+    "q03": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    },
+    "q10": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    },
+    "q07": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    },
+    "q09": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    },
+    "q14": {
+      "total": 5,
+      "unique": 5,
+      "all_distinct": true
+    }
+  },
+  "w3a_baseline_hhem": {
+    "q03": {
+      "torvalds": 0.3848,
+      "kroah_hartman": 0.4813
+    },
+    "q07": {
+      "torvalds": 0.2852,
+      "kroah_hartman": 0.2524
+    },
+    "q09": {
+      "torvalds": 0.3778,
+      "kroah_hartman": 0.3426
+    },
+    "q10": {
+      "torvalds": 0.5528,
+      "kroah_hartman": 0.6004
+    },
+    "q11": {
+      "torvalds": 0.5994,
+      "kroah_hartman": 0.7245
+    },
+    "q14": {
+      "torvalds": 0.3687,
+      "kroah_hartman": 0.4414
+    }
+  },
+  "w3a_baseline_verdicts": {
+    "q03": {
+      "torvalds": "fallback",
+      "kroah_hartman": "deliver"
+    },
+    "q07": {
+      "torvalds": "fallback",
+      "kroah_hartman": "fallback"
+    },
+    "q09": {
+      "torvalds": "fallback",
+      "kroah_hartman": "fallback"
+    },
+    "q10": {
+      "torvalds": "deliver",
+      "kroah_hartman": "deliver"
+    },
+    "q11": {
+      "torvalds": "deliver",
+      "kroah_hartman": "deliver"
+    },
+    "q14": {
+      "torvalds": "fallback",
+      "kroah_hartman": "deliver"
+    }
+  },
+  "all_pass_records": [
+    {
+      "pass": 1,
+      "query_id": "q03",
+      "query": "How does the bias-variance tradeoff change as you add hidden layers to a neural network?",
+      "torvalds": {
+        "hhem": 0.4384,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5934,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 1,
+      "query_id": "q07",
+      "query": "How does a confusion matrix help you tell the difference between a model that is biased toward one class and a model that is just bad overall?",
+      "torvalds": {
+        "hhem": 0.3336,
+        "verdict": "fallback"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4731,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 1,
+      "query_id": "q09",
+      "query": "When does the trapezoidal rule give you a reasonable answer for numerical integration, and when do you need Simpson's rule or something fancier?",
+      "torvalds": {
+        "hhem": 0.5375,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5811,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 1,
+      "query_id": "q10",
+      "query": "How does fixed-point iteration work as a method for solving nonlinear equations, and what determines whether it converges?",
+      "torvalds": {
+        "hhem": 0.5597,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.6694,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 1,
+      "query_id": "q11",
+      "query": "Why do sparse matrix representations make Gaussian elimination practical for systems with thousands of variables?",
+      "torvalds": {
+        "hhem": 0.5868,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5997,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 1,
+      "query_id": "q14",
+      "query": "When would you reach for recursion over an iterative loop, and what is the actual cost in practice?",
+      "torvalds": {
+        "hhem": 0.506,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.3375,
+        "verdict": "fallback"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q03",
+      "query": "How does the bias-variance tradeoff change as you add hidden layers to a neural network?",
+      "torvalds": {
+        "hhem": 0.4577,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4375,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q07",
+      "query": "How does a confusion matrix help you tell the difference between a model that is biased toward one class and a model that is just bad overall?",
+      "torvalds": {
+        "hhem": 0.3379,
+        "verdict": "fallback"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4243,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q09",
+      "query": "When does the trapezoidal rule give you a reasonable answer for numerical integration, and when do you need Simpson's rule or something fancier?",
+      "torvalds": {
+        "hhem": 0.5635,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4875,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q10",
+      "query": "How does fixed-point iteration work as a method for solving nonlinear equations, and what determines whether it converges?",
+      "torvalds": {
+        "hhem": 0.4357,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5596,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q11",
+      "query": "Why do sparse matrix representations make Gaussian elimination practical for systems with thousands of variables?",
+      "torvalds": {
+        "hhem": 0.5017,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4806,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 2,
+      "query_id": "q14",
+      "query": "When would you reach for recursion over an iterative loop, and what is the actual cost in practice?",
+      "torvalds": {
+        "hhem": 0.3677,
+        "verdict": "fallback"
+      },
+      "kroah_hartman": {
+        "hhem": 0.4772,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q03",
+      "query": "How does the bias-variance tradeoff change as you add hidden layers to a neural network?",
+      "torvalds": {
+        "hhem": 0.4423,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.384,
+        "verdict": "fallback"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q07",
+      "query": "How does a confusion matrix help you tell the difference between a model that is biased toward one class and a model that is just bad overall?",
+      "torvalds": {
+        "hhem": 0.3343,
+        "verdict": "fallback"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5087,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q09",
+      "query": "When does the trapezoidal rule give you a reasonable answer for numerical integration, and when do you need Simpson's rule or something fancier?",
+      "torvalds": {
+        "hhem": 0.57,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.5189,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q10",
+      "query": "How does fixed-point iteration work as a method for solving nonlinear equations, and what determines whether it converges?",
+      "torvalds": {
+        "hhem": 0.5346,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.6559,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q11",
+      "query": "Why do sparse matrix representations make Gaussian elimination practical for systems with thousands of variables?",
+      "torvalds": {
+        "hhem": 0.5957,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.6553,
+        "verdict": "deliver"
+      }
+    },
+    {
+      "pass": 3,
+      "query_id": "q14",
+      "query": "When would you reach for recursion over an iterative loop, and what is the actual cost in practice?",
+      "torvalds": {
+        "hhem": 0.4704,
+        "verdict": "deliver"
+      },
+      "kroah_hartman": {
+        "hhem": 0.3663,
+        "verdict": "fallback"
+      }
+    }
+  ],
+  "per_query_summary": {
+    "q03": {
+      "torvalds": {
+        "passes_hhem": [
+          0.4384,
+          0.4577,
+          0.4423
+        ],
+        "min": 0.4384,
+        "mean": 0.4461,
+        "max": 0.4577,
+        "spread": 0.0193,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.3848,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.0613,
+        "within_noise": false
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.5934,
+          0.4375,
+          0.384
+        ],
+        "min": 0.384,
+        "mean": 0.4717,
+        "max": 0.5934,
+        "spread": 0.2094,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.4813,
+        "w3a_verdict": "deliver",
+        "delta_mean": -0.0096,
+        "within_noise": true
+      }
+    },
+    "q07": {
+      "torvalds": {
+        "passes_hhem": [
+          0.3336,
+          0.3379,
+          0.3343
+        ],
+        "min": 0.3336,
+        "mean": 0.3353,
+        "max": 0.3379,
+        "spread": 0.0043,
+        "majority_verdict": "fallback",
+        "w3a_hhem": 0.2852,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.0501,
+        "within_noise": false
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.4731,
+          0.4243,
+          0.5087
+        ],
+        "min": 0.4243,
+        "mean": 0.4687,
+        "max": 0.5087,
+        "spread": 0.0844,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.2524,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.2163,
+        "within_noise": false
+      }
+    },
+    "q09": {
+      "torvalds": {
+        "passes_hhem": [
+          0.5375,
+          0.5635,
+          0.57
+        ],
+        "min": 0.5375,
+        "mean": 0.557,
+        "max": 0.57,
+        "spread": 0.0325,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.3778,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.1792,
+        "within_noise": false
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.5811,
+          0.4875,
+          0.5189
+        ],
+        "min": 0.4875,
+        "mean": 0.5292,
+        "max": 0.5811,
+        "spread": 0.0936,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.3426,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.1866,
+        "within_noise": false
+      }
+    },
+    "q10": {
+      "torvalds": {
+        "passes_hhem": [
+          0.5597,
+          0.4357,
+          0.5346
+        ],
+        "min": 0.4357,
+        "mean": 0.51,
+        "max": 0.5597,
+        "spread": 0.124,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.5528,
+        "w3a_verdict": "deliver",
+        "delta_mean": -0.0428,
+        "within_noise": true
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.6694,
+          0.5596,
+          0.6559
+        ],
+        "min": 0.5596,
+        "mean": 0.6283,
+        "max": 0.6694,
+        "spread": 0.1098,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.6004,
+        "w3a_verdict": "deliver",
+        "delta_mean": 0.0279,
+        "within_noise": true
+      }
+    },
+    "q11": {
+      "torvalds": {
+        "passes_hhem": [
+          0.5868,
+          0.5017,
+          0.5957
+        ],
+        "min": 0.5017,
+        "mean": 0.5614,
+        "max": 0.5957,
+        "spread": 0.094,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.5994,
+        "w3a_verdict": "deliver",
+        "delta_mean": -0.038,
+        "within_noise": true
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.5997,
+          0.4806,
+          0.6553
+        ],
+        "min": 0.4806,
+        "mean": 0.5785,
+        "max": 0.6553,
+        "spread": 0.1747,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.7245,
+        "w3a_verdict": "deliver",
+        "delta_mean": -0.146,
+        "within_noise": true
+      }
+    },
+    "q14": {
+      "torvalds": {
+        "passes_hhem": [
+          0.506,
+          0.3677,
+          0.4704
+        ],
+        "min": 0.3677,
+        "mean": 0.448,
+        "max": 0.506,
+        "spread": 0.1383,
+        "majority_verdict": "deliver",
+        "w3a_hhem": 0.3687,
+        "w3a_verdict": "fallback",
+        "delta_mean": 0.0793,
+        "within_noise": true
+      },
+      "kroah_hartman": {
+        "passes_hhem": [
+          0.3375,
+          0.4772,
+          0.3663
+        ],
+        "min": 0.3375,
+        "mean": 0.3937,
+        "max": 0.4772,
+        "spread": 0.1397,
+        "majority_verdict": "fallback",
+        "w3a_hhem": 0.4414,
+        "w3a_verdict": "deliver",
+        "delta_mean": -0.0477,
+        "within_noise": true
+      }
+    }
+  }
+}

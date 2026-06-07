@@ -1,17 +1,17 @@
 """Tests for src/components/scoring_engine.py.
 
-embed_openai (groundedness's only network dependency) is mocked — the
-deterministic scoring math runs offline.
+HHEMGroundednessScorer is mocked — no real model loads or API calls.
 """
 
 from __future__ import annotations
 
 import time
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 
 from src.components.scoring_engine import ScoringEngine, Scores
+from src.evaluation.groundedness_scorer import HHEMGroundednessScorer
 from src.schemas import EmailMessage, KnowledgeChunk, RetrievalResult, StyleProfile
 from src.style.feature_extractor import extract_features
 
@@ -22,7 +22,7 @@ _TECHY = (
 )
 
 
-def _chunks(n: int = 3, embedding=None) -> list[RetrievalResult]:
+def _chunks(n: int = 3) -> list[RetrievalResult]:
     return [
         RetrievalResult(
             chunk=KnowledgeChunk(
@@ -30,7 +30,6 @@ def _chunks(n: int = 3, embedding=None) -> list[RetrievalResult]:
                 source_topic="Operating Systems",
                 source_field="computer_science",
                 chunk_index=i,
-                embedding=embedding,
             ),
             score=0.8 - i * 0.1,
             rank=i,
@@ -59,13 +58,11 @@ def _profile_matching(response: str) -> StyleProfile:
     )
 
 
-def _fixed_embedding(dim: int = 16):
-    vec = np.ones(dim, dtype=np.float32)
-    return vec / np.linalg.norm(vec)
-
-
-def _mock_embed_openai(texts, *args, **kwargs):
-    return [_fixed_embedding() for _ in texts]
+def _mock_hhem_scorer(groundedness: float = 0.85) -> HHEMGroundednessScorer:
+    """Return a pre-constructed mock HHEMGroundednessScorer."""
+    scorer = MagicMock(spec=HHEMGroundednessScorer)
+    scorer.score.return_value = groundedness
+    return scorer
 
 
 # ---------------------------------------------------------------------------
@@ -73,9 +70,8 @@ def _mock_embed_openai(texts, *args, **kwargs):
 # ---------------------------------------------------------------------------
 
 
-@patch("src.evaluation.groundedness_scorer.embed_openai", side_effect=_mock_embed_openai)
-def test_score_returns_three_floats_in_range(_mock):
-    engine = ScoringEngine()
+def test_score_returns_three_floats_in_range():
+    engine = ScoringEngine(groundedness_scorer=_mock_hhem_scorer())
     scores = engine.score("kernel scheduling?", _TECHY, _profile_matching(_TECHY), _chunks())
 
     assert isinstance(scores, Scores)
@@ -83,47 +79,62 @@ def test_score_returns_three_floats_in_range(_mock):
         assert 0.0 <= s <= 1.0
 
 
-@patch("src.evaluation.groundedness_scorer.embed_openai", side_effect=_mock_embed_openai)
-def test_style_score_high_for_matching_profile(_mock):
-    engine = ScoringEngine()
+def test_style_score_high_for_matching_profile():
+    engine = ScoringEngine(groundedness_scorer=_mock_hhem_scorer())
     scores = engine.score("q", _TECHY, _profile_matching(_TECHY), _chunks())
-    # Profile vector == response feature vector → cosine ≈ 1.0
     assert scores.style_score > 0.99
 
 
-@patch("src.evaluation.groundedness_scorer.embed_openai", side_effect=_mock_embed_openai)
-def test_groundedness_all_chunks_aligned(_mock):
-    """All sentence/chunk embeddings identical → groundedness ≈ 1.0."""
-    engine = ScoringEngine()
+def test_groundedness_delegated_to_hhem_scorer():
+    """ScoringEngine passes response and chunks to HHEMGroundednessScorer."""
+    mock_scorer = _mock_hhem_scorer(groundedness=0.77)
+    engine = ScoringEngine(groundedness_scorer=mock_scorer)
     scores = engine.score("q", _TECHY, _profile_matching(_TECHY), _chunks())
-    assert scores.groundedness_score > 0.99
+
+    assert scores.groundedness_score == 0.77
+    mock_scorer.score.assert_called_once_with(_TECHY, _chunks())
 
 
 def test_groundedness_empty_response_is_zero():
-    engine = ScoringEngine()
+    """Empty response returns 0.0 without calling the scorer."""
+    mock_scorer = _mock_hhem_scorer(groundedness=0.0)
+    mock_scorer.score.return_value = 0.0
+    engine = ScoringEngine(groundedness_scorer=mock_scorer)
     scores = engine.score("q", "", _profile_matching(_TECHY), _chunks())
     assert scores.groundedness_score == 0.0
 
 
 def test_groundedness_no_chunks_is_zero():
-    engine = ScoringEngine()
+    """No chunks returns 0.0 without calling scorer with real inference."""
+    mock_scorer = _mock_hhem_scorer(groundedness=0.0)
+    mock_scorer.score.return_value = 0.0
+    engine = ScoringEngine(groundedness_scorer=mock_scorer)
     scores = engine.score("q", _TECHY, _profile_matching(_TECHY), [])
     assert scores.groundedness_score == 0.0
 
 
-@patch("src.evaluation.groundedness_scorer.embed_openai", side_effect=_mock_embed_openai)
-def test_confidence_in_range_with_hedging(_mock):
-    engine = ScoringEngine()
+def test_confidence_in_range_with_hedging():
+    engine = ScoringEngine(groundedness_scorer=_mock_hhem_scorer())
     hedged = "I think maybe the kernel possibly uses a spinlock, but I'm not certain."
     scores = engine.score("kernel spinlock?", hedged, _profile_matching(hedged), _chunks())
     assert 0.0 <= scores.confidence_score <= 1.0
 
 
-@patch("src.evaluation.groundedness_scorer.embed_openai", side_effect=_mock_embed_openai)
-def test_score_latency_under_500ms(_mock):
-    engine = ScoringEngine()
+def test_score_latency_under_500ms():
+    engine = ScoringEngine(groundedness_scorer=_mock_hhem_scorer())
     profile, chunks = _profile_matching(_TECHY), _chunks()
     start = time.perf_counter()
     engine.score("kernel scheduling?", _TECHY, profile, chunks)
     elapsed = time.perf_counter() - start
-    assert elapsed < 0.5, f"scoring took {elapsed:.3f}s (budget 500ms; embeddings mocked)"
+    assert elapsed < 0.5, f"scoring took {elapsed:.3f}s (budget 500ms; HHEM mocked)"
+
+
+def test_hhem_scorer_loaded_at_construction():
+    """ScoringEngine with no injected scorer constructs HHEMGroundednessScorer."""
+    with patch(
+        "src.components.scoring_engine.HHEMGroundednessScorer",
+        return_value=_mock_hhem_scorer(),
+    ) as MockScorer:
+        engine = ScoringEngine()
+        MockScorer.assert_called_once()
+        assert engine._gscorer is MockScorer.return_value

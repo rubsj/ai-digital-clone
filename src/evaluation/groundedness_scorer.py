@@ -1,27 +1,34 @@
-"""Groundedness scorer: sentence-level semantic similarity against retrieved chunks.
+"""Groundedness scorer using HHEM-2.1-Open (ADR-020).
 
-Algorithm:
+V0 aggregation (same pipeline position as the replaced cosine scorer):
   1. Split response into sentences (regex, no nltk).
-  2. Batch-embed all sentences in ONE embed_openai() call (MD5-cached).
-  3. Reuse chunk.embedding from RAG pipeline; only re-embed missing ones.
-  4. For each sentence: max cosine-sim across top-k chunk embeddings.
-  5. Average the per-sentence maxima → groundedness_score ∈ [0, 1].
+  2. For each sentence: HHEM entailment score against each of the top-k chunks
+     (chunk = premise, sentence = hypothesis).
+  3. Max over the k entailment scores → per-sentence groundedness.
+  4. Mean over sentences → groundedness_score ∈ [0, 1].
 
-Target: > 0.60 on in-domain queries (per PRD quality table).
+The model is loaded once at HHEMGroundednessScorer construction and held
+resident (same lifecycle as the FAISS index). Zero paid API calls; all
+inference local and in-process.
 """
 
 from __future__ import annotations
 
 import re
+from typing import Optional
 
-import numpy as np
+import torch
 
-from src.rag.embedder import embed_openai
+from src.evaluation.hhem.configuration_hhem_v2 import HHEMv2Config  # noqa: F401 — ensures config class is importable before from_pretrained
+from src.evaluation.hhem.modeling_hhem_v2 import HHEMv2ForSequenceClassification
 from src.schemas import RetrievalResult
 
-# Sentences shorter than this (in chars) are skipped to avoid noise from
-# fragment phrases like "So." or "Yes."
 _MIN_SENTENCE_CHARS = 10
+_HHEM_HUB_ID = "vectara/hallucination_evaluation_model"
+_HHEM_REVISION = "8e4a2e6e96c708cc76c2344f7e4757df2515292c"
+
+# Module-level singleton — set by _get_singleton(), never by callers directly.
+_singleton: Optional["HHEMGroundednessScorer"] = None
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -30,62 +37,56 @@ def _split_sentences(text: str) -> list[str]:
     return [s.strip() for s in raw if len(s.strip()) >= _MIN_SENTENCE_CHARS]
 
 
-def _cosine(a: np.ndarray, b: np.ndarray) -> float:
-    """Cosine similarity, returns 0.0 for zero-norm vectors."""
-    na, nb = float(np.linalg.norm(a)), float(np.linalg.norm(b))
-    if na == 0.0 or nb == 0.0:
-        return 0.0
-    return float(np.clip(np.dot(a, b) / (na * nb), 0.0, 1.0))
+class HHEMGroundednessScorer:
+    """HHEM-2.1-Open groundedness scorer — load once, hold resident."""
+
+    def __init__(self) -> None:
+        self._model = HHEMv2ForSequenceClassification.from_pretrained(
+            _HHEM_HUB_ID,
+            revision=_HHEM_REVISION,
+            local_files_only=True,
+        )
+        self._model.eval()
+
+    def score(
+        self,
+        response: str,
+        chunks: list[RetrievalResult],
+        top_k: int = 5,
+    ) -> float:
+        """V0 aggregation: per-sentence max over top-k chunks, mean over sentences."""
+        if not response or not chunks:
+            return 0.0
+
+        sentences = _split_sentences(response)
+        if not sentences:
+            return 0.0
+
+        top_chunks = chunks[:top_k]
+        per_sentence_max: list[float] = []
+
+        for sentence in sentences:
+            pairs = [(chunk.chunk.content, sentence) for chunk in top_chunks]
+            with torch.no_grad():
+                raw_scores = self._model.predict(pairs)
+            per_sentence_max.append(float(raw_scores.max().item()))
+
+        return float(sum(per_sentence_max) / len(per_sentence_max))
+
+
+def _get_singleton() -> HHEMGroundednessScorer:
+    global _singleton
+    if _singleton is None:
+        _singleton = HHEMGroundednessScorer()
+    return _singleton
 
 
 def score_groundedness(
     response: str,
     chunks: list[RetrievalResult],
     top_k: int = 5,
+    *,
+    scorer: Optional[HHEMGroundednessScorer] = None,
 ) -> float:
-    """Average of per-sentence max cosine similarity against top-k chunks.
-
-    Args:
-        response: The generated response text.
-        chunks:   Retrieved chunks from RAG pipeline (may already have .embedding).
-        top_k:    Maximum number of chunks to compare against.
-
-    Returns:
-        float in [0.0, 1.0]. Returns 0.0 for empty response or no chunks.
-    """
-    if not response or not chunks:
-        return 0.0
-
-    sentences = _split_sentences(response)
-    if not sentences:
-        return 0.0
-
-    # --- 1. Batch-embed all sentences in ONE API call ---
-    sentence_vecs = embed_openai(sentences)
-
-    # --- 2. Gather chunk embeddings; re-embed missing ones in ONE batch call ---
-    top_chunks = chunks[:top_k]
-    chunk_vecs: list[np.ndarray] = []
-    missing_indices: list[int] = []
-    missing_texts: list[str] = []
-
-    for i, rr in enumerate(top_chunks):
-        if rr.chunk.embedding is not None:
-            chunk_vecs.append(rr.chunk.embedding)
-        else:
-            chunk_vecs.append(None)  # type: ignore[arg-type]
-            missing_indices.append(i)
-            missing_texts.append(rr.chunk.content)
-
-    if missing_texts:
-        embedded_missing = embed_openai(missing_texts)
-        for idx, vec in zip(missing_indices, embedded_missing):
-            chunk_vecs[idx] = vec
-
-    # --- 3. Per-sentence max cosine similarity ---
-    per_sentence_max: list[float] = []
-    for s_vec in sentence_vecs:
-        max_sim = max(_cosine(s_vec, c_vec) for c_vec in chunk_vecs)
-        per_sentence_max.append(max_sim)
-
-    return float(np.mean(per_sentence_max))
+    """Score groundedness via HHEM-2.1-Open (ADR-020, V0 aggregation)."""
+    return (scorer or _get_singleton()).score(response, chunks, top_k)

@@ -101,6 +101,15 @@ class Retriever:
             top_n=self._config.reranker.top_n_initial,
         )
 
+        # Corpus has duplicate-content entries; dedup before rerank so Cohere selects top-5 from distinct passages.
+        seen_content: set[str] = set()
+        deduped: list[RetrievalResult] = []
+        for r in candidates:
+            if r.chunk.content not in seen_content:
+                seen_content.add(r.chunk.content)
+                deduped.append(r)
+        candidates = deduped
+
         reranked, ran = rerank_with_status(
             query,
             candidates,

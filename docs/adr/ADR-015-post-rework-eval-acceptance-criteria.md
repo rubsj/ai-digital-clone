@@ -62,3 +62,19 @@ These two root causes compound: EvaluatorAgent over-flags above the stated thres
 The pre-floor branch outcome as defined in this ADR: stop ship, investigate, document the root cause. Investigation is complete (see `docs/day11-evaluation.md`). The fix is a re-calibration of the EvaluatorAgent flag threshold and a Gatekeeper prompt update to evaluate scores numerically, not just flag presence. A re-measurement after those changes determines whether the floor is cleared.
 
 Notion sync of this amendment is scheduled for Phase 2 alongside the ADR-010 trigger_category amendment logged Day 11.
+
+---
+
+## Amendment (2026-06-05, Day 14 W3c): floors confirmed on HHEM; paraphrase misroute documented as accepted limitation
+
+The per-leader floors (Torvalds 42.9%, KH 35.7%) are unchanged. This amendment validates them on the corrected metric and reframes their role. It revises no prior number.
+
+**Floors validated on the corrected metric.** The Day-14 W3a isolated metric effect (frozen inputs, HHEM at GROUNDEDNESS_MIN 0.40, W2 dedup active) measured Torvalds at 9/14 (64.3%) and KH at 11/14 (78.6%). Both clear their ADR-015 floors by 21 and 43 points respectively, and both clear PRD 2.1 E2 (at least 55%) on the corrected metric. The floors hold; they are not moved.
+
+**Floors reframed as regression guardrails, not bias compensation.** ADR-021 committed to compensating the intrinsic paraphrase bias "at the per-leader floor." W3c establishes that this is the wrong instrument and declines to do it. The bias is per-query: on hard queries a grounded Torvalds response scores below the shared gate and falls back. A per-leader floor is an aggregate rate guardrail; it cannot discriminate a paraphrase-penalized grounded response from a genuinely weak one, so it cannot fix a per-query misroute. Lowering Torvalds' threshold to rescue these cases would weaken the shared OOD/hallucination defense (the same GROUNDEDNESS_MIN gates OOD fallback at AUC 0.942) and is the leader-keyed calibration ADR-021's Door A already rejected. The floor's honest role on HHEM is to confirm delivery has not regressed below the ADR-015 baseline. That role is confirmed.
+
+**Accepted limitation (ADR-021 Door C, made concrete).** On hard paraphrased queries a grounded Torvalds response can score below 0.40 and route to fallback. Surviving in-sample exemplar after the W2 retrieval fix: q07 T (oracle grounding 53.6%, W3a HHEM 0.285, W3b 3-pass mean 0.335; the dedup improved it reliably yet it remains below the gate). Broader class: q14 T (oracle 73.4%, W3a 0.369) and q03 T (oracle 64.2%, W3a 0.385; resolved by dedup in W3b). This is a characterized, bounded limitation of a deterministic gate on a paraphrase-sensitive metric. It is not a generation defect (ADR-019 verdict), not a retrieval defect (W3b improved q07 T and it still fell back), and not a floor-calibration defect. It is the operational cost ADR-021 accepted when it chose a local deterministic gate over a paraphrase-robust LLM judge: occasional fallback on hard grounded Torvalds queries, documented rather than hidden.
+
+**Regime-shape question closed.** ADR-021 left open whether a flat per-leader offset was the right compensation shape. It is not. A flat offset is aggregate and would license delivery for any Torvalds response just under the floor, including legitimately weak ones, while still not targeting the specific hard-query misroutes. The compensation shape and the misroute shape do not match, which is why (a)+(c) declines to use the floor as a compensation instrument at all.
+
+Relates: ADR-021 (bias characterized, Door C), ADR-019 (metric confound), ADR-020 (HHEM selected, threshold 0.40), W3a (isolated metric effect). Additive amendment; original Decision numbers (42.9%, 35.7%) and derivation rationale intact.

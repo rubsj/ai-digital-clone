@@ -1,0 +1,3128 @@
+{
+  "run": "w1b2_threshold_derivation",
+  "date": "2026-06-04",
+  "api_calls": 0,
+  "method": {
+    "indomain_hhem_source": "bakeoff_hhem_isolated_day14.json (per-query means, reused)",
+    "ood_hhem_source": "vendored HHEMv2ForSequenceClassification, scored fresh (never stored individually)",
+    "oracle_label_rule": "oracle_gf >= 0.5 \u2192 deliver-worthy (strictly-grounded fraction per Opus markup)",
+    "oracle_gf_source": "bakeoff_hhem_isolated_day14.json gate2 oracle_*_gf fields",
+    "split_rule": "query-level: held-equal 7 queries = train, non-held-equal 7 = held-out",
+    "safety_constraint": "fallback-recall >= 0.9",
+    "selection": "highest threshold with fallback-recall >= safety constraint (maximizes GDR)"
+  },
+  "indomain_records": [
+    {
+      "query_id": "q01",
+      "leader": "torvalds",
+      "hhem_score": 0.4389,
+      "oracle_gf": 0.8123,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q01",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.5491,
+      "oracle_gf": 0.8056,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q02",
+      "leader": "torvalds",
+      "hhem_score": 0.7868,
+      "oracle_gf": 1.0,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q02",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.804,
+      "oracle_gf": 1.0,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q03",
+      "leader": "torvalds",
+      "hhem_score": 0.3848,
+      "oracle_gf": 0.6417,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q03",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.4813,
+      "oracle_gf": 0.7955,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q04",
+      "leader": "torvalds",
+      "hhem_score": 0.6268,
+      "oracle_gf": 0.8155,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q04",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.5641,
+      "oracle_gf": 0.8571,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q05",
+      "leader": "torvalds",
+      "hhem_score": 0.2506,
+      "oracle_gf": 0.3519,
+      "oracle_label": "fallback",
+      "split": "train"
+    },
+    {
+      "query_id": "q05",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.2755,
+      "oracle_gf": 0.3333,
+      "oracle_label": "fallback",
+      "split": "train"
+    },
+    {
+      "query_id": "q06",
+      "leader": "torvalds",
+      "hhem_score": 0.6098,
+      "oracle_gf": 0.963,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q06",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.743,
+      "oracle_gf": 0.9444,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q07",
+      "leader": "torvalds",
+      "hhem_score": 0.2852,
+      "oracle_gf": 0.5364,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q07",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.2524,
+      "oracle_gf": 0.4464,
+      "oracle_label": "fallback",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q08",
+      "leader": "torvalds",
+      "hhem_score": 0.7265,
+      "oracle_gf": 0.8586,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q08",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.7214,
+      "oracle_gf": 0.8,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q09",
+      "leader": "torvalds",
+      "hhem_score": 0.3778,
+      "oracle_gf": 0.4048,
+      "oracle_label": "fallback",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q09",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.3426,
+      "oracle_gf": 0.1984,
+      "oracle_label": "fallback",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q10",
+      "leader": "torvalds",
+      "hhem_score": 0.5528,
+      "oracle_gf": 0.888,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q10",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.6004,
+      "oracle_gf": 0.6944,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q11",
+      "leader": "torvalds",
+      "hhem_score": 0.5994,
+      "oracle_gf": 0.6488,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q11",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.7245,
+      "oracle_gf": 0.7474,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q12",
+      "leader": "torvalds",
+      "hhem_score": 0.4368,
+      "oracle_gf": 0.6071,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q12",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.4615,
+      "oracle_gf": 0.6528,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q13",
+      "leader": "torvalds",
+      "hhem_score": 0.6175,
+      "oracle_gf": 0.8631,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q13",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.663,
+      "oracle_gf": 0.8611,
+      "oracle_label": "deliver",
+      "split": "train"
+    },
+    {
+      "query_id": "q14",
+      "leader": "torvalds",
+      "hhem_score": 0.3687,
+      "oracle_gf": 0.7343,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    },
+    {
+      "query_id": "q14",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.4414,
+      "oracle_gf": 0.621,
+      "oracle_label": "deliver",
+      "split": "heldout"
+    }
+  ],
+  "ood_scored": [
+    {
+      "query_id": "q15",
+      "leader": "torvalds",
+      "hhem_score": 0.2014,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q15",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.1842,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q16",
+      "leader": "torvalds",
+      "hhem_score": 0.0384,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q16",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.0245,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q17",
+      "leader": "torvalds",
+      "hhem_score": 0.0431,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q17",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.0416,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q18",
+      "leader": "torvalds",
+      "hhem_score": 0.037,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q18",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.0207,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q19",
+      "leader": "torvalds",
+      "hhem_score": 0.1404,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q19",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.0922,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q20",
+      "leader": "torvalds",
+      "hhem_score": 0.2683,
+      "label": "fallback"
+    },
+    {
+      "query_id": "q20",
+      "leader": "kroah_hartman",
+      "hhem_score": 0.5707,
+      "label": "fallback"
+    }
+  ],
+  "train_analysis": {
+    "split": "Train (held-equal)",
+    "n_deliver": 12,
+    "n_fallback_indomain": 2,
+    "n_fallback_ood": 12,
+    "n_fallback_total": 14,
+    "deliver_scores": [
+      0.4368,
+      0.4389,
+      0.4615,
+      0.5491,
+      0.5641,
+      0.6098,
+      0.6175,
+      0.6268,
+      0.663,
+      0.743,
+      0.7868,
+      0.804
+    ],
+    "fallback_scores": [
+      0.0207,
+      0.0245,
+      0.037,
+      0.0384,
+      0.0416,
+      0.0431,
+      0.0922,
+      0.1404,
+      0.1842,
+      0.2014,
+      0.2506,
+      0.2683,
+      0.2755,
+      0.5707
+    ],
+    "safety_constrained_threshold": {
+      "threshold": 0.4368,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    "youden_threshold": {
+      "threshold": 0.2762,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    }
+  },
+  "heldout_analysis": {
+    "split": "Held-out (non-held-equal)",
+    "n_deliver": 11,
+    "n_fallback_indomain": 3,
+    "n_fallback_ood": 12,
+    "n_fallback_total": 15,
+    "deliver_scores": [
+      0.2852,
+      0.3687,
+      0.3848,
+      0.4414,
+      0.4813,
+      0.5528,
+      0.5994,
+      0.6004,
+      0.7214,
+      0.7245,
+      0.7265
+    ],
+    "fallback_scores": [
+      0.0207,
+      0.0245,
+      0.037,
+      0.0384,
+      0.0416,
+      0.0431,
+      0.0922,
+      0.1404,
+      0.1842,
+      0.2014,
+      0.2524,
+      0.2683,
+      0.3426,
+      0.3778,
+      0.5707
+    ],
+    "safety_constrained_threshold": {
+      "threshold": 0.3848,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.7515
+    },
+    "youden_threshold": {
+      "threshold": 0.2687,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    }
+  },
+  "train_sweep_table": [
+    {
+      "threshold": 0.0197,
+      "fallback_recall": 0.0,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0
+    },
+    {
+      "threshold": 0.0207,
+      "fallback_recall": 0.0,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0
+    },
+    {
+      "threshold": 0.0236,
+      "fallback_recall": 0.0714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0714
+    },
+    {
+      "threshold": 0.0245,
+      "fallback_recall": 0.0714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0714
+    },
+    {
+      "threshold": 0.0276,
+      "fallback_recall": 0.1429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1429
+    },
+    {
+      "threshold": 0.0315,
+      "fallback_recall": 0.1429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1429
+    },
+    {
+      "threshold": 0.0355,
+      "fallback_recall": 0.1429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1429
+    },
+    {
+      "threshold": 0.037,
+      "fallback_recall": 0.1429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1429
+    },
+    {
+      "threshold": 0.0384,
+      "fallback_recall": 0.2143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2143
+    },
+    {
+      "threshold": 0.0394,
+      "fallback_recall": 0.2857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2857
+    },
+    {
+      "threshold": 0.0416,
+      "fallback_recall": 0.2857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2857
+    },
+    {
+      "threshold": 0.0431,
+      "fallback_recall": 0.3571,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.3571
+    },
+    {
+      "threshold": 0.0434,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0473,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0513,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0552,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0592,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0631,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0671,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.071,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0749,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0789,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0828,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0868,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0907,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0922,
+      "fallback_recall": 0.4286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4286
+    },
+    {
+      "threshold": 0.0947,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.0986,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1026,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1065,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1105,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1144,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1184,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1223,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1262,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1302,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1341,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1381,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.1404,
+      "fallback_recall": 0.5,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.142,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.146,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1499,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1539,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1578,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1618,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1657,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1697,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1736,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1775,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1815,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1842,
+      "fallback_recall": 0.5714,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5714
+    },
+    {
+      "threshold": 0.1854,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.1894,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.1933,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.1973,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.2012,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.2014,
+      "fallback_recall": 0.6429,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6429
+    },
+    {
+      "threshold": 0.2052,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2091,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2131,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.217,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.221,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2249,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2289,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2328,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2367,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2407,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2446,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2486,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2506,
+      "fallback_recall": 0.7143,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7143
+    },
+    {
+      "threshold": 0.2525,
+      "fallback_recall": 0.7857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7857
+    },
+    {
+      "threshold": 0.2565,
+      "fallback_recall": 0.7857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7857
+    },
+    {
+      "threshold": 0.2604,
+      "fallback_recall": 0.7857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7857
+    },
+    {
+      "threshold": 0.2644,
+      "fallback_recall": 0.7857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7857
+    },
+    {
+      "threshold": 0.2683,
+      "fallback_recall": 0.7857,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7857
+    },
+    {
+      "threshold": 0.2683,
+      "fallback_recall": 0.8571,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8571
+    },
+    {
+      "threshold": 0.2723,
+      "fallback_recall": 0.8571,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8571
+    },
+    {
+      "threshold": 0.2755,
+      "fallback_recall": 0.8571,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8571
+    },
+    {
+      "threshold": 0.2762,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.2802,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.2841,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.288,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.292,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.2959,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.2999,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3038,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3078,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3117,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3157,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3196,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3236,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3275,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3315,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3354,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3393,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3433,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3472,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3512,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3551,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3591,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.363,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.367,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3709,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3749,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3788,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3828,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3867,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3906,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3946,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.3985,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4025,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4064,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4104,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4143,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4183,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4222,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4262,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4301,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4341,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.4368,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.9286
+    },
+    {
+      "threshold": 0.438,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.9167,
+      "youden_j": 0.8452
+    },
+    {
+      "threshold": 0.4389,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.9167,
+      "youden_j": 0.8452
+    },
+    {
+      "threshold": 0.4419,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4459,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4498,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4538,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4577,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4615,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.8333,
+      "youden_j": 0.7619
+    },
+    {
+      "threshold": 0.4617,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4656,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4696,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4735,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4775,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4814,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4854,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4893,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4932,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.4972,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5011,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5051,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.509,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.513,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5169,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5209,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5248,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5288,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5327,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5367,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5406,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5445,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5485,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5491,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.75,
+      "youden_j": 0.6786
+    },
+    {
+      "threshold": 0.5524,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.6667,
+      "youden_j": 0.5952
+    },
+    {
+      "threshold": 0.5564,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.6667,
+      "youden_j": 0.5952
+    },
+    {
+      "threshold": 0.5603,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.6667,
+      "youden_j": 0.5952
+    },
+    {
+      "threshold": 0.5641,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.6667,
+      "youden_j": 0.5952
+    },
+    {
+      "threshold": 0.5643,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5119
+    },
+    {
+      "threshold": 0.5682,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5119
+    },
+    {
+      "threshold": 0.5707,
+      "fallback_recall": 0.9286,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5119
+    },
+    {
+      "threshold": 0.5722,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.5761,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.5801,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.584,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.588,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.5919,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.5958,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.5998,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.6037,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.6077,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.6098,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5833,
+      "youden_j": 0.5833
+    },
+    {
+      "threshold": 0.6116,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.6156,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.6175,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.5,
+      "youden_j": 0.5
+    },
+    {
+      "threshold": 0.6195,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4167,
+      "youden_j": 0.4167
+    },
+    {
+      "threshold": 0.6235,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4167,
+      "youden_j": 0.4167
+    },
+    {
+      "threshold": 0.6268,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4167,
+      "youden_j": 0.4167
+    },
+    {
+      "threshold": 0.6274,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6314,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6353,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6393,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6432,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6472,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6511,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.655,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.659,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6629,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.663,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3333,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.6669,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6708,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6748,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6787,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6827,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6866,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6906,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6945,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.6985,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7024,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7063,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7103,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7142,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7182,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7221,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7261,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.73,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.734,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7379,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7419,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.743,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.25,
+      "youden_j": 0.25
+    },
+    {
+      "threshold": 0.7458,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7498,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7537,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7576,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7616,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7655,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7695,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7734,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7774,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7813,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7853,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7868,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1667,
+      "youden_j": 0.1667
+    },
+    {
+      "threshold": 0.7892,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0833,
+      "youden_j": 0.0833
+    },
+    {
+      "threshold": 0.7932,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0833,
+      "youden_j": 0.0833
+    },
+    {
+      "threshold": 0.7971,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0833,
+      "youden_j": 0.0833
+    },
+    {
+      "threshold": 0.8011,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0833,
+      "youden_j": 0.0833
+    },
+    {
+      "threshold": 0.804,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0833,
+      "youden_j": 0.0833
+    },
+    {
+      "threshold": 0.805,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0,
+      "youden_j": 0.0
+    }
+  ],
+  "heldout_sweep_table": [
+    {
+      "threshold": 0.0197,
+      "fallback_recall": 0.0,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0
+    },
+    {
+      "threshold": 0.0207,
+      "fallback_recall": 0.0,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0
+    },
+    {
+      "threshold": 0.0233,
+      "fallback_recall": 0.0667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0667
+    },
+    {
+      "threshold": 0.0245,
+      "fallback_recall": 0.0667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.0667
+    },
+    {
+      "threshold": 0.0268,
+      "fallback_recall": 0.1333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1333
+    },
+    {
+      "threshold": 0.0304,
+      "fallback_recall": 0.1333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1333
+    },
+    {
+      "threshold": 0.0339,
+      "fallback_recall": 0.1333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1333
+    },
+    {
+      "threshold": 0.037,
+      "fallback_recall": 0.1333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.1333
+    },
+    {
+      "threshold": 0.0375,
+      "fallback_recall": 0.2,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2
+    },
+    {
+      "threshold": 0.0384,
+      "fallback_recall": 0.2,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2
+    },
+    {
+      "threshold": 0.041,
+      "fallback_recall": 0.2667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2667
+    },
+    {
+      "threshold": 0.0416,
+      "fallback_recall": 0.2667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.2667
+    },
+    {
+      "threshold": 0.0431,
+      "fallback_recall": 0.3333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.3333
+    },
+    {
+      "threshold": 0.0446,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0482,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0517,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0553,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0588,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0624,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0659,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0695,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0731,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0766,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0802,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0837,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0873,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0908,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0922,
+      "fallback_recall": 0.4,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4
+    },
+    {
+      "threshold": 0.0944,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.0979,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1015,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1051,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1086,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1122,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1157,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1193,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1228,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1264,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.13,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1335,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1371,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1404,
+      "fallback_recall": 0.4667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.4667
+    },
+    {
+      "threshold": 0.1406,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1442,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1477,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1513,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1549,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1584,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.162,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1655,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1691,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1726,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1762,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1798,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1833,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1842,
+      "fallback_recall": 0.5333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.5333
+    },
+    {
+      "threshold": 0.1869,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.1904,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.194,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.1975,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.2011,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.2014,
+      "fallback_recall": 0.6,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6
+    },
+    {
+      "threshold": 0.2047,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2082,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2118,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2153,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2189,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2224,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.226,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2296,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2331,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2367,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2402,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2438,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2473,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2509,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2524,
+      "fallback_recall": 0.6667,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.6667
+    },
+    {
+      "threshold": 0.2544,
+      "fallback_recall": 0.7333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7333
+    },
+    {
+      "threshold": 0.258,
+      "fallback_recall": 0.7333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7333
+    },
+    {
+      "threshold": 0.2616,
+      "fallback_recall": 0.7333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7333
+    },
+    {
+      "threshold": 0.2651,
+      "fallback_recall": 0.7333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7333
+    },
+    {
+      "threshold": 0.2683,
+      "fallback_recall": 0.7333,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.7333
+    },
+    {
+      "threshold": 0.2687,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2722,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2758,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2793,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2829,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2852,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 1.0,
+      "youden_j": 0.8
+    },
+    {
+      "threshold": 0.2865,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.29,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.2936,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.2971,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3007,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3042,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3078,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3114,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3149,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3185,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.322,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3256,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3291,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3327,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3363,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3398,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3426,
+      "fallback_recall": 0.8,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7091
+    },
+    {
+      "threshold": 0.3434,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3469,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3505,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.354,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3576,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3612,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3647,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3683,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3687,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.9091,
+      "youden_j": 0.7758
+    },
+    {
+      "threshold": 0.3718,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.6848
+    },
+    {
+      "threshold": 0.3754,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.6848
+    },
+    {
+      "threshold": 0.3778,
+      "fallback_recall": 0.8667,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.6848
+    },
+    {
+      "threshold": 0.3789,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.7515
+    },
+    {
+      "threshold": 0.3825,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.7515
+    },
+    {
+      "threshold": 0.3848,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.8182,
+      "youden_j": 0.7515
+    },
+    {
+      "threshold": 0.386,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.3896,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.3932,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.3967,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4003,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4038,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4074,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4109,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4145,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4181,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4216,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4252,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4287,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4323,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4358,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4394,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.4414,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.7273,
+      "youden_j": 0.6606
+    },
+    {
+      "threshold": 0.443,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4465,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4501,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4536,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4572,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4607,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4643,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4679,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4714,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.475,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4785,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4813,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.6364,
+      "youden_j": 0.5697
+    },
+    {
+      "threshold": 0.4821,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.4856,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.4892,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.4928,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.4963,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.4999,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5034,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.507,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5105,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5141,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5176,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5212,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5248,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5283,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5319,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5354,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.539,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5425,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5461,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5497,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5528,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.5455,
+      "youden_j": 0.4788
+    },
+    {
+      "threshold": 0.5532,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.5568,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.5603,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.5639,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.5674,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.5707,
+      "fallback_recall": 0.9333,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.3879
+    },
+    {
+      "threshold": 0.571,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5746,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5781,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5817,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5852,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5888,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5923,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5959,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5994,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.4545,
+      "youden_j": 0.4545
+    },
+    {
+      "threshold": 0.5995,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3636,
+      "youden_j": 0.3636
+    },
+    {
+      "threshold": 0.6004,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.3636,
+      "youden_j": 0.3636
+    },
+    {
+      "threshold": 0.603,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6066,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6101,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6137,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6172,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6208,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6244,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6279,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6315,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.635,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6386,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6421,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6457,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6493,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6528,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6564,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6599,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6635,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.667,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6706,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6741,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6777,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6813,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6848,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6884,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6919,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.6955,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.699,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7026,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7062,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7097,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7133,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7168,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7204,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7214,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.2727,
+      "youden_j": 0.2727
+    },
+    {
+      "threshold": 0.7239,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1818,
+      "youden_j": 0.1818
+    },
+    {
+      "threshold": 0.7245,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.1818,
+      "youden_j": 0.1818
+    },
+    {
+      "threshold": 0.7265,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0909,
+      "youden_j": 0.0909
+    },
+    {
+      "threshold": 0.7275,
+      "fallback_recall": 1.0,
+      "grounded_deliver_rate": 0.0,
+      "youden_j": 0.0
+    }
+  ]
+}

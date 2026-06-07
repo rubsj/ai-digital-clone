@@ -99,8 +99,16 @@ def test_task_description_contains_query():
         query="How does virtual memory work?",
         trigger_reason="low_groundedness",
         chunks=[_make_chunk()],
+        trigger_category="low_groundedness",
+        groundedness_score=0.45,
+        style_score=0.75,
+        confidence_score=0.82,
+        style_profile=None,
     )
     assert "How does virtual memory work?" in desc
+    # ADR-018: trigger_category and scores are passed to FallbackAgent and written into the task.
+    assert "Failure category: low_groundedness" in desc
+    assert "groundedness=0.450" in desc
 
 
 def test_task_description_contains_trigger_reason():
@@ -108,21 +116,44 @@ def test_task_description_contains_trigger_reason():
         query="q",
         trigger_reason="chunk_mismatch: response discussed slab but chunks cover buddy",
         chunks=[_make_chunk()],
+        trigger_category=None,
+        groundedness_score=None,
+        style_score=None,
+        confidence_score=None,
+        style_profile=None,
     )
     assert "chunk_mismatch" in desc
 
 
 def test_task_description_contains_chunk_content():
+    profile = _make_profile()
+    profile = profile.model_copy(update={"sample_emails": ["Be direct. Patch looks wrong."]})
     desc = _build_task_description(
         query="q",
         trigger_reason="low_groundedness",
         chunks=[_make_chunk("buddy allocator manages physical pages", "Memory Management")],
+        trigger_category=None,
+        groundedness_score=None,
+        style_score=None,
+        confidence_score=None,
+        style_profile=profile,
     )
     assert "buddy allocator" in desc
+    # ADR-018: style_profile is wired into the task description so the redirect is in the leader's voice.
+    assert "Style examples from your own emails" in desc
 
 
 def test_task_description_no_chunks():
-    desc = _build_task_description("q", "r", [])
+    desc = _build_task_description(
+        query="q",
+        trigger_reason="r",
+        chunks=[],
+        trigger_category=None,
+        groundedness_score=None,
+        style_score=None,
+        confidence_score=None,
+        style_profile=None,
+    )
     assert "no source material" in desc.lower()
 
 
@@ -132,13 +163,19 @@ def test_task_description_no_chunks():
 
 
 def test_crew_has_one_agent_one_task():
-    crew = FallbackAgent()._build_crew("q", "torvalds", "low_groundedness", [_make_chunk()])
+    crew = FallbackAgent()._build_crew(
+        "q", "torvalds", "low_groundedness", [_make_chunk()],
+        "low_groundedness", 0.45, 0.75, 0.82, _make_profile(),
+    )
     assert len(crew.agents) == 1
     assert len(crew.tasks) == 1
 
 
 def test_crew_agent_has_role_goal_backstory():
-    agent = FallbackAgent()._build_crew("q", "torvalds", "low_groundedness", [_make_chunk()]).agents[0]
+    agent = FallbackAgent()._build_crew(
+        "q", "torvalds", "low_groundedness", [_make_chunk()],
+        "low_groundedness", 0.45, 0.75, 0.82, _make_profile(),
+    ).agents[0]
     assert agent.role and agent.goal and agent.backstory
 
 

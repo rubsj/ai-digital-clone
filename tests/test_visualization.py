@@ -19,10 +19,6 @@ from src.visualization import (
     plot_style_radar,
 )
 
-# visualization.py reads v1 final_score from evaluation dicts. Refactor is
-# explicit Day-12 scope (D-B1); skip until then.
-pytestmark = pytest.mark.skip(reason="visualization.py refactor deferred to Day 12 (D-B1)")
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -46,7 +42,7 @@ def _make_style_profile(name: str, vector: list[float] | None = None):
     )
 
 
-def _scored_record(leader: str, style: float, ground: float, conf: float, final: float, latency: float = 500.0) -> dict:
+def _scored_record(leader: str, style: float, ground: float, conf: float, latency: float = 500.0) -> dict:
     return {
         "id": "q01",
         "leader": leader,
@@ -54,7 +50,6 @@ def _scored_record(leader: str, style: float, ground: float, conf: float, final:
         "style_score": style,
         "groundedness_score": ground,
         "confidence_score": conf,
-        "final_score": final,
         "latency_ms": latency,
     }
 
@@ -64,10 +59,10 @@ def _fallback_record(leader: str, latency: float = 300.0) -> dict:
 
 
 _SAMPLE_RECORDS = [
-    _scored_record("torvalds", 0.85, 0.72, 0.90, 0.80, latency=1200.0),
-    _scored_record("torvalds", 0.60, 0.55, 0.70, 0.61, latency=980.0),
+    _scored_record("torvalds", 0.85, 0.72, 0.90, latency=1200.0),
+    _scored_record("torvalds", 0.60, 0.55, 0.70, latency=980.0),
     _fallback_record("torvalds", latency=450.0),
-    _scored_record("kroah_hartman", 0.78, 0.68, 0.85, 0.75, latency=1100.0),
+    _scored_record("kroah_hartman", 0.78, 0.68, 0.85, latency=1100.0),
     _fallback_record("kroah_hartman", latency=320.0),
 ]
 
@@ -164,7 +159,7 @@ class TestPlotFallbackRate:
         assert out.stat().st_size > 0
 
     def test_zero_fallback(self, tmp_path: Path) -> None:
-        records = [_scored_record("torvalds", 0.8, 0.7, 0.9, 0.78)]
+        records = [_scored_record("torvalds", 0.8, 0.7, 0.9)]
         out = tmp_path / "05-zero.png"
         plot_fallback_rate(records, out)
         assert out.exists()

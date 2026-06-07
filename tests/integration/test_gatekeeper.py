@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pytest
 
+from src.agents.evaluator_agent import GROUNDEDNESS_MIN
 from src.components.gatekeeper import Gatekeeper, _compute_flags
 from src.schemas import EvaluationResult, KnowledgeChunk, RetrievalResult
 
@@ -51,13 +52,14 @@ def test_compute_flags_all_clear():
 
 
 def test_compute_flags_low_groundedness():
-    flags = _compute_flags(_make_eval(groundedness_score=0.55))
+    # Score unambiguously below floor, derived from the constant so it cannot silently flip.
+    flags = _compute_flags(_make_eval(groundedness_score=GROUNDEDNESS_MIN - 0.10))
     assert "low_groundedness" in flags
 
 
 def test_compute_flags_at_floor_is_clear():
-    # 0.60 is the floor; exactly at floor = NOT low_groundedness.
-    flags = _compute_flags(_make_eval(groundedness_score=0.60))
+    # GROUNDEDNESS_MIN is the floor; exactly at floor = NOT low_groundedness (check is strict <).
+    flags = _compute_flags(_make_eval(groundedness_score=GROUNDEDNESS_MIN))
     assert "low_groundedness" not in flags
 
 
@@ -72,7 +74,8 @@ def test_compute_flags_low_confidence():
 
 
 def test_compute_flags_multiple():
-    flags = _compute_flags(_make_eval(groundedness_score=0.50, style_score=0.60, confidence_score=0.70))
+    # All three scores below their respective floors; groundedness derived from constant.
+    flags = _compute_flags(_make_eval(groundedness_score=GROUNDEDNESS_MIN - 0.10, style_score=0.60, confidence_score=0.70))
     assert set(flags) == {"low_groundedness", "low_style", "low_confidence"}
 
 
@@ -82,7 +85,8 @@ def test_compute_flags_multiple():
 
 
 def test_run_delivers_when_groundedness_at_floor():
-    rd = Gatekeeper().run("q", "resp", [_make_chunk()], _make_eval(groundedness_score=0.60), "torvalds")
+    # Exactly at GROUNDEDNESS_MIN must route deliver (check is strict <, not <=).
+    rd = Gatekeeper().run("q", "resp", [_make_chunk()], _make_eval(groundedness_score=GROUNDEDNESS_MIN), "torvalds")
     assert rd.decision == "deliver"
     assert rd.trigger_category is None
     assert rd.trigger_reason is None
@@ -128,22 +132,23 @@ def test_run_deliver_quality_flags_empty_when_all_clear():
 
 
 def test_run_falls_back_when_groundedness_below_floor():
+    gs = GROUNDEDNESS_MIN - 0.10  # unambiguously sub-floor; must stay below GROUNDEDNESS_MIN
     rd = Gatekeeper().run(
         "q", "resp", [_make_chunk()],
-        _make_eval(groundedness_score=0.55),
+        _make_eval(groundedness_score=gs),
         "torvalds",
     )
     assert rd.decision == "fallback"
     assert rd.trigger_category == "low_groundedness"
     assert rd.trigger_reason is not None
-    assert "0.55" in rd.trigger_reason
+    assert f"{gs:.2f}" in rd.trigger_reason
 
 
 def test_run_fallback_low_groundedness_quality_flags_no_blocking():
     # quality_flags must NOT contain low_groundedness (blocking flag travels in trigger_category).
     rd = Gatekeeper().run(
         "q", "resp", [_make_chunk()],
-        _make_eval(groundedness_score=0.55),
+        _make_eval(groundedness_score=GROUNDEDNESS_MIN - 0.10),
         "torvalds",
     )
     assert "low_groundedness" not in rd.quality_flags
@@ -153,7 +158,7 @@ def test_run_fallback_low_groundedness_with_low_confidence():
     # If gs < floor AND cs < CONFIDENCE_MIN, quality_flags carries low_confidence only.
     rd = Gatekeeper().run(
         "q", "resp", [_make_chunk()],
-        _make_eval(groundedness_score=0.55, confidence_score=0.70),
+        _make_eval(groundedness_score=GROUNDEDNESS_MIN - 0.10, confidence_score=0.70),
         "torvalds",
     )
     assert rd.decision == "fallback"

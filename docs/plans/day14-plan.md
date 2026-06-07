@@ -26,8 +26,8 @@ W1 Metric + threshold ── DECISION GATE (STOP) ──▶ W1b implement (score
                                                                                               │
 W2 Retrieval dedup (parallel from t0) ──────────────────────────────────┐                    │
                                                                          │                    ▼
-                              W3a metric effect — re-score STORED outputs, NO generation ◀─────┘
-                                  (in-domain 84 + OOD 6×2; q12/q13 anchors; isolates the metric)
+                              W3a metric effect — re-score FROZEN outputs, NO generation ◀─────┘
+                                  (in-domain 84 + OOD 6×2; q12/q13 anchors; 2 scorers cosine@0.60 vs HHEM@0.40 → verdict diff)
                                                          │
                                                          ▼
                               W3b retrieval effect — REGENERATE the 6 dedup queries (cost spend)
@@ -44,7 +44,7 @@ W6 §2.10 results-chart regeneration ── AFTER W3 (new numbers) AND W4b (visu
 ```
 
 - **Opening step is W1's DECISION GATE.** It is a decision, not an implementation, and it now also fixes the **routing threshold** (does 0.60 transfer to the new metric, or is it re-derived). Everything that re-measures (W3) waits on it.
-- **The re-gate is split to isolate one variable at a time.** W3a re-scores stored `(response, chunks)` with the new metric on the **old** retrieval — no generation, isolating the metric effect. W3b regenerates only the 6 dedup-affected queries with W2 live — isolating the retrieval effect as a marginal delta. These are separate phases because W3a is a no-spend measurement and W3b is a cost spend.
+- **The re-gate is split to isolate one variable at a time.** W3a re-scores the **frozen** `(response, chunks)` under two scorers on identical inputs — the old cosine@0.60 and the new HHEM@0.40 — and reads the metric effect off the routing-verdict diff; no generation, no re-retrieval. W3b regenerates only the 6 dedup-affected queries with W2 live — isolating the retrieval effect as a marginal delta. These are separate phases because W3a is a no-spend measurement and W3b is a cost spend.
 - **W2 runs in parallel** with the W1 decision wait, but **must land before W3b** (not W3a — W3a uses the stored old chunks by design).
 - **OOD is inside the re-gate, not excluded.** A metric *replacement* (unlike Day-12's threshold change) can move OOD scores; PRD §2.1 makes OOD-fallback=100% and zero category-5 hallucinations non-negotiable. W3a re-scores the 6 OOD records too.
 - **W4a, W5 are independent** and may run from t0. **W4b is gated on the W1 decision** (not its implementation) so the groundedness display is touched once. **W4c is gated on W4b. W6 is gated on W3 + W4b.**
@@ -100,48 +100,59 @@ State this consequence per option so Ruby chooses the metric and the boundary mo
 
 ## W3 — Re-gate: measure first, one variable at a time
 
-Groundedness is a pure function of stored `(response, chunks)`. That fact sets the design: anything whose chunks did **not** change can be re-scored from disk with no regeneration; only the dedup-affected queries get new chunks and therefore new responses. The re-gate is split so the metric effect and the retrieval effect are separately attributable, and so the no-spend measurement clears before the cost spend.
+The metric, its threshold, and the bias framing are now **settled inputs, not open questions.** ADR-020 fixes the scorer (HHEM-2.1-Open, V0 max-over-chunks aggregation, local and in-process in the ScoringEngine Component) and the routing threshold (`GROUNDEDNESS_MIN = 0.40`, derived at W1b.2, already landed in `src/agents/evaluator_agent.py`). ADR-021 fixes the framing of the residual paraphrase bias: leader-blind in mechanism, **regime-dependent** in size (zero per-leader deliver-rate gap in HHEM's polarized zone, real misroutes on harder queries), shipped under Door C and compensated at the per-leader floor (W3c), not at the metric. W3 does not re-decide any of this; it measures the consequence and sets the floor.
+
+Groundedness is a pure function of stored `(response, chunks)`. That fact sets the design: anything whose chunks did **not** change can be re-scored from disk with no regeneration; only the dedup-affected queries get new chunks and therefore new responses. The re-gate is split so the metric effect (W3a) and the retrieval effect (W3b) are separately attributable, and so the no-spend measurement clears before the cost spend.
 
 **Measurement precedes recalibration throughout. The floor is not touched until W3c, and never to rescue a rate.**
 
-### W3a — Metric effect, isolated (no generation)
+### W3a — Metric effect, isolated (no generation, no re-retrieval)
 
-**Objective.** Quantify what the new metric alone does to routing, holding retrieval fixed. Re-score every stored `(response, chunks)` with the new scorer + new `GROUNDEDNESS_MIN`, apply the deterministic router, and report — without regenerating anything.
+**Objective.** Quantify what the **metric swap alone** does to routing, holding retrieval fixed. Re-score the **frozen stored outputs** from the prior runs — each response plus its exact top-5 retrieved chunks, **including the current duplicate-chunk retrieval** — under **two scorers on identical inputs**: the old cosine at its `GROUNDEDNESS_MIN = 0.60`, and the new HHEM at `GROUNDEDNESS_MIN = 0.40`. Apply the deterministic router under each, and read the metric effect off the **difference in routing verdicts** between the two. No generation, no re-retrieval.
 
-**Gate before it.** W1b merged (scorer + threshold live). Re-read this section, `src/eval/harness.py`, and the deterministic router from disk. **Paste a call-count estimate before the run:** re-scoring stored outputs is scoring-only (no clone/fallback generation). For an embedding metric this is ~embeds only; **if the W1 metric is an LLM judge, each record is an LLM call** — 84 in-domain + up to 12 OOD ≈ 96 calls (fewer if step 0 moves OOD to W3b), which trips the 100-call cost guard: stop and surface before spending.
+**Precondition (read-only, before any scoring) — confirm the frozen inputs are re-scorable.** W3a must first confirm that the stored artifacts carry, per record, the **response text and its exact top-5 chunks** in a form complete enough to re-score without re-running any part of the pipeline. If they do not — **STOP and surface.** Two notes on where this is most likely to bite:
+- The in-domain records are `results/evaluation_day12_reeval2.json` (84 records, both leaders).
+- OOD is the exposed case: groundedness scores the clone **candidate** response (the text the router scored), not the delivered fallback text, and every OOD record fell back. If only the fallback text / routing reasoning was persisted for an OOD record and not the candidate response + its chunks, that record **cannot** be re-scored from disk — do not substitute fallback text for the candidate. Surface it and route it to W3b's regeneration rather than faking a frozen re-score.
+
+**Gate before it.** W1b landed (HHEM scorer wired, `GROUNDEDNESS_MIN = 0.40` live — both already done). Re-read this section, `src/eval/harness.py`, the cosine and HHEM scorer paths, and the deterministic router from disk.
+
+**No paid API spend — and possibly no fresh scoring.** Both scorers are local (cosine over a local-encoder embedding path; HHEM in-process via `model.predict()`), so nothing calls a paid endpoint. Moreover the per-record scores may already exist: cosine scores are stored in `evaluation_day12_reeval2.json`, and HHEM in-domain scores were computed at the W1b.0 bake-off (`results/bakeoff_hhem_isolated_day14.json`). The precondition step confirms whether W3a reduces to **re-applying the two thresholds (0.60, 0.40) to already-stored scores on identical frozen inputs** — the cleanest form — or whether any record must be (re-)scored locally. Either way: no paid call, paste the compute note, the 100-call cost guard is not tripped.
 
 **What Sonnet does.**
-0. **OOD re-scorability precondition (read-only, before any scoring).** Groundedness scores the clone **candidate** response (the text the router scored), not the delivered fallback text. `evaluation_day12.json` predates the reeval2 schema, and every OOD record fell back — so confirm the file actually carries, per OOD record, the clone candidate response **plus its chunks** in a re-scorable form. Two branches, state which holds:
-   - **Sufficient** — candidate text + chunks present per OOD record → re-score the 6 OOD queries from disk here in W3a, no spend.
-   - **Insufficient** — only the fallback text / routing reasoning was persisted on the fallback path → the 6 OOD queries **cannot** be re-scored from disk and **move to regeneration in W3b** as a cost spend (add them to W3b's call-count estimate and approval). Do not assume the file is sufficient; do not silently substitute fallback text for the candidate.
-1. Re-score the 84 in-domain stored records in `results/evaluation_day12_reeval2.json`, and the 6 OOD queries × 2 leaders **only if step 0 found them re-scorable** (else they are W3b). New scorer, new threshold, deterministic routing applied in code. Write to a new results file; do not overwrite the Day-12 artifacts.
-2. **In-domain:** report the 2×2 deliver/fallback grid per leader, the Torvalds–KH gap under the new metric vs the old-metric numbers, and whether the old direction (KH > T on all 14) persists / narrows / reverses. Report the in-domain deliver rate against **both** the PRD §2.1 headline bars (E2 ≥55%, E1 ≥39%) **and** the ADR-015 per-leader floors (Torvalds 42.9%, KH 35.7%) — §2.1 is the ship criterion, the per-leader floors are its amended refinement; report both, do not replace one with the other.
-3. **Regression anchors:** report q12 and q13 explicitly (Day-8 in-domain anchors; both fell back under the old metric per Day-12) — state their new score and deliver/fallback so the anchor check is auditable, not inferred.
-4. **OOD (PRD §2.1, non-negotiable):** report OOD fallback rate under the new metric+threshold. It must be 100% (6/6 both leaders). **If any OOD record flips to deliver, run the category-5 hallucination check on the actual delivered text** (prose judgment, paste the text) — a delivered OOD answer with fabricated content is a ship-blocker, not a tuning note.
+1. Re-score (or, where the scores already exist on identical frozen inputs, re-threshold) the 84 in-domain frozen records, and the OOD records **only for those confirmed re-scorable by the precondition** (the rest move to W3b), under **both** scorers — cosine@0.60 and HHEM@0.40 — applying the deterministic router in code to each. Write to a new results file; do not overwrite the Day-12 artifacts.
+2. **In-domain:** report, per leader, the 2×2 deliver/fallback grid under each scorer, and the **routing-verdict diff** (which records flip deliver↔fallback when cosine@0.60 is swapped for HHEM@0.40) — that diff is the isolated metric effect. Report the Torvalds–KH picture under HHEM versus cosine and whether the old cosine direction (KH > T) persists / narrows / reverses. Report the in-domain deliver rate against **both** the PRD §2.1 headline bars (E2 ≥55%, E1 ≥39%) **and** the ADR-015 per-leader floors (Torvalds 42.9%, KH 35.7%) — §2.1 is the ship criterion, the per-leader floors its amended refinement; report both, do not replace one with the other.
+3. **Regression anchors:** report q12 and q13 explicitly (Day-8 in-domain anchors; both fell back under cosine per Day-12) — state their score and deliver/fallback under each scorer so the anchor check is auditable, not inferred.
+4. **OOD (PRD §2.1, non-negotiable):** report the OOD fallback rate under HHEM@0.40. It must be 100% (6/6 both leaders). **If any OOD record flips to deliver, run the category-5 hallucination check on the actual delivered text** (prose judgment, paste the text) — a delivered OOD answer with fabricated content is a ship-blocker, not a tuning note. (W1b.2 flagged q20 KH at HHEM 0.571 as the sole OOD score above 0.40 — confirm its verdict here.)
 
-**Stop gate W3a.** Deliver the in-domain grid + old/new comparison + q12/q13 anchors + OOD fallback count and any hallucination read. STOP. This isolates the metric; the retrieval effect is W3b.
+**Stop gate W3a.** Deliver the two-scorer in-domain grids + the routing-verdict diff (the isolated metric effect) + q12/q13 anchors + OOD fallback count and any hallucination read. STOP. This isolates the metric on frozen inputs; the retrieval effect is W3b, and the floor that compensates the metric's residual bias is W3c (which uses **this** isolated number, not the W3b-entangled one).
 
 ### W3b — Retrieval effect, isolated (cost spend)
 
-**Objective.** Quantify the marginal effect of the dedup fix, by regenerating only the queries whose chunks actually change.
+**Objective.** Quantify the marginal effect of the dedup fix, **holding the metric fixed at HHEM `GROUNDEDNESS_MIN = 0.40`**, by re-retrieving and regenerating only the queries whose chunks actually change.
 
-**Gate before it.** W2 merged AND W3a delivered. **Paste a call-count estimate before the run** (full pipeline regeneration): the 6 dedup-affected in-domain queries (q03, q07, q09, q10, q11, q14) × 2 leaders × 3 passes = 36 pairs — at ~14 completions/pair this is ~500 completions, well over the 100-call cost guard, so this run requires explicit cost-spend approval. Plus any OOD query found dedup-affected in W2.
+**Gate before it.** W2 merged AND W3a delivered. **Paste a call-count estimate before the run** (full pipeline regeneration): the 6 dedup-affected in-domain queries (q03, q07, q09, q10, q11, q14) × 2 leaders × 3 passes = 36 pairs — at ~14 completions/pair this is ~500 completions, well over the 100-call cost guard, so this run requires explicit cost-spend approval. Plus any OOD record the W3a precondition routed here, and any OOD query found dedup-affected in W2.
 
-**What Sonnet does.** Regenerate only those queries through the full pipeline with dedup live and the new metric, into the W3a results file (or a sibling). Report the per-query delta vs W3a for the same queries, so the dedup contribution is separated from the metric contribution. Note that CloneAgent temp=0.3 adds regeneration variance (Day-12 saw Torvalds 3–4/14); report the 3-pass spread, do not over-read a single pass.
+**Scope note — disjoint from the bias measurement.** The 6 dedup-affected queries (q03, q07, q09, q10, q11, q14) are **disjoint** from the 7 held-equal queries the ADR-021 paraphrase bias was measured on (q01, q02, q04, q05, q06, q12, q13) — confirmed zero-overlap in the W2 diagnostic. So the dedup fix cannot move the held-equal bias number, and W3b's retrieval effect does not contaminate the W3a metric effect that W3c's floor is set from.
+
+**What Sonnet does.** Apply the W2 dedup fix and re-retrieve for those 6 queries, regenerate them through the full pipeline, and re-score with HHEM@0.40 (metric held fixed), into the W3a results file (or a sibling). Report the per-query delta vs W3a for the same queries, so the retrieval contribution is separated from the metric contribution. Note that CloneAgent temp=0.3 adds regeneration variance (Day-12 saw Torvalds 3–4/14); report the 3-pass spread, do not over-read a single pass.
 
 **Stop gate W3b.** Deliver the marginal-delta table (W3b vs W3a on the 6 queries) and the combined corrected grid. STOP. Floor still untouched.
 
-### W3c — Floor recalibration (separately gated, must not rescue a rate)
+### W3c — Per-leader floor: compensate the ADR-021 bias (separately gated, must not rescue a rate)
 
-**Objective.** Decide whether ADR-015's per-leader floors (Torvalds 42.9%, KH 35.7%) hold, move, or are re-derived, given they were calibrated on a broken metric.
+**Objective.** Set the per-leader floor that **compensates the ADR-021 intrinsic paraphrase bias** — the leader-blind, regime-dependent KH lean HHEM carries on held-equal queries — and decide whether ADR-015's existing per-leader floors (Torvalds 42.9%, KH 35.7%) hold, move, or are re-derived on HHEM's scale. The floor is set from the **isolated W3a metric effect only** — the cosine@0.60 vs HHEM@0.40 verdict diff on the frozen inputs — **not** the W3b retrieval-entangled picture. The metric effect is the bias the floor must offset; the retrieval fix is a separate correction that must not be folded into the floor.
 
-**Gate before it.** W3a and W3b delivered (the corrected measurement exists).
+**OPENING GATE (ADR-021 pre-registration obligation).** Before any deliver rate under the candidate floor is computed or seen: the floor adjustment must be **justified by the measured bias magnitude and pre-registered** against it. A floor set to rescue a deliver rate — chosen after seeing the rate it produces — is **forbidden** by ADR-021 and is the floor-rescuing anti-pattern this project has refused throughout. State the bias magnitude (from W3a), state the floor rule it implies, lock it, *then* read the resulting rate. If the locked floor still puts Torvalds below a defensible bar — or below PRD §2.1 E1/E2 — that is the honest result, reported as such.
 
-**What Sonnet does.** Present recalibration options and their basis (e.g. re-derive from the new metric's distribution the way ADR-003's 0.70 was derived for style; or hold and document), framed against **both** PRD §2.1's E2/E1 headline bars and the ADR-015 per-leader floors they refine. **Recalibration follows the measurement; it does not move to make Torvalds pass.** If the honest new operating point still puts Torvalds below a defensible floor — or below E1/E2 — that is the honest result, reported as such.
+**Open design question (surface, do NOT resolve here).** ADR-021 establishes the bias is **regime-dependent**: zero per-leader deliver-rate gap in HHEM's polarized zone (the held-equal queries at T=0.40), but real misroutes on harder queries where Torvalds' grounded scores run low (W1b.2 named q07 T 0.285, q14 T 0.369, q03 T 0.385). So whether a **single flat per-leader floor offset** is even the right *shape* of compensation — versus something regime-aware — is itself an open question to settle at W3c. Lay it out; do not pick.
 
-**Stop gate W3c.** Options surfaced. STOP for Ruby. This is ADR territory (ADR-015 amendment). Do not write it.
+**Gate before it.** W3a and W3b delivered (the corrected measurement exists; the W3a isolated metric effect is the input to the floor).
 
-**Exit check (W3 track).** Metric-only and metric+dedup measurements both recorded with old/new comparison and q12/q13 anchors; OOD fallback rate reported (and hallucination-checked if anything flipped); floor decision recorded by Ruby (not the executing model); any floor change lands as a flagged ADR-015 amendment, additive, original numbers untouched.
+**What Sonnet does.** Present the floor options and their basis (e.g. re-derive from HHEM's distribution the way the style floor was derived; or hold the ADR-015 numbers and document), framed against **both** PRD §2.1's E2/E1 headline bars and the ADR-015 per-leader floors they refine, with the regime-dependence shape question surfaced. Recalibration follows the measurement; it does not move to make Torvalds pass.
+
+**Stop gate W3c.** Options surfaced, bias magnitude and any candidate floor rule pre-registered before the rate is read. STOP for Ruby. This is ADR territory (ADR-015 amendment). Do not write it.
+
+**Exit check (W3 track).** Metric effect (cosine@0.60 vs HHEM@0.40 verdict diff on frozen inputs) and metric+dedup measurements both recorded, with q12/q13 anchors; OOD fallback rate reported (and hallucination-checked if anything flipped); the per-leader floor pre-registered against the W3a bias magnitude before its rate is seen; floor decision recorded by Ruby (not the executing model); any floor change lands as a flagged ADR-015 amendment, additive, original numbers untouched.
 
 ---
 
@@ -193,6 +204,16 @@ Day 12 left Phase 2 blocked behind STOP GATE 1.6b + 1.7 *and* "Torvalds floor no
 
 **Exit check.** `grep -rn "rag_agent\|RAGAgent" src/ tests/` empty; suite green.
 
+### W4d — Stale groundedness target strings in prompt text (cleanup)
+
+**Objective.** Replace the stale `target > 0.60` strings in two LLM prompt templates — `src/agents/evaluator_agent.py:111` and `src/evaluation/evaluator.py:46` — with the HHEM-scale target (the 0.40 gate) or a qualitative intent. `0.60` is the cosine-era threshold; it is meaningless on HHEM's scale and contradicts the live `GROUNDEDNESS_MIN = 0.40` gate. These are prompt text, display-only with no routing effect, which is exactly why **no test catches them** — flagged at the W1b.2 closeout and carried here.
+
+**Gate before it.** None for `evaluator_agent.py` (live agent prompt, must be fixed regardless). **Sequence after W4a for `evaluation/evaluator.py`:** W4a retires `evaluation/evaluator.py`, so if that file is deleted first the `:46` string disappears with it — do not fix a string in a file about to be deleted. Confirm W4a's disposition of `evaluator.py` before touching its `:46` line.
+
+**What Sonnet does.** In `evaluator_agent.py:111`, replace `target > 0.60` with the 0.40-gate phrasing (or a qualitative "well-grounded in the retrieved context" intent that does not hard-code a scale). For `evaluation/evaluator.py:46`, fix it the same way **only if W4a did not retire the file**; otherwise note it resolved by deletion.
+
+**Exit check.** `grep -n "0\.60\|target > 0" src/agents/evaluator_agent.py` returns no stale groundedness-target string; `evaluation/evaluator.py:46` either fixed or gone with the file; suite green (no test asserts on this prompt text, so this is a grep-and-read check, not a test pass).
+
 ---
 
 ## W5 — Architecture diagram (light, parallel)
@@ -226,7 +247,7 @@ The executing model writes **none** of these. Each is authored separately and No
 1. **Confound-finding ADR** — records the Day 13 verdict: the groundedness scorer measures lexical echo, not containment; confirmed three ways. New ADR (Evaluation category).
 2. **Replacement-metric ADR** — records the W1 decision (entailment / LLM-faithfulness / promoted-instrument / hybrid), **including where the metric's number lives** (ScoringEngine Component vs relocated into the EvaluatorAgent per ADR-009/ADR-011) and any Agent/Component boundary move that implies. New ADR; content depends on Ruby's choice.
 3. **ADR-004 amendment** — marks the cosine heuristic as confounded / superseded by the replacement metric, **and records the routing threshold on the new metric's scale** (whether 0.60 transferred, mapped, or was re-derived, with its basis). The threshold belongs in this amendment, not only the confound. Additive amendment, original Decision untouched (or a supersede note, per Ruby).
-4. **ADR-015 amendment (W3b)** — only if the floor moves after the corrected re-measurement. Must follow the measurement, not rescue a rate.
+4. **ADR-015 amendment (W3c)** — only if the floor moves after the corrected re-measurement. Must follow the measurement, not rescue a rate.
 5. **ADR-002 amendment (W2)** — only if the dedup fix changes retrieval semantics (effective-k, tie-break) enough to amend the RAG-config decision. Surface at W2 step 1; may be a plain note rather than an amendment — Ruby decides.
 6. Not new ADRs: the ADR-014 inventory correction (already an amendment, needs Notion sync) and the ADR-010→018 supersede mark.
 
@@ -256,7 +277,7 @@ The executing model writes **none** of these. Each is authored separately and No
 | W1b | implement | `src/evaluation/` (new scorer), `src/components/scoring_engine.py`, `src/agents/evaluator_agent.py` (`GROUNDEDNESS_MIN`) | new scorer unit-tested vs calibration sample; threshold set with ADR-cited basis; Day-13 q02 confound case no longer separates clones (or residual explained); architecture-honesty grep clean |
 | W2.1 | confirm (read-only) | `src/components/retriever.py:84–117`, index build path | duplicate-entry cause identified; both fix points + effective-k effect surfaced; ADR-002 touch flagged if semantics change |
 | W2.2 | implement | confirmed dedup point in `src/components/retriever.py` | 6 named queries return 5 distinct top-5 passages (or corrected effective-k reported); other 8 unchanged; suite green |
-| W3a | re-score (no spend) | `src/eval/harness.py`/scorer, new `results/*.json` (in-domain 84 from `reeval2`; OOD 6×2 from `evaluation_day12.json` **iff re-scorable**) | **OOD re-scorability precondition (candidate text + chunks present) stated, sufficient/insufficient branch declared — insufficient → OOD moves to W3b**; call-count estimate pre-run; in-domain 2×2 + old/new gap reported **against PRD §2.1 E2(55%)/E1(39%) and ADR-015 per-leader floors**; **q12/q13 anchors reported**; **OOD fallback = 100% or category-5 hallucination text pasted**; floor untouched |
+| W3a | re-score, 2 scorers (no paid spend) | cosine + HHEM scorer paths, new `results/*.json` (in-domain 84 from `reeval2`; OOD 6×2 from `evaluation_day12.json` **iff re-scorable**) | **frozen-input re-scorability precondition stated (else STOP), OOD candidate-text+chunks branch declared — insufficient → OOD moves to W3b**; **no paid spend (both scorers local, HHEM in-process), compute note pasted**; in-domain 2×2 under each scorer + **routing-verdict diff (metric effect)** reported **against PRD §2.1 E2(55%)/E1(39%) and ADR-015 per-leader floors**; **q12/q13 anchors reported**; **OOD fallback = 100% or category-5 hallucination text pasted**; floor untouched |
 | W3b | regenerate (cost spend) | full pipeline on q03/q07/q09/q10/q11/q14 (+ any dedup-affected OOD), into W3a results file | call-count estimate pre-run (~500 completions → cost-spend approval); per-query marginal delta vs W3a; 3-pass spread reported; floor untouched |
 | W3c | surface | ADR-015 (flagged) | floor options + basis presented; recalibration follows measurement, does not rescue a rate; STOP for Ruby |
 | W4a | retire + sync | `src/evaluation/evaluator.py` (+`__init__` re-export, `tests/test_evaluator.py`); audit `reranker.rerank()`; Notion ADR Log | per-file zero-importer grep pre-delete; suite green; ADR-014 inventory + pending ADRs present in Notion |

@@ -2,10 +2,12 @@
 
 **Project:** P6: Torvalds Digital Clone
 **Category:** Evaluation
-**Status:** Accepted
+**Status:** Superseded
 **Date:** 2026-04-14
 
 ---
+
+⚠️ Superseded by ADR-018 (2026-06-01). The Day-12 gate showed the GatekeeperAgent's LLM routing made non-monotonic, nondeterministic decisions (a 0.675 record delivered while 0.727/0.715/0.698 fell back; the same query flipped across identical passes). Routing is now a deterministic function and the explanation role moved to the FallbackAgent. This ADR is retained intact as the Day-10 record of the original decision and its reasoning at that time; it is not edited.
 
 ## Context
 
@@ -72,3 +74,19 @@ The per-sentence structure makes scores attributable. "Sentence 3 had max cosine
 The failure mode is semantic similarity, not factual verification. A response that contradicts a source but uses similar vocabulary can score higher than it should. For LKML-domain queries where terminology is precise ("slab allocator," "rcu_read_lock," "CFS scheduler") this risk is low. The compiler disagreement in the calibration sample is the clearest example. The Day 6 weight sensitivity sweep tested whether the groundedness threshold needed domain-specific adjustment and produced null results as a proxy-regime artifact (ADR-006, PRD §10.3). In v2 there is no fixed threshold to tune; GatekeeperAgent reasons over groundedness qualitatively (ADR-010).
 
 The 0.60 calibration is LKML-specific. A new domain would need its own judge comparison to validate the heuristic on that vocabulary.
+
+---
+
+## Amendment (2026-06-04): cosine groundedness superseded
+
+The cosine groundedness heuristic this ADR established is **superseded** by ADR-020. ADR-019 found that per-sentence max cosine against the retrieved chunks measures lexical echo, not containment: it rewards a response for reusing the source's vocabulary rather than for being supported by the source, confirmed across three probes and a blind containment oracle. The decision to use cosine, and the original rationale below, no longer hold for the groundedness gate.
+
+What replaces it (per ADR-020): a local entailment scorer, HHEM-2.1-Open, run in-process in the ScoringEngine Component on the same per-sentence, max-over-chunks, mean-over-sentences shape. Deterministic, Component-owned, no Agent/Component boundary move.
+
+Threshold change. The routing floor moves from the cosine-era `GROUNDEDNESS_MIN = 0.60` to `GROUNDEDNESS_MIN = 0.40` on HHEM's scale (derived at W1b.2 by a pre-registered safety-asymmetric rule against the oracle, query-level train/held-out). The two values are not comparable: a threshold does not transfer across metrics, because HHEM's entailment scores run lower than cosine's echo-inflated scores. Carrying 0.60 onto HHEM would route roughly 42 percent of oracle-grounded content to fallback. This is the concrete reason the threshold had to be re-derived rather than reused.
+
+Residual bias note. HHEM carries a known, regime-dependent paraphrase bias (ADR-021): zero per-leader deliver-rate gap in HHEM's polarized score zone, real misroutes on harder queries. It is accepted and compensated at the W3c per-leader floor, not at the metric or by moving this threshold.
+
+Where cosine remains valid. This supersession is scoped to the groundedness gate only. Cosine similarity stays appropriate in retrieval, where topical similarity to the query is the genuine question. The original rationale above applies to retrieval, not to groundedness scoring.
+
+Relates: ADR-019 (confound), ADR-020 (replacement metric and threshold), ADR-021 (bias acceptance and floor compensation).
