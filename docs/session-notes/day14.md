@@ -527,3 +527,214 @@ Identical in kind to the 7 TEST-STALE fixes in the prior phase: stale assertions
 
 ### Scope
 - Retriever.run plus one test file only. rerank_with_status untouched. No metric/floor/ADR-body change beyond the ADR-002 amendment note. Zero paid calls.
+
+---
+
+## Phase W3b — Retrieval effect, isolated (cost spend, HHEM@0.40 fixed)
+
+### Built
+- W3b runner `scripts/w3b_retrieval_effect.py`: 6 dedup-affected queries (q03, q07, q09, q10, q11, q14) × 2 leaders × 3 passes through the full pipeline with the W2 dedup fix live. HHEM@0.40 held fixed throughout (metric unchanged from W3a). Actual spend: 18 pipeline runs, ~252 completions (within the pre-registered ~500 envelope). Results in `results/w3b_retrieval_effect_day14.json` (incremental, complete).
+- Fixed a process-order crash (exit 139, SIGSEGV) caused by FAISS's BLAS initializing before PyTorch/flan-t5-base in the same process: pre-load HHEM before importing the harness (which loads FAISS), and monkey-patch ScoringEngine to reuse the shared instance across all 18 runs. No src/ changes; the fix is in the runner script only.
+
+### Why
+- W3a measured the metric effect on frozen retrieval (old chunks, old responses). W3b measures the marginal retrieval effect: what does deduped retrieval contribute to grounding, holding the metric fixed? The two contributions need to be separately attributable so W3c's floor is set against the W3a metric effect only, not the W3b-entangled number.
+
+### Dedup fix confirmed active
+- All 6 queries: 5/5 distinct chunks in pass 1. W2 is engaged throughout.
+
+### Per-query results (3-pass spread vs W3a frozen baseline, HHEM@0.40)
+
+| qid | leader | W3a HHEM | P1 | P2 | P3 | spread | Δ mean | > noise? | W3b majority |
+|-----|--------|----------|----|----|-----|--------|--------|----------|--------------|
+| q03 | torvalds | 0.3848 | 0.4384 | 0.4577 | 0.4423 | 0.019 | **+0.061** | **YES** | **deliver** |
+| q03 | kroah_hartman | 0.4813 | 0.5934 | 0.4375 | 0.3840 | 0.209 | −0.010 | no | deliver |
+| q07 | torvalds | 0.2852 | 0.3336 | 0.3379 | 0.3343 | 0.004 | **+0.050** | **YES** | fallback |
+| q07 | kroah_hartman | 0.2524 | 0.4731 | 0.4243 | 0.5087 | 0.084 | **+0.216** | **YES** | **deliver** |
+| q09 | torvalds | 0.3778 | 0.5375 | 0.5635 | 0.5700 | 0.033 | **+0.179** | **YES** | **deliver** |
+| q09 | kroah_hartman | 0.3426 | 0.5811 | 0.4875 | 0.5189 | 0.094 | **+0.187** | **YES** | **deliver** |
+| q10 | torvalds | 0.5528 | 0.5597 | 0.4357 | 0.5346 | 0.124 | −0.043 | no | deliver |
+| q10 | kroah_hartman | 0.6004 | 0.6694 | 0.5596 | 0.6559 | 0.110 | +0.028 | no | deliver |
+| q11 | torvalds | 0.5994 | 0.5868 | 0.5017 | 0.5957 | 0.094 | −0.038 | no | deliver |
+| q11 | kroah_hartman | 0.7245 | 0.5997 | 0.4806 | 0.6553 | 0.175 | −0.146 | no | deliver |
+| q14 | torvalds | 0.3687 | 0.5060 | 0.3677 | 0.4704 | 0.138 | +0.079 | no | deliver |
+| q14 | kroah_hartman | 0.4414 | 0.3375 | 0.4772 | 0.3663 | 0.140 | −0.048 | no | fallback |
+
+### Marginal retrieval delta
+
+Retrieval fix demonstrably moved grounding above generation noise (delta > spread): q03 T, q07 KH, q09 T, q09 KH — four reliable verdict flips fallback→deliver. q07 T: delta exceeds noise (+0.050 > spread 0.004) but stays below 0.40; the fix brought better chunks but the query is inherently low-HHEM for Torvalds' generation style.
+
+Within generation noise (pre-registered: "did not move grounding measurably above noise"): q03 KH, q10 T/KH, q11 T/KH — no retrieval effect attributable. Per the mechanism caveat: HHEM V0 is max-over-chunks; if the best-supporting chunk was already in the pre-dedup top-2, restoring effective-k to 5 does not change the max. q14 T and q14 KH flip majority verdict but the delta is within spread — uncertain, not attributed to the retrieval fix.
+
+### Mechanism caveat (pre-registered)
+HHEM V0 aggregation (max-over-chunks, mean-over-sentences) means restoring effective-k from 2-4 to 5 only raises the score when a better-supporting chunk enters the pool. For q10 and q11 (already high-HHEM, best chunk already in top-2), dedup made no measurable difference. For q09 and q07 KH, a materially better-fitting chunk entered the deduped pool and changed the score dramatically.
+
+### Combined corrected picture (W3a metric effect + W3b retrieval delta)
+
+Reliable-signal combined (only >-noise flips applied on top of W3a):
+- Torvalds: W3a 9/14 + q03 T (+1) + q09 T (+1) = **11/14 = 78.6%**
+- KH: W3a 11/14 + q07 KH (+1) + q09 KH (+1) = **13/14 = 92.9%**
+
+Best-estimate combined (majority verdicts for dedup queries):
+- Torvalds: 12/14 = 85.7% (q14 T flips in, q07 T stays out)
+- KH: 12/14 = 85.7% (q14 KH flips out)
+
+Both leaders clear PRD §2.1 E2 ≥ 55% and E1 ≥ 39% on either counting method.
+
+### Surprising
+- q09 is the largest signal: both leaders jumped from ~0.38 (fallback) to ~0.54 (deliver) with tight spreads. The dedup fix clearly surfaced a better-fitting chunk for this query. q07 KH also: +0.22, all 3 passes above threshold.
+- q11 KH: largest negative spread (0.175), suggesting high generation variance for this query regardless of retrieval. The dedup fix neither helped nor hurt; q11 KH stays deliver across all 3 passes.
+- The process-order crash (HHEM + FAISS same process) means the live pipeline has never scored responses with HHEM and fresh retrieval in the same process before this run. All prior HHEM scores (W3a bakeoff, threshold derivation) were on frozen data. This run is the first live HHEM-scored pipeline run.
+
+### Deferred
+- q14 verdict uncertainty: delta within noise for both leaders; q14 T and q14 KH flips are not reliably attributed to the retrieval fix. Not actionable until W3c floor sets the operating point.
+- q07 T persistent fallback: dedup improved grounding above noise but not above 0.40. Whether a per-leader floor or a harder floor adjustment is needed is W3c's decision, not W3b's.
+
+### ADR candidate
+- None from W3b alone. The mechanism caveat (max-over-chunks, effective-k only helps when better chunk enters pool) is already captured in the W3a framing and the ADR-020 V0 aggregation note.
+
+### Scope
+- scripts/w3b_retrieval_effect.py (new runner) and results/w3b_retrieval_effect_day14.json (new results file). No src/ changes. GROUNDEDNESS_MIN unchanged. No ADR edits. No floor touched.
+
+---
+
+## Phase W3b — Retrieval effect, isolated (cost spend, 3-pass)
+
+### Built
+- The W3b retrieval-effect measurement: regenerated the 6 dedup-affected queries (q03, q07, q09, q10, q11, q14) x 2 leaders x 3 passes through the full pipeline with the W2-fixed (deduped) retriever, metric held fixed at HHEM 0.40, scored against the W3a baseline. Results in results/w3b_retrieval_effect_day14.json. Dedup confirmed live: all 6 queries returned 5/5 distinct chunks.
+- Spend came in under envelope: ~252 completions against the approved ~500 ceiling (the realized completions-per-pair ran lighter than the estimate). 18 pipeline runs, 18 Cohere calls.
+
+### Why
+- W3b isolates the retrieval contribution: only retrieval changed vs W3a (now deduped), metric held at HHEM 0.40. The delta vs W3a is the retrieval effect on these 6 queries. 3 passes because CloneAgent runs at temp 0.3 and generation noise must be averaged out for the retrieval signal to show through.
+
+### Findings (read against generation noise, pre-registered)
+- 5 of 12 cells show a retrieval effect above the 3-pass spread: q03 T (+0.061, flips to deliver), q07 T (+0.050, stays fallback — mean 0.335 still below 0.40), q07 KH (+0.216, flips to deliver), q09 T (+0.179, flips to deliver), q09 KH (+0.187, flips to deliver).
+- 5 cells: delta within generation noise, no reliable retrieval effect (q03 KH, q10 T, q10 KH, q11 T, q11 KH). Pre-registered interpretation applies: the dedup did not move grounding measurably above noise for these.
+- 2 cells uncertain (q14 T, q14 KH): majority verdict flips but the spread (0.14) exceeds the delta, and one pass straddles the threshold each way. Generation variance, not retrieval, drives these flips. Not attributable to the fix.
+
+### Surprising / mechanism confirmed
+- The effect tracks the max-over-chunks mechanism exactly. HHEM V0 is max-over-chunks; restoring effective-k from 2-4 to 5 only raises the score if a better-supporting chunk enters the pool. The queries that improved (q07 KH, q09 both) are where dedup brought in a materially better-fitting chunk; the queries that did not (q10, q11) are where the best chunk was already in the pre-dedup top-2. The data confirmed the pre-registered mechanism caveat rather than contradicting it. This is a stronger result than a flat "dedup helped" because it explains when and why.
+- q07 T improved reliably yet stayed in fallback (mean 0.335 < 0.40). It is one of the three Torvalds hard-query misroutes ADR-021 named as the regime-dependent bias: dedup helped it but did not rescue it, consistent with the bias being real on hard queries independent of retrieval.
+
+### How to carry these numbers (caveat)
+- The W3a and W3b numbers are NOT on the same footing. W3a is a re-threshold of frozen Day-12 responses (point value per cell, no generation noise). W3b is fresh 3-pass generation (a distribution per cell). So any "combined corrected deliver rate" is a hybrid of point estimates (the 8 non-dedup queries) and noisy 3-pass majorities (the 6 dedup queries). Read it conservatively. The reliable-signal version (counting only above-noise flips) is Torvalds 11/14, KH 13/14; the majority-verdict "best estimate" (T 12/14, KH 12/14) is a noisier upper read, not a stable system property. Both clear PRD 2.1 (E2 55%, E1 39%) either way.
+
+### Does NOT feed W3c
+- W3b is portfolio evidence that the dedup fix works; it is NOT an input to the W3c floor. The floor compensates the intrinsic metric paraphrase bias, measured on the held-equal set, which is disjoint from these 6 dedup queries. The W3c floor input is the W3a isolated metric effect only. This disjointness is by design and is the wall that keeps the retrieval fix from contaminating the floor decision.
+
+### Scope
+- Exactly the 6 dedup queries, 3 passes, metric held fixed at HHEM 0.40. No floor change, no metric change, no other queries, no OOD, no ADR edits. Cost spend under envelope.
+
+---
+
+## Phase W3c — Per-leader floor disposition (a)+(c): floors confirmed not moved, misroute documented
+
+### Decided (pre-registered before reading rates)
+- The per-leader floors are aggregate regression guardrails, confirmed on the corrected metric and NOT moved. No leader-specific threshold, no GROUNDEDNESS_MIN change. The paraphrase bias is handled as a documented accepted limitation (ADR-021 Door C), not by any floor or threshold adjustment. The rule was locked before any rate was read.
+
+### Why
+- The ADR-021 bias is per-query misrouting (a grounded Torvalds answer on a hard query scoring below the shared gate). A per-leader aggregate rate floor cannot fix a per-query misroute; it cannot tell a paraphrase-penalized grounded answer from a weak one. Lowering Torvalds' threshold would weaken the shared OOD defense (same GROUNDEDNESS_MIN, OOD AUC 0.942) and is the leader-keyed calibration ADR-021 Door A rejected. So the floor's honest role is regression guardrail, not compensation.
+
+### Rates vs floors (from W3a isolated metric effect; W3b NOT used as input)
+- Torvalds 9/14 = 64.3% vs 42.9% floor (+21pp) and PRD E1 39%: clears both.
+- KH 11/14 = 78.6% vs 35.7% floor (+43pp) and PRD E2 55%: clears both.
+- Both clear both bars on the corrected metric, frozen inputs. Floors hold, not moved. This is the complete W3c rate read.
+
+### Accepted limitation (documented, not engineered around)
+- On hard paraphrased queries a grounded Torvalds response can score below 0.40 and fall back. Surviving exemplar after the W2 dedup fix: q07 T (oracle 53.6%, W3a 0.285, W3b mean 0.335 — improved reliably by retrieval, still below the gate). Broader class: q14 T (oracle 73.4%, W3a 0.369), q03 T (oracle 64.2%, W3a 0.385; resolved by dedup). Not a generation defect (ADR-019), not a retrieval defect (W3b improved q07 T and it still fell back), not a floor-calibration defect. It is the operational cost of choosing a local deterministic gate over a paraphrase-robust LLM judge. Chose to document it rather than soften a safety gate to hide it.
+
+### Regime-shape question closed
+- A flat per-leader offset is the wrong shape: it is aggregate, would pass weak answers just under the floor, and still would not target the per-query misroutes. (a)+(c) declines to use the floor as compensation at all. Open question from the plan is resolved.
+
+### Surfaced for ADR
+- ADR-015 amendment (floors confirmed on HHEM, reframed as guardrails, misroute documented): authored, landed this phase. Numbers unchanged.
+
+### Scope
+- No threshold change, no leader-specific threshold, no routing code change, no floor number change. W3b not used as a rate input. Zero paid calls.
+
+---
+
+## Phase W4b-3 — Repoint cli index from RAGAgent to Retriever.build()
+
+### Built
+- `src/cli.py` — `from src.agents.rag_agent import RAGAgent` replaced with `from src.components.retriever import Retriever`. Index command body changed from `agent = RAGAgent(config=config); agent.build(chunks)` to `Retriever(config=config).build(chunks)`.
+- `tests/test_cli.py` — `TestIndexCommand.test_success` updated. `patch("src.cli.RAGAgent", ...)` replaced with `patch("src.cli.Retriever", ...)`. Added sentinel-chunks pattern: `sentinel_chunks = [MagicMock()]` returned by `chunk_documents` mock; asserted `mock_retriever.build.assert_called_once_with(sentinel_chunks)` so the test verifies data actually flows through, not just that a name is patchable.
+
+### Why
+- ADR-014 claimed "v1 rag_agent.py façade becomes the Retriever Component" but the cli index command was never migrated. `RAGAgent.build()` and `Retriever.build()` are structurally identical (same primitives, same `_DEFAULT_INDEX_DIR = Path("data/rag/faiss_index")`), so the repoint is safe. Without this, rag_agent.py would remain a live importer and could not be deleted in W4c.
+- The stop-gate investigation (W4c precondition) confirmed the miss: ADR-014's claim was half accurate — the retrieve-side was absorbed into Retriever, but the cli build-side was never migrated.
+
+### Surprising
+- Nothing new surfaced. The precondition investigation had already established that ADR-014 was half accurate, so the fix was mechanical once the decision to proceed was confirmed.
+
+### Deferred
+- W4c (delete rag_agent.py): now unblocked — zero importers confirmed post-edit.
+
+---
+
+## Phase W4c — Delete dead v1 rag_agent.py
+
+### Built
+- `src/agents/rag_agent.py` — deleted. Pre-delete grep (`grep -rn "rag_agent|RAGAgent" src/ tests/`) returned only the file itself; zero external importers. `src/agents/__init__.py` had no re-export. Post-delete grep returned empty.
+
+### Why
+- With W4b-3 complete, rag_agent.py was a zero-importer file with no re-export. The v2 Retriever Component owns both the build and retrieve paths. Keeping a dead v1 facade in the agents package creates misleading inventory and contradicts ADR-014's stated clean-sweep outcome.
+
+### Surprising
+- `src/agents/__init__.py` was empty — rag_agent.py had never been re-exported, so the deletion needed no __init__ cleanup. The test mock in test_cli.py was the only caller ever, and W4b-3 had already repointed it.
+
+### Deferred
+- None. W4d (stale prompt strings in evaluator_agent.py) next.
+
+---
+
+## Phase W4d — Fix stale groundedness-target string in evaluator prompt
+
+### Built
+- `src/agents/evaluator_agent.py` line 111 — `_build_task_description` prompt string changed:
+
+  **Before:** `f"  Groundedness: {scores.groundedness_score:.3f} (target > 0.60)\n"`
+
+  **After:** `f"  Groundedness: {scores.groundedness_score:.3f} (HHEM entailment; well-grounded in the retrieved context)\n"`
+
+### Why
+- `0.60` was the cosine-era groundedness threshold. It is meaningless on HHEM's entailment scale and contradicts the live `GROUNDEDNESS_MIN = 0.40` constant in the same file. This is an LLM-consumed prompt string, not a code-read gate; hardcoding `0.40` would be equally stale on the next threshold revision. Qualitative phrasing names the metric and the quality intent without a number that can go out of date.
+- Routing is controlled by the deterministic `GROUNDEDNESS_MIN = 0.40` in `_compute_flags()`. The prompt string change has no routing effect.
+
+### Surprising
+- The investigation surfaced a second stale string: line 110 `(target > 0.90)` for style, but `STYLE_MIN = 0.70` (ADR-017 Amendment 1 corrected it from the synthetic-data calibration target). Surfaced as an observation; out of scope for this phase, addressed in W4d-continued.
+- Lines 36/40/41 carry `0.60` in ADR-context comments explaining the historical cosine threshold — not prompt instructions, not actionable stale strings.
+
+### Deferred
+- Line 110 style string and line 112 confidence string: out of scope, addressed in W4d-continued.
+
+---
+
+## Phase W4d-continued — Make all three score-target annotations qualitative
+
+### Built
+- `src/agents/evaluator_agent.py` lines 110 and 112 — `_build_task_description` prompt:
+
+  **Before:**
+  ```
+  f"  Style:        {scores.style_score:.3f} (target > 0.90)\n"
+  f"  Groundedness: {scores.groundedness_score:.3f} (HHEM entailment; well-grounded in the retrieved context)\n"
+  f"  Confidence:   {scores.confidence_score:.3f} (target > 0.80)\n\n"
+  ```
+  **After:**
+  ```
+  f"  Style:        {scores.style_score:.3f} (stylistic match to the leader's voice)\n"
+  f"  Groundedness: {scores.groundedness_score:.3f} (HHEM entailment; well-grounded in the retrieved context)\n"
+  f"  Confidence:   {scores.confidence_score:.3f} (model's expressed certainty in the response)\n\n"
+  ```
+
+### Why
+- Line 110 `(target > 0.90)` was stale: `STYLE_MIN = 0.70` per ADR-017 Amendment 1 (corrected from the synthetic-data calibration target 0.90). Any style score in [0.70, 0.89] is correctly delivered but the prompt characterized it as below-target, potentially biasing the LLM reviewer's explanation.
+- Line 112 `(target > 0.80)` was numerically accurate (`CONFIDENCE_MIN = 0.80`) but inconsistent with the other two now-qualitative lines; a future threshold change would re-introduce the staleness problem.
+- Result: all three lines qualitative, no hardcoded thresholds in LLM-consumed prompt text. The constants (`STYLE_MIN`, `GROUNDEDNESS_MIN`, `CONFIDENCE_MIN`) remain the single source of truth for routing and flag logic.
+
+### Surprising
+- Nothing new. The fix was straightforward once the live constants were confirmed.
+
+### Deferred
+- W5: architecture diagram (Mermaid, `docs/architecture/`).
+- W6: §2.10 results-chart regeneration (gated on W3+W4b).

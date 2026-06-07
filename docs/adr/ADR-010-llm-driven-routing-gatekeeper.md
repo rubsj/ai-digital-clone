@@ -1,7 +1,7 @@
 # ADR-010: LLM-Driven Routing via GatekeeperAgent
 
-**Status:** Accepted
-**Date:** 2026-05-26
+**Status:** Superseded
+**Date:** 2026-06-01
 
 ## Context
 

@@ -107,9 +107,9 @@ def _build_task_description(query: str, response: str, scores: Scores,
         f"Response under review:\n{response}\n\n"
         f"Source chunks the response should be grounded in:\n{_format_chunks(chunks)}\n\n"
         f"Measured scores (0-1):\n"
-        f"  Style:        {scores.style_score:.3f} (target > 0.90)\n"
-        f"  Groundedness: {scores.groundedness_score:.3f} (target > 0.60)\n"
-        f"  Confidence:   {scores.confidence_score:.3f} (target > 0.80)\n\n"
+        f"  Style:        {scores.style_score:.3f} (stylistic match to the leader's voice)\n"
+        f"  Groundedness: {scores.groundedness_score:.3f} (HHEM entailment; well-grounded in the retrieved context)\n"
+        f"  Confidence:   {scores.confidence_score:.3f} (model's expressed certainty in the response)\n\n"
         "Write a concise explanation of the response's quality that references these "
         "scores and focuses on the weakest dimension."
     )

@@ -75,25 +75,15 @@ run_button = st.button("Ask", type="primary", disabled=not query_text.strip())
 # ---------------------------------------------------------------------------
 
 def render_score_breakdown(ev: EvaluationResult) -> None:
-    THRESHOLD = 0.75
-
     with st.expander("Score breakdown", expanded=True):
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         col1.metric("Style", f"{ev.style_score:.2f}", help="Cosine similarity to leader profile vector")
-        col2.metric("Groundedness", f"{ev.groundedness_score:.2f}", help="Semantic overlap with retrieved chunks")
+        col2.metric(
+            "Groundedness",
+            f"{ev.groundedness_score:.2f}",
+            help="HHEM entailment score against retrieved chunks (ADR-020)",
+        )
         col3.metric("Confidence", f"{ev.confidence_score:.2f}", help="Reranker + keyword + hedge heuristic")
-        col4.metric(
-            "Final",
-            f"{ev.final_score:.2f}",
-            delta=f"{ev.final_score - THRESHOLD:+.2f} vs threshold",
-            delta_color="normal",
-        )
-
-        threshold_note = "✅ Delivered" if ev.decision == "deliver" else "⚠️ Fallback"
-        st.caption(
-            f"{threshold_note} — threshold 0.75 (ADR-005) | "
-            f"formula: 0.4×style + 0.4×groundedness + 0.2×confidence"
-        )
         st.caption(f"Explanation: {ev.explanation}")
 
 
@@ -102,9 +92,12 @@ def render_score_breakdown(ev: EvaluationResult) -> None:
 # ---------------------------------------------------------------------------
 
 def render_fallback_card(fb: FallbackResponse) -> None:
-    st.warning("Fallback triggered — response quality below threshold.")
-    st.markdown(f"**Reason:** {fb.trigger_reason}")
-    st.markdown(f"**Context summary:** {fb.context_summary}")
+    st.warning(fb.acknowledgment)
+
+    if fb.suggested_redirections:
+        st.markdown("**Suggested redirections:**")
+        for r in fb.suggested_redirections:
+            st.markdown(f"- {r}")
 
     if fb.unstyled_response:
         with st.expander("Unstyled response"):
@@ -186,7 +179,7 @@ if run_button and query_text.strip():
         with st.spinner(f"Querying as {display_name}…"):
             flow = DigitalCloneFlow()
             flow.kickoff(inputs={"query": query_text.strip(), "leader": display_name})
-            output = flow.state.final_output
+            output = flow.state.styled_response or flow.state.fallback_response
         render_single(output, display_name)
 
 # ---------------------------------------------------------------------------

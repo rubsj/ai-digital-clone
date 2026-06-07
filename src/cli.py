@@ -7,14 +7,14 @@ All commands wrap existing facades — no direct LiteLLM/FAISS/Cohere imports.
 from __future__ import annotations
 
 import json
-import time
 from datetime import datetime
 from pathlib import Path
 
 import click
 
-from src.agents.rag_agent import RAGAgent
+from src.components.retriever import Retriever
 from src.config import load_config
+from src.eval.harness import run_leader_pair as _run_leader_pair
 from src.flow import DigitalCloneFlow
 from src.flow import compare_leaders as _compare_leaders
 from src.rag.chunker import chunk_documents
@@ -23,13 +23,6 @@ from src.schemas import FallbackResponse
 from src.style.email_parser import parse_mbox
 from src.style.feature_extractor import extract_features
 from src.style.profile_builder import build_profile_batch, save_profile
-from src.visualization import (
-    plot_fallback_rate,
-    plot_groundedness_distribution,
-    plot_latency_distribution,
-    plot_score_breakdown,
-    plot_style_distribution,
-)
 
 _LEADER_DISPLAY: dict[str, str] = {
     "torvalds": "Linus Torvalds",
@@ -56,7 +49,7 @@ def cli() -> None:
       3. query     — ask a single question as one leader.
          compare   — ask the same question to both leaders side-by-side.
          evaluate  — run a JSON query set through both leaders and
-                     produce score JSON + PRD §7d charts.
+                     produce a score JSON + 2×2 deliver/fallback grid.
 
     `learn` and `index` are independent and can run in either order, but
     both must complete before `query`, `compare`, or `evaluate` will work.
@@ -134,8 +127,7 @@ def index(config_path: Path | None) -> None:
     click.echo(f"  Loaded {len(docs)} documents.")
     chunks = chunk_documents(docs, config)
     click.echo(f"  Created {len(chunks)} chunks.")
-    agent = RAGAgent(config=config)
-    agent.build(chunks)
+    Retriever(config=config).build(chunks)
     click.echo("  FAISS index saved.")
 
 
@@ -145,10 +137,10 @@ def index(config_path: Path | None) -> None:
 def query(query_text: str, leader: str) -> None:
     """Ask a single question as one leader through the full pipeline.
 
-    Runs the full DigitalCloneFlow: retrieve → rerank → style →
-    evaluate → route. If the final score is below the 0.75 threshold
-    (ADR-005), a FallbackResponse is returned with a calendar booking
-    link instead of a styled answer.
+    Runs the full DigitalCloneFlow: retrieve → clone → evaluate → route.
+    The Gatekeeper routes deterministically on HHEM entailment grounding
+    (ADR-020, ADR-018). A response that does not clear the grounding floor
+    routes to a FallbackResponse with an acknowledgment and calendar link.
 
     \b
     When to use:
@@ -158,29 +150,31 @@ def query(query_text: str, leader: str) -> None:
     Prerequisites: `learn` (for the chosen leader) and `index` must
     both have been run at least once.
 
-    Output: response text + style / groundedness / confidence / final
+    Output: response text + style / groundedness / confidence
     scores + explanation, printed to the terminal.
     """
     display_name = _LEADER_DISPLAY[leader]
     click.echo(f"Querying as {display_name}…")
     flow = DigitalCloneFlow()
     flow.kickoff(inputs={"query": query_text, "leader": display_name})
-    result = flow.state.final_output
+    result = flow.state.styled_response or flow.state.fallback_response
 
     if isinstance(result, FallbackResponse):
         click.echo("\n[FALLBACK TRIGGERED]")
-        click.echo(f"Reason    : {result.trigger_reason}")
-        click.echo(f"Summary   : {result.context_summary}")
-        click.echo(f"Unstyled  : {result.unstyled_response}")
-        click.echo(f"Calendar  : {result.calendar_link}")
+        click.echo(f"Acknowledgment: {result.acknowledgment}")
+        if result.suggested_redirections:
+            click.echo("Redirections  :")
+            for r in result.suggested_redirections:
+                click.echo(f"  • {r}")
+        click.echo(f"Unstyled      : {result.unstyled_response}")
+        click.echo(f"Calendar      : {result.calendar_link}")
     else:
         ev = result.evaluation
         click.echo(f"\n{display_name} responds:\n{result.response}")
         click.echo(
             f"\nScores — style: {ev.style_score:.2f}  "
-            f"groundedness: {ev.groundedness_score:.2f}  "
-            f"confidence: {ev.confidence_score:.2f}  "
-            f"final: {ev.final_score:.2f}"
+            f"groundedness (HHEM entailment): {ev.groundedness_score:.2f}  "
+            f"confidence: {ev.confidence_score:.2f}"
         )
         click.echo(f"Explanation: {ev.explanation}")
 
@@ -216,15 +210,19 @@ def compare_cmd(query_text: str) -> None:
         click.echo(f"\n{'=' * 60}\n{label}\n{'=' * 60}")
         if isinstance(resp, FallbackResponse):
             click.echo("[FALLBACK TRIGGERED]")
-            click.echo(f"Reason  : {resp.trigger_reason}")
-            click.echo(f"Summary : {resp.context_summary}")
+            click.echo(f"Acknowledgment: {resp.acknowledgment}")
+            if resp.suggested_redirections:
+                click.echo("Redirections  :")
+                for r in resp.suggested_redirections:
+                    click.echo(f"  • {r}")
             click.echo(f"Calendar: {resp.calendar_link}")
         else:
             click.echo(resp.response)
             ev = resp.evaluation
             click.echo(
-                f"style: {ev.style_score:.2f}  groundedness: {ev.groundedness_score:.2f}  "
-                f"confidence: {ev.confidence_score:.2f}  final: {ev.final_score:.2f}"
+                f"style: {ev.style_score:.2f}  "
+                f"groundedness (HHEM): {ev.groundedness_score:.2f}  "
+                f"confidence: {ev.confidence_score:.2f}"
             )
 
 
@@ -232,35 +230,31 @@ def compare_cmd(query_text: str) -> None:
 @click.option(
     "--queries",
     type=click.Path(exists=True, path_type=Path),
-    default=Path("data/eval/queries_v1.json"),
+    default=Path("data/eval/queries.json"),
 )
 @click.option("--output-dir", type=click.Path(path_type=Path), default=Path("results/"))
 def evaluate(queries: Path, output_dir: Path) -> None:
     """Run a JSON query set through both leaders and write the score report.
 
-    Iterates over a JSON list of evaluation queries, runs each one
-    through both leaders via DigitalCloneFlow, aggregates per-query /
-    per-leader scores and fallback flags, and writes a timestamped
-    JSON report to the output directory.
+    Calls the Phase-1 harness for each query pair, sharing retrieved
+    chunks across leaders per ADR-005. Writes a timestamped JSON report
+    in harness record schema to the output directory, then prints a 2×2
+    deliver/fallback grid per leader.
 
     \b
     When to use:
       - End-of-iteration regression check against a stable query set.
-      - Producing the portfolio score charts (PRD §7d) — Phase 3 will
-        wire chart generation into this command.
 
     \b
     Required inputs:
       --queries     path to a JSON query set; defaults to
-                    data/eval/queries_v1.json
-      --output-dir  where the report (and Phase 3 charts) land;
-                    defaults to results/
+                    data/eval/queries.json
+      --output-dir  where the report lands; defaults to results/
 
     Prerequisites: `learn` (for BOTH leaders) and `index` must both
     have been run.
 
-    Output: results/evaluation_<timestamp>.json. Phase 3 adds 5 PNGs
-    to results/charts/ on each run.
+    Output: results/evaluation_<timestamp>.json with per-query harness records.
     """
     with open(queries) as f:
         query_set = json.load(f)
@@ -270,31 +264,14 @@ def evaluate(queries: Path, output_dir: Path) -> None:
     for item in query_set:
         q = item["query"]
         click.echo(f"  [{item['id']}] {q[:60]}…")
-        for cfg_key, display_name in [
-            ("torvalds", "Linus Torvalds"),
-            ("kroah_hartman", "Greg Kroah-Hartman"),
-        ]:
-            flow = DigitalCloneFlow()
-            t0 = time.perf_counter()
-            flow.kickoff(inputs={"query": q, "leader": display_name})
-            latency_ms = (time.perf_counter() - t0) * 1000
-            out = flow.state.final_output
-            if isinstance(out, FallbackResponse):
-                records.append({"id": item["id"], "leader": cfg_key, "fallback": True, "latency_ms": latency_ms})
-            else:
-                ev = out.evaluation
-                records.append(
-                    {
-                        "id": item["id"],
-                        "leader": cfg_key,
-                        "fallback": False,
-                        "style_score": ev.style_score,
-                        "groundedness_score": ev.groundedness_score,
-                        "confidence_score": ev.confidence_score,
-                        "final_score": ev.final_score,
-                        "latency_ms": latency_ms,
-                    }
-                )
+        pair = _run_leader_pair(q)
+        records.append({
+            "query_id": item["id"],
+            "query": q,
+            "retriever_call_count": pair["retriever_call_count"],
+            "torvalds": pair["torvalds"],
+            "kroah_hartman": pair["kroah_hartman"],
+        })
 
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -304,15 +281,16 @@ def evaluate(queries: Path, output_dir: Path) -> None:
         json.dump(records, f, indent=2)
     click.echo(f"\nResults written to {out_path}")
 
-    charts_dir = out_dir / "charts"
-    charts_dir.mkdir(parents=True, exist_ok=True)
-    click.echo("Generating charts…")
-    plot_style_distribution(records, charts_dir / "02-style-distribution.png")
-    plot_groundedness_distribution(records, charts_dir / "03-groundedness-distribution.png")
-    plot_score_breakdown(records, charts_dir / "04-score-breakdown.png")
-    plot_fallback_rate(records, charts_dir / "05-fallback-rate.png")
-    plot_latency_distribution(records, charts_dir / "06-latency-distribution.png")
-    click.echo(f"Charts written to {charts_dir}/")
+    n = len(records)
+    t_deliver = sum(1 for r in records if r["torvalds"]["decision"] == "deliver")
+    kh_deliver = sum(1 for r in records if r["kroah_hartman"]["decision"] == "deliver")
+    click.echo(f"\n{'─' * 52}")
+    click.echo(f"{'2×2 deliver/fallback grid':^52}")
+    click.echo(f"{'─' * 52}")
+    click.echo(f"{'':20s}{'Torvalds':>15}{'Kroah-Hartman':>17}")
+    click.echo(f"{'deliver':20s}{t_deliver:>8} / {n:<6}{kh_deliver:>8} / {n:<6}")
+    click.echo(f"{'fallback':20s}{n - t_deliver:>8} / {n:<6}{n - kh_deliver:>8} / {n:<6}")
+    click.echo(f"{'─' * 52}")
 
 
 if __name__ == "__main__":

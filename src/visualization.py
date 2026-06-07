@@ -2,7 +2,7 @@
 
 Implemented charts per phase:
   Day 2 — plot_style_radar: style profile comparison radar chart
-  Day 7 — style histogram, groundedness histogram, final score breakdown,
+  Day 7 — style histogram, groundedness histogram, score breakdown,
            fallback rate, latency distribution, style evolution
 """
 from __future__ import annotations
@@ -94,12 +94,10 @@ def plot_style_distribution(records: list[dict], output_path: Path) -> None:
     fig, ax = plt.subplots(figsize=(8, 5))
     if scores:
         ax.hist(scores, bins=10, range=(0, 1), color=_COLORS[0], edgecolor="white", alpha=0.85)
-    ax.axvline(0.75, color="red", linestyle="--", linewidth=1.2, label="threshold 0.75")
     ax.set_xlabel("Style Score")
     ax.set_ylabel("Count")
     ax.set_title("Style Score Distribution")
     ax.set_xlim(0, 1)
-    ax.legend()
     plt.tight_layout()
     plt.savefig(str(output_path), dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -115,10 +113,10 @@ def plot_groundedness_distribution(records: list[dict], output_path: Path) -> No
     fig, ax = plt.subplots(figsize=(8, 5))
     if scores:
         ax.hist(scores, bins=10, range=(0, 1), color=_COLORS[1], edgecolor="white", alpha=0.85)
-    ax.axvline(0.60, color="red", linestyle="--", linewidth=1.2, label="target 0.60")
-    ax.set_xlabel("Groundedness Score")
+    ax.axvline(0.40, color="red", linestyle="--", linewidth=1.2, label="GROUNDEDNESS_MIN 0.40 (HHEM)")
+    ax.set_xlabel("Groundedness Score (HHEM entailment)")
     ax.set_ylabel("Count")
-    ax.set_title("Groundedness Score Distribution")
+    ax.set_title("Groundedness Score Distribution (HHEM entailment)")
     ax.set_xlim(0, 1)
     ax.legend()
     plt.tight_layout()
@@ -127,7 +125,7 @@ def plot_groundedness_distribution(records: list[dict], output_path: Path) -> No
 
 
 def plot_score_breakdown(records: list[dict], output_path: Path) -> None:
-    """Grouped bar chart: mean style / groundedness / confidence / final per leader."""
+    """Grouped bar chart: mean style / groundedness / confidence per leader."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -135,8 +133,8 @@ def plot_score_breakdown(records: list[dict], output_path: Path) -> None:
 
     leaders = ["torvalds", "kroah_hartman"]
     labels = ["Linus Torvalds", "Greg Kroah-Hartman"]
-    score_keys = ["style_score", "groundedness_score", "confidence_score", "final_score"]
-    score_labels = ["Style", "Groundedness", "Confidence", "Final"]
+    score_keys = ["style_score", "groundedness_score", "confidence_score"]
+    score_labels = ["Style", "Groundedness", "Confidence"]
 
     means: dict[str, list[float]] = {}
     for ldr in leaders:
@@ -151,7 +149,6 @@ def plot_score_breakdown(records: list[dict], output_path: Path) -> None:
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.bar(x - width / 2, means[leaders[0]], width, label=labels[0], color=_COLORS[0], alpha=0.85)
     ax.bar(x + width / 2, means[leaders[1]], width, label=labels[1], color=_COLORS[1], alpha=0.85)
-    ax.axhline(0.75, color="red", linestyle="--", linewidth=1.2, label="threshold 0.75")
     ax.set_xticks(x)
     ax.set_xticklabels(score_labels)
     ax.set_ylabel("Mean Score")

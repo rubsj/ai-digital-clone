@@ -7,6 +7,8 @@
 
 ---
 
+⚠️ Superseded by ADR-018 (2026-06-01). The Day-12 gate showed the GatekeeperAgent's LLM routing made non-monotonic, nondeterministic decisions (a 0.675 record delivered while 0.727/0.715/0.698 fell back; the same query flipped across identical passes). Routing is now a deterministic function and the explanation role moved to the FallbackAgent. This ADR is retained intact as the Day-10 record of the original decision and its reasoning at that time; it is not edited.
+
 ## Context
 
 The evaluation pipeline needs to score whether a generated response is grounded in the retrieved knowledge chunks. Groundedness is one of the three scores the evaluator produces for a response, alongside style and confidence. v1 combined the three into a weighted `final = 0.4*style + 0.4*groundedness + 0.2*confidence` and routed against a 0.75 threshold; v2 drops the weighted formula and the threshold (ADR-010, Architecture Rule 3), and GatekeeperAgent reasons over the three individual scores instead. Either way groundedness has to be measured per response, and it is the signal for whether the response is actually supported by the retrieved chunks.
