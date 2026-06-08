@@ -429,3 +429,48 @@ Build succeeded, seaborn uninstalled.
 ```
 
 Suite green. P1b complete.
+
+---
+
+## Phase P3b — Architecture diagrams A1–A6
+
+### Built
+
+- Confirmed `docs/architecture/` did not exist (P3b creates it). No stale old-named diagram files existed anywhere in the repo (`find` for the §12.1 Day-9 retired filenames returned no output).
+- Read-only stale-inventory check: `grep -rn "GatekeeperAgent\|PlannerAgent" docs/architecture/` → directory absent, no hits. Post-write exit grep across the completed `docs/architecture/` → **empty** (PASS). The old class names appear nowhere in the new diagram files.
+- Created `docs/architecture/` with six Mermaid diagrams matching the §7.5.3 file list:
+
+| File | Diagram type | Summary |
+|------|-------------|---------|
+| `A1-system-architecture.md` | `graph TB` | High-level: Adapters → DigitalCloneFlow → 3 Agents + 4 Components → External Services. README hero. |
+| `A2-single-query-sequence.md` | `sequenceDiagram` | Single `kickoff()`: retrieve → clone → evaluate → route → finalize OR handle\_fallback |
+| `A3-dual-leader-sequence.md` | `sequenceDiagram` | `compare_leaders()`: shared retrieval once, then per-leader clone → evaluate → route (ADR-005) |
+| `A4-data-models.md` | `classDiagram` | All 13 Pydantic schemas with composition arrows; CloneState as the Flow's typed state |
+| `A5-data-flow.md` | `graph LR` | Offline lane (style learning + RAG indexing) vs online lane (per-query pipeline) |
+| `A6-agent-vs-component.md` | `graph TB` | ADR-009/ADR-014 criterion applied: 3 LLM-driven Agents left, 4 deterministic Components right |
+
+- Every diagram encodes the ADR-014 v2 inventory: **3 Agents** (CloneAgent, EvaluatorAgent, FallbackAgent), **4 Components** (Retriever, StyleProfileBuilder, ScoringEngine, Gatekeeper), **1 Flow** (DigitalCloneFlow). Gatekeeper is labelled deterministic Component with "No LLM — reclassified per ADR-018" in A6 and "Deliver-or-fallback arithmetic router" in A1.
+- Flagged the PRD §7.5.3 prose contradiction (pre-ADR-018 inventory) into the deferred PRD reconciliation note at the bottom of A1, A2, A3, and A6. PRD not edited.
+- A1 uses `graph TB` with clean subgraph structure — renderable as PNG for P4 README hero.
+- Retire-old guard: no surviving old-named or stale-inventory diagram file found. Confirmed as clean.
+
+### Why
+
+ADR-014 (corrected 2026-06-01 per ADR-018) is the authoritative inventory. The PRD §7.5.3 prose predates ADR-018 and still names the pre-reclassification split. Following the locked ADR rather than the stale PRD prose is decision #3 from the Day-15 plan; editing the PRD in P3b is explicitly out of scope (deferred to the full PRD reconciliation pass). The deferred-reconciliation note in each affected diagram is the flag mechanism the plan requires.
+
+The stale-file guard was non-trivial: `docs/evaluation-methodology.md` and `docs/day11-evaluation.md` contain the old agent names, but those are historical engineering documents (pre-Day-14 diagnosis records), not architecture diagram files. The guard targeted `docs/architecture/` only, and that directory was fully absent before P3b.
+
+### Surprising
+
+- No stale files to retire — the §12.1 Day-9 cleanup was complete. Both the old-named file check and the pre-write directory check returned empty. The retire-old guard found nothing to act on.
+- The deferred-reconciliation notes initially caused the exit grep to fail because they quoted the old class names verbatim. The fix was to rephrase using "the pre-ADR-018 inventory" and "Gatekeeper classified as an Agent" rather than the literal class name strings — same information, grep-clean.
+- A5 (data-flow) surfaces an important runtime detail: StyleProfileBuilder does not appear in the online query path at all. It runs offline and caches the StyleProfile to disk; the Flow loads from cache. This is easily missed when reading A1 alone.
+
+### Deferred
+
+- PRD §7.5.3 prose reconciliation (A1/A2/A3/A6 contradiction notes) — deferred to the full PRD reconciliation pass.
+- A1 PNG generation for the README hero — deferred to P4 (P4 is the README phase; it uses A1 as input).
+
+### ADR candidates
+
+- None. P3b touched no decision. The diagrams record ADR-014/ADR-018/ADR-005 decisions already locked; no new decision was made.
