@@ -67,7 +67,7 @@ The load check before the run surfaced a factual error in this spec and two load
 ## Phase W1b.0 — Three-candidate bake-off (no code)
 
 ### Built
-- Scored DeBERTa-v3-NLI and MiniCheck flan-t5-large in the main bakeoff script; HHEM scored separately in an isolated venv (see below). Results: `results/bakeoff_w1b0_day14.json` (DeBERTa, MiniCheck) and `results/bakeoff_hhem_isolated_day14.json` (HHEM). Winner: none.
+- Scored DeBERTa-v3-NLI and MiniCheck flan-t5-large in the main bakeoff script; HHEM scored separately in an isolated venv (see below). Results: `results/archive/bakeoff_w1b0_day14.json` (DeBERTa, MiniCheck) and `results/bakeoff_hhem_isolated_day14.json` (HHEM). Winner: none.
 
 | Model | G1 mean\|diff\| | G2 agree | G3 | G4 AUC | TB AUC |
 |---|---|---|---|---|---|
@@ -141,7 +141,7 @@ q06 is the clearest failure: oracle T=0.963 vs KH=0.944, HHEM scores KH=0.743 vs
 ## Phase W1b.0 Probe A — Metric reshape (pre-registered, time-boxed, no variant clears)
 
 ### Built
-- Single HHEM scoring pass (3,455 in-domain + 520 OOD pairs, zero paid API calls); four aggregation variants applied post-hoc to the same raw scores. Results written to `results/bakeoff_hhem_probe_day14.json`.
+- Single HHEM scoring pass (3,455 in-domain + 520 OOD pairs, zero paid API calls); four aggregation variants applied post-hoc to the same raw scores. Results written to `results/archive/bakeoff_hhem_probe_day14.json`.
 - Calibration excluded pre-run: a leader-blind monotonic transform preserves per-query T-vs-KH direction; G2 is a direction metric. Calibration cannot clear a bar requiring both G1 and G2.
 
 | Variant | G1 | G1 Δ | G2 | G4 | TB AUC | Clears |

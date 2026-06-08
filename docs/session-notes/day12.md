@@ -26,7 +26,7 @@ Captured per record: `decision`, `trigger_category`, `trigger_reason`, `routing_
 
 ### Phase 1 run results
 
-Full run (20 queries × 2 leaders) plus 2 in-domain re-runs = 96 records written to `results/evaluation_day12.json`.
+Full run (20 queries × 2 leaders) plus 2 in-domain re-runs = 96 records written to `results/archive/evaluation_day12.json`.
 
 **In-domain 2x2 grid (pass-1 full run, per leader):**
 
@@ -132,7 +132,7 @@ CONFIDENCE_MIN stays at 0.80 (no validated alternative value exists the way ADR-
 
 Wrote `scripts/reeval_indomain.py` (throwaway, not production code) calling `run_leader_pair()` from the existing harness, loading only in-domain queries, 3 passes. OOD excluded per ADR-017 Quantified Validation (OOD groundedness 0.33–0.48, cannot flip on a threshold change; OOD already passed at 6/6 fallback).
 
-84 records written to `results/evaluation_day12_reeval.json` (does not overwrite `evaluation_day12.json`).
+84 records written to `results/archive/evaluation_day12_reeval.json` (does not overwrite `evaluation_day12.json`).
 
 **Call count estimate (pre-run):** 42 pairs × ~14 chat completions per pair ≈ 588 completions + ~84 batched embed_openai calls. Within the pre-approved Phase 1.5.3 envelope (plan explicitly waives the cost-guard pre-flight for this scope).
 
@@ -273,7 +273,7 @@ STOP GATE 1.6a cleared. Ran the 14 in-domain queries × 2 leaders × 3 passes = 
 
 ### Re-eval run
 
-Script: `scripts/reeval2_indoman.py` (throwaway). Output: `results/evaluation_day12_reeval2.json`. OOD excluded (OOD groundedness 0.33–0.48; cannot flip on a threshold change; already 6/6 fallback in Phase 1).
+Script: `scripts/reeval2_indoman.py` (throwaway). Output: `results/archive/evaluation_day12_reeval2.json`. OOD excluded (OOD groundedness 0.33–0.48; cannot flip on a threshold change; already 6/6 fallback in Phase 1).
 
 ### STOP GATE 1.6b — Surface A: deliver-rate re-gate
 
@@ -393,8 +393,8 @@ New `tests/integration/test_gatekeeper.py` — all 17 passed: `_compute_flags` a
 | Artifact | Type | Status |
 |---|---|---|
 | `src/eval/harness.py` | New — measurement harness | Complete |
-| `results/evaluation_day12.json` | Data — 96-record full-run results | Complete |
-| `results/evaluation_day12_reeval.json` | Data — 84-record re-eval results | Complete |
+| `results/archive/evaluation_day12.json` | Data — 96-record full-run results | Complete |
+| `results/archive/evaluation_day12_reeval.json` | Data — 84-record re-eval results | Complete |
 | `docs/day11-evaluation.md` | Doc — gate evaluation report | Complete |
 | `docs/evaluation-methodology.md` | Doc — three-layer methodology | Complete |
 | `docs/adr/ADR-015-...md` | Amendment appended | Complete |
@@ -410,7 +410,7 @@ New `tests/integration/test_gatekeeper.py` — all 17 passed: `_compute_flags` a
 | `scripts/assert_router_16a.py` | Throwaway — STOP GATE 1.6a assertion (4 checks) | Complete |
 | `scripts/reeval2_indoman.py` | Throwaway — Phase 1.6.5 re-eval runner | Complete |
 | `scripts/equivalence_guard.py` | Throwaway — ADR-017 Phase 1.5.2 equivalence check | Complete |
-| `results/evaluation_day12_reeval2.json` | Data — 84-record Phase 1.6.5 re-eval results | Complete |
+| `results/archive/evaluation_day12_reeval2.json` | Data — 84-record Phase 1.6.5 re-eval results | Complete |
 | `src/components/gatekeeper.py` | New — deterministic Gatekeeper component (renamed from gatekeeper_agent.py) | Complete |
 | `src/agents/gatekeeper_agent.py` | Deleted (renamed to Gatekeeper in src/components/) | Complete |
 | `tests/integration/test_gatekeeper.py` | New — 17 deterministic tests for Gatekeeper | Complete |

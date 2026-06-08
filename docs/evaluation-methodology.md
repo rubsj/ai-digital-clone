@@ -32,7 +32,7 @@ The evaluation stack has three layers. Each layer has a distinct role, failure m
 
 **What it does not cover.** Per-user personalization (P6 v2 is two fixed leaders). Latency under load (Day 12 measures single-threaded latency only). Latency SLA compliance is measured but not gated at Layer 3 tonight (§2.7 investigation is a Day-13 item).
 
-**Evidence.** `src/eval/harness.py`, `run_measurement()`. Results in `results/evaluation_day12.json`. 48 pair-records across three passes. Deliver rates, OOD fallback rates, and per-leader score distributions are the primary outputs.
+**Evidence.** `src/eval/harness.py`, `run_measurement()`. Results in `results/archive/evaluation_day12.json`. 48 pair-records across three passes. Deliver rates, OOD fallback rates, and per-leader score distributions are the primary outputs.
 
 ---
 

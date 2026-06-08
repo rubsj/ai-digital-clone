@@ -1,7 +1,7 @@
 # Scorer Probe — Day 13
 
 **Date:** 2026-06-02  
-**Data:** results/evaluation_day12_reeval2.json + docs/experiments/day13/markup_output.json  
+**Data:** results/archive/evaluation_day12_reeval2.json + docs/experiments/day13/markup_output.json  
 **Scope:** read and measure only. No code changed.
 
 ---

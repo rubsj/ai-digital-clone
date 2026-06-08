@@ -1,7 +1,7 @@
 # Day 13 Session Notes — Torvalds Floor Investigation
 
 **Date:** 2026-06-02  
-**Data:** results/evaluation_day12_reeval2.json  
+**Data:** results/archive/evaluation_day12_reeval2.json  
 **Status at close:** Investigation reframed, not closed. Scorer-validity test is the next stage. No code changed, no fix started, floor untouched.
 
 ---
