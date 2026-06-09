@@ -147,17 +147,20 @@ Zero-citation grep: `grep -r "evaluation_20260523" docs/ src/ tests/` → one hi
 
 ---
 
-## P3a scope (not moved in P1)
+## P3a — Chart set (Day 15, complete)
 
-The following chart PNGs remain in place pending P3a regeneration:
+9 charts in `results/charts/`, all §7.6-named. 8 match the §7.6 inventory; 1 is a §7.6 addition.
 
-- `charts/01-style-radar.png`
-- `charts/02-style-distribution.png`
-- `charts/03-groundedness-distribution.png`
-- `charts/04-score-breakdown.png`
-- `charts/05-fallback-rate.png`
-- `charts/06-latency-distribution.png`
-- `charts/07-style-evolution.png`
+| File | §7.6 slot | Source | Notes |
+|------|-----------|--------|-------|
+| `charts/01-style-radar-dual-leader.png` | #1 | Style profiles | Both leaders overlaid, 15 features |
+| `charts/02-routing-correctness-grid.png` | #2 | eval_day15 pass 1 | New chart (was missing); 32/40 correct |
+| `charts/03-style-score-distribution.png` | #3 | eval_day15 all passes | Per-leader overlaid histograms |
+| `charts/04-groundedness-score-distribution.png` | #4 | eval_day15 all passes | HHEM entailment, 0.40 gate marked |
+| `charts/05-deliver-rate-distribution.png` | #5 | eval_day15 passes 1–3 | §7.6 slot renamed from "score-component-breakdown" |
+| `charts/06-fallback-trigger-distribution.png` | #6 | eval_day15 all passes | trigger_reason categories |
+| `charts/07-latency-distribution.png` | #7 | eval_day15 all passes | Deliver vs fallback path separated |
+| `charts/08-torvalds-style-evolution-pre-post-2018.png` | #8 | torvalds.mbox | 4-panel monthly time-series, Sept 2018 marker |
+| `charts/09-retrieval-relevance-contrast.png` | — | eval_day15 pass 1 | §7.6 addition; in-domain vs OOD top-chunk score |
 
-P3a will reconcile chart names and count against PRD §7.6 and regenerate run-derived charts
-from `evaluation_day15.json`.
+Stale-named PNGs (01-07 with old names) removed. §7.6 #5 slot renamed (flagged in session notes).
