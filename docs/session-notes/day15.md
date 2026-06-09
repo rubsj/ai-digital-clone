@@ -631,3 +631,37 @@ Distribution peaks at 0.40–0.60; max = 0.87. HHEM's theoretical bimodal behavi
 ### ADR candidates
 
 - None. Chart naming and content are presentation choices; no architectural decision warranted.
+
+---
+
+## Phase P4 — README
+
+### Built
+
+- Replaced the 11-line `Coming Soon` stub `README.md` with the portfolio README. Inverted pyramid: lede with the headline result, portfolio line (21 ADRs / 532 tests / 9 charts), the A1 architecture diagram as an inline Mermaid hero (no PNG render exists in `docs/architecture/`, so the diagram is embedded the way P4/P5 embed theirs), then the Results table above the fold.
+- Headline deliver rates quote the fresh P2 distribution: Torvalds 78.6% mean [71.4%, 85.7%], KH 81.0% mean [71.4%, 92.9%], both with the spread, not a point estimate. Verified against `results/evaluation_day15.json` directly (33/42 and 34/42).
+- The variance note frames the README-vs-ADR divergence as temp=0.3 generation variance (W3a 64.3% frozen re-score vs P2 78.6% fresh), per the locked-decision-1 coherence note. The ADRs keep W3a; the README quotes P2.
+- E2 rendered as PARTIALLY met, stated precisely: deliver-rate criterion passes, zero-hallucination passes, OOD-fallback misses 100% at 91.7% (11/12, single-pass 6 OOD × 2 leaders). Not rendered as a clean pass.
+- Five embedded charts: 04-groundedness-distribution (rework + continuity), 05-deliver-rate-distribution (primary metric), 02-routing-grid (the q20 red cell), 01-style-radar (dual-leader style), 09-retrieval-relevance-contrast (q20 in the Limitations lead).
+- Architecture section carries the ADR-014 inventory (3 Agents / 4 Components / 1 Flow, Gatekeeper a deterministic Component) and a 7-row ADR table (009/014, 018, 019, 020, 021, 002, 015).
+
+### Why
+
+- The honest-rework arc (cosine measured lexical echo → Torvalds deficit was the metric not the clone → HHEM entailment swap → floors held) is the spine of the README, given its own H2 section between Results and Findings rather than buried in an ADR table. It is the strongest engineering story in the project.
+- q20 leads the Limitations section as a characterized gap with a known fix, not an apology. The retrieval-contrast framing (groundedness passes because the answer IS grounded; retrieval relevance separates q20 from in-domain by ~3 orders of magnitude, 0.0013 vs ≥0.32) is the senior-judgment read, and the deferred query-relevance gate signal is named as the fix.
+- The "groundedness is continuous, not bimodal" finding (51% of in-domain scores in the 0.40–0.60 band, gate at the low edge of the dominant cluster) is used to explain WHY the deliver rate is a distribution, tying the chart to the headline framing.
+
+### Surprising
+
+- No A1 PNG exists. P3b produced A1–A6 as Mermaid only; the plan's P3b exit check said A1 should be "renderable as a PNG," but none was rendered. Resolved by embedding the Mermaid inline, which GitHub renders and which matches the P4/P5 hero convention, so no blocker. Noting it in case Ruby wants a rasterized hero later.
+- The em dash constraint reaches the Results table: the four "not applicable" cells were written as em dashes by reflex, then changed to `n/a` so the file carries zero em dashes (the en dash in the "Feb–May 2026" footer and the "0.40–0.60" ranges is intentional and matches siblings).
+
+### Deferred
+
+- PRD reconciliation rows (not edited, surfaced for the deferred ledger): PRD §7.5.3 prose still says 4 Agents + 3 Components with GatekeeperAgent; PRD §2.4/§2.5/§2.11 still describe groundedness as cosine-distribution. The README follows ADR-014 and HHEM, not the stale PRD prose. These belong in the Notion PRD Reconciliation ledger, not fixed here.
+- §7.6 chart-slot reconciliation (carried from P3a): slot #5 renamed to deliver-rate-distribution, chart #9 added outside §7.6. The README embeds both as shipped; the §7.6 spec update is still open.
+- Loom recording and recruiter-pitch section remain out of scope per the plan scope fence.
+
+### ADR candidates
+
+- None. The README is presentation of locked decisions (HHEM, 0.40, floors, deterministic routing). No decision was made or reopened while writing it. The q20 query-relevance gate signal is a candidate for a future ADR if Ruby opens the deferred OOD-defense finding, but it is not authored here.
