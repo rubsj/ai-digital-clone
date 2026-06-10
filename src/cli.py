@@ -22,7 +22,7 @@ from src.rag.corpus_loader import load_corpus
 from src.schemas import FallbackResponse
 from src.style.email_parser import parse_mbox
 from src.style.feature_extractor import extract_features
-from src.style.profile_builder import build_profile_batch, save_profile
+from src.style.profile_builder import build_profile_batch, load_profile, save_profile
 
 _LEADER_DISPLAY: dict[str, str] = {
     "torvalds": "Linus Torvalds",
@@ -155,8 +155,10 @@ def query(query_text: str, leader: str) -> None:
     """
     display_name = _LEADER_DISPLAY[leader]
     click.echo(f"Querying as {display_name}…")
+    config = load_config()
+    profile = load_profile(Path(config.leaders[_CONFIG_KEY[leader]].profile_path))
     flow = DigitalCloneFlow()
-    flow.kickoff(inputs={"query": query_text, "leader": display_name})
+    flow.kickoff(inputs={"query": query_text, "leader": display_name, "style_profile": profile})
     result = flow.state.styled_response or flow.state.fallback_response
 
     if isinstance(result, FallbackResponse):
@@ -294,4 +296,8 @@ def evaluate(queries: Path, output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    import os
+    os.environ["OMP_NUM_THREADS"] = "1"
+    multiprocessing.set_start_method("spawn", force=True)
     cli()

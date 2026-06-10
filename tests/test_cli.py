@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
@@ -229,7 +229,15 @@ class TestQueryCommand:
         mock_flow.state.styled_response = _make_styled_response()
         mock_flow.state.fallback_response = None
 
-        with patch("src.cli.DigitalCloneFlow", return_value=mock_flow):
+        mock_profile = MagicMock()
+        mock_config = MagicMock()
+        mock_config.leaders = {"torvalds": MagicMock(profile_path="data/models/torvalds_profile.json")}
+
+        with (
+            patch("src.cli.DigitalCloneFlow", return_value=mock_flow),
+            patch("src.cli.load_config", return_value=mock_config),
+            patch("src.cli.load_profile", return_value=mock_profile),
+        ):
             result = runner.invoke(cli, ["query", "What is TCP?", "--leader", "torvalds"])
 
         assert result.exit_code == 0, result.output
@@ -238,7 +246,7 @@ class TestQueryCommand:
         assert "0.90" in result.output          # groundedness_score
         assert "HHEM" in result.output          # metric label
         mock_flow.kickoff.assert_called_once_with(
-            inputs={"query": "What is TCP?", "leader": "Linus Torvalds"}
+            inputs={"query": "What is TCP?", "leader": "Linus Torvalds", "style_profile": mock_profile}
         )
 
     def test_fallback_response(self, runner: CliRunner) -> None:
