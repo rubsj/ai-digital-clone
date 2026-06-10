@@ -96,3 +96,55 @@ All entry points use the existing April-28 FAISS index (`data/rag/faiss_index/in
 ### Decisions not revisited
 
 None. The spawn fix is a runtime configuration, not an architectural change. The JSON→npz cache migration (stranded cache) is a separate task.
+
+---
+
+## Phase P3 — Corpus pin, cache conversion, zero-spend index
+
+### Built
+
+**`src/rag/corpus_loader.py`** — three changes:
+1. Added `_EVALUATED_TOPICS: frozenset[str]` constant naming the 5 evaluated textbooks.
+2. Added `topic_filter` parameter (default `_EVALUATED_TOPICS`) replacing positional `select(range(N))`. The default now selects by identity, not row position.
+3. Added per-topic duplicate guard: the open-phi/textbooks CS slice has two rows for "Principles and Practice of Assistive Technology." (rows 1 and 14 of the CS slice). Row 1 (305,787 chars, 864 chunks) is the evaluated document — 864/864 chunk keys match the FAISS index. Row 14 (404,702 chars, 1,115 chunks) has 0/864 key overlap; it is a different version. Guard logs a warning and skips subsequent occurrences; first match wins.
+
+**`tests/test_corpus_loader.py`** — three changes:
+1. Added `_EVALUATED_TOPICS` to imports.
+2. Added `topic_filter=None` to all existing tests using generic mock topics (so they test loading logic independently of the default filter).
+3. Replaced `test_load_corpus_max_docs_caps_output` call with explicit `topic_filter=None, max_docs=3`.
+4. Added `test_load_corpus_default_topic_filter_accepts_evaluated` — verifies default filter accepts evaluated topics and rejects others.
+5. Added `test_load_corpus_duplicate_topic_skips_second` — verifies first-match semantics with the duplicate guard (no exception, 1 doc returned).
+
+**`data/cache/embeddings_openai.npz`** — converted from JSON (921 MB, 26,913 entries) to npz (130 MB). Explicit schema mapping: old `{md5: [float...]}` → new `keys` str array + `vectors` float32 matrix (the schema `_load_cache` reads). Read-back verified: `allow_pickle=False` passes, dtype float32, first-entry round-trip allclose atol=1e-6.
+
+### Key-match verification (stop-gate result: PASS)
+
+- FAISS index chunks: 6,713 total, 5,856 unique MD5 keys (857 duplicate texts across the 5 docs; the cache deduplicates correctly).
+- JSON cache: 26,913 entries (first 20 textbooks' worth, from the Day-6 max_docs=20 run that OOM'd loading the 921 MB JSON).
+- Index keys missing from cache: **0**. All 5,856 unique chunk keys are present.
+
+### Zero-spend build (step 4 evidence)
+
+```
+Loading corpus…
+Skipping duplicate document for topic 'Principles and Practice of Assistive Technology.' (occurrence 2); keeping first match only.
+  Loaded 5 documents.
+  Created 6713 chunks.
+  FAISS index saved.
+```
+
+No "Embedding (OpenAI)..." progress bar appeared — the `if uncached_texts:` branch in `embed_openai()` was never entered. Zero OpenAI API calls.
+
+### Test suite
+
+```
+534 passed, 35 warnings in 19.31s
+```
+
+534/534 (was 532 at start of day, +2 new tests from P3).
+
+### Judgment calls surfaced
+
+**Duplicate handling:** Changed the duplicate guard from `raise ValueError` to `logger.warning + continue` (skip). Rationale: the first occurrence is always the evaluated document (100% key match); the second is a different/longer version with 0% match. Raising blocked the `index` command with no actionable path; warning + skip reproduces the evaluated corpus correctly. The content-based key-match step in the verification catches any future regression if dataset row ordering changes.
+
+**`max_docs` retained:** The `max_docs` parameter is kept for tests and experimentation (pass `topic_filter=None, max_docs=N` for the old behavior). It is no longer the corpus-selection mechanism for production use.
