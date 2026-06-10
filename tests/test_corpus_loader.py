@@ -9,7 +9,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.rag.corpus_loader import RawDocument, _extract_topic, load_corpus
+from src.rag.corpus_loader import (
+    RawDocument,
+    _EVALUATED_TOPICS,
+    _extract_topic,
+    load_corpus,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +103,7 @@ def test_load_corpus_returns_raw_documents(mock_ld):
     rows = [_make_row(), _make_row(topic="Networks", subfield="computer_networks")]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert len(docs) == 2
     assert all(isinstance(d, RawDocument) for d in docs)
@@ -109,7 +114,7 @@ def test_load_corpus_uses_topic_column(mock_ld):
     rows = [_make_row(topic="Graph Theory")]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert docs[0].topic == "Graph Theory"
 
@@ -119,7 +124,7 @@ def test_load_corpus_falls_back_to_outline(mock_ld):
     rows = [_make_row(topic="", outline="# Operating Systems\n## Scheduling")]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert docs[0].topic == "Operating Systems"
 
@@ -129,7 +134,7 @@ def test_load_corpus_falls_back_to_subfield(mock_ld):
     rows = [_make_row(topic="", outline="", subfield="computer_networks")]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert docs[0].topic == "computer networks"
 
@@ -139,7 +144,7 @@ def test_load_corpus_max_docs_caps_output(mock_ld):
     rows = [_make_row() for _ in range(10)]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus(max_docs=3)
+    docs = load_corpus(topic_filter=None, max_docs=3)
 
     assert len(docs) == 3
 
@@ -149,7 +154,7 @@ def test_load_corpus_skips_empty_markdown(mock_ld):
     rows = [_make_row(markdown=""), _make_row(markdown="  "), _make_row()]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert len(docs) == 1
 
@@ -166,7 +171,7 @@ def test_load_corpus_empty_dataset(mock_ld):
     mock_ds.filter = MagicMock(return_value=filtered)
     mock_ld.return_value = mock_ds
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert docs == []
 
@@ -176,7 +181,39 @@ def test_load_corpus_field_and_subfield_propagated(mock_ld):
     rows = [_make_row(field="computer_science", subfield="artificial_intelligence")]
     mock_ld.return_value = _mock_dataset(rows)
 
-    docs = load_corpus()
+    docs = load_corpus(topic_filter=None)
 
     assert docs[0].field == "computer_science"
     assert docs[0].subfield == "artificial_intelligence"
+
+
+@patch("src.rag.corpus_loader.load_dataset")
+def test_load_corpus_default_topic_filter_accepts_evaluated(mock_ld):
+    # One row matching an evaluated topic, one that doesn't — only the match returns.
+    evaluated_topic = next(iter(_EVALUATED_TOPICS))
+    rows = [
+        _make_row(topic=evaluated_topic, markdown="Some content."),
+        _make_row(topic="Unrelated Topic", markdown="Other content."),
+    ]
+    mock_ld.return_value = _mock_dataset(rows)
+
+    docs = load_corpus()  # default topic_filter = _EVALUATED_TOPICS
+
+    assert len(docs) == 1
+    assert docs[0].topic == evaluated_topic
+
+
+@patch("src.rag.corpus_loader.load_dataset")
+def test_load_corpus_duplicate_topic_skips_second(mock_ld):
+    # Dataset has two rows for the same evaluated topic — first wins, second is warned and skipped.
+    evaluated_topic = next(iter(_EVALUATED_TOPICS))
+    rows = [
+        _make_row(topic=evaluated_topic, markdown="Version A."),
+        _make_row(topic=evaluated_topic, markdown="Version B."),
+    ]
+    mock_ld.return_value = _mock_dataset(rows)
+
+    docs = load_corpus()  # default topic_filter active — no exception
+
+    assert len(docs) == 1
+    assert docs[0].topic == evaluated_topic

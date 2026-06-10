@@ -6,14 +6,21 @@ compare_leaders (dual-leader). No direct LiteLLM / FAISS / Cohere imports.
 
 from __future__ import annotations
 
+import multiprocessing
+import os
 from pathlib import Path
 from typing import Union
 
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+multiprocessing.set_start_method("spawn", force=True)
+
 import streamlit as st
 
+from src.config import load_config
 from src.flow import DigitalCloneFlow
 from src.flow import compare_leaders as _compare_leaders
 from src.schemas import EvaluationResult, FallbackResponse, LeaderComparison, StyledResponse
+from src.style.profile_builder import load_profile
 
 # ---------------------------------------------------------------------------
 # section: page_config
@@ -176,9 +183,12 @@ if run_button and query_text.strip():
         render_compare(result)
     else:
         display_name = "Linus Torvalds" if leader_choice == "Torvalds" else "Greg Kroah-Hartman"
+        config_key = "torvalds" if leader_choice == "Torvalds" else "kroah_hartman"
         with st.spinner(f"Querying as {display_name}…"):
+            _config = load_config()
+            _profile = load_profile(Path(_config.leaders[config_key].profile_path))
             flow = DigitalCloneFlow()
-            flow.kickoff(inputs={"query": query_text.strip(), "leader": display_name})
+            flow.kickoff(inputs={"query": query_text.strip(), "leader": display_name, "style_profile": _profile})
             output = flow.state.styled_response or flow.state.fallback_response
         render_single(output, display_name)
 

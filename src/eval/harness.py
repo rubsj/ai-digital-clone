@@ -179,8 +179,9 @@ def run_leader_pair(query: str) -> dict:
 
 
 def run_measurement(
+    *,
     path: str | Path = "data/eval/queries.json",
-    output: str | Path = "results/evaluation_day12.json",
+    output: str | Path,
 ) -> dict:
     """C4 run design: one full pass + two in-domain re-runs + reactive OOD recheck.
 

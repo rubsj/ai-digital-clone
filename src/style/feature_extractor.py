@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import Any
-
 import numpy as np
 
 from src.schemas import EmailMessage, StyleFeatures

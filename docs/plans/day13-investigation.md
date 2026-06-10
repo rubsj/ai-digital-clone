@@ -2,7 +2,7 @@
 
 **Executing model:** Sonnet  
 **Judge model:** Opus (blind, inter-phase)  
-**Data:** results/evaluation_day12_reeval2.json  
+**Data:** results/archive/evaluation_day12_reeval2.json  
 **Query set:** data/eval/queries.json  
 **Deviation policy:** if data contradicts a stated premise, STOP and report. Do not improvise past a gate.
 

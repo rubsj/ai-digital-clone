@@ -3,7 +3,7 @@
 **Authored:** Day 12 (per PRD §7.5.1 naming convention)
 **Branch:** refactor/p6-multi-agent-rework
 **Measurement harness:** `src/eval/harness.py`, `run_measurement()`
-**Raw results:** `results/evaluation_day12.json` (48 pair-records, 96 leader-records)
+**Raw results:** `results/archive/evaluation_day12.json` (48 pair-records, 96 leader-records)
 **Run design:** Pass 1 all 20 queries × 2 leaders = 40 pair-records. Passes 2-3 14 in-domain queries × 2 leaders = 28 pair-records each. No reactive OOD recheck triggered (0 OOD delivers in pass 1).
 
 ---
@@ -97,7 +97,7 @@ Integrity assertion (non-null iff fallback, valid literal): one soft violation. 
 
 ## In-Domain Fallback Analysis
 
-All 14 in-domain queries are classified by the cause of their fallback. Analysis is based on `clone_response_text` (the CloneAgent output scored by the EvaluatorAgent) compared against `chunk_contents` from `results/evaluation_day12.json`. No additional LLM calls used.
+All 14 in-domain queries are classified by the cause of their fallback. Analysis is based on `clone_response_text` (the CloneAgent output scored by the EvaluatorAgent) compared against `chunk_contents` from `results/archive/evaluation_day12.json`. No additional LLM calls used.
 
 ### Failure mode distribution (pass 1, Torvalds)
 
