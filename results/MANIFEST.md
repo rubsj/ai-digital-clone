@@ -8,7 +8,7 @@ anchor between the shipped-ADR evidence trail and the result files on disk.
 
 ## Current-truth files (`results/` top level)
 
-These files remain at the top level alongside the forthcoming `evaluation_day15.json`.
+These files remain at the top level alongside the canonical `evaluation.json` (the live P2 run, renamed from `evaluation_day15.json` in Day-15 P4 so the canonical artifact name says what it is, not when it was made).
 None are superseded by the P2 canonical run; each answers a distinct question or isolates
 a distinct variable.
 
@@ -39,7 +39,7 @@ change when HHEM@0.40 replaces cosine@0.60 on the *same frozen (response, chunks
 from `results/archive/evaluation_day12_reeval2.json`?
 
 **Beside, not over:** This file ran the scorer(s) on frozen inputs to isolate one variable;
-it answers a different question than the live P2 run (`evaluation_day15.json`). The P2 run
+it answers a different question than the live P2 run (`evaluation.json`). The P2 run
 does not supersede it.
 
 **Coherence note:** The README quotes the fresh P2 distribution; the ADRs keep W3a's numbers
@@ -57,7 +57,7 @@ verdicts change when the W2 dedup fix is live in the Retriever, with HHEM@0.40 h
 throughout?
 
 **Beside, not over:** This file ran the fixed Retriever on fresh passes while holding the
-metric constant; it answers a different question than the live P2 run (`evaluation_day15.json`).
+metric constant; it answers a different question than the live P2 run (`evaluation.json`).
 The P2 run does not supersede it.
 
 **Coherence note:** The README quotes the fresh P2 distribution; the ADRs keep W3b's

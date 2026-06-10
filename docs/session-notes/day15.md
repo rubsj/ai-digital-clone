@@ -665,3 +665,17 @@ Distribution peaks at 0.40–0.60; max = 0.87. HHEM's theoretical bimodal behavi
 ### ADR candidates
 
 - None. The README is presentation of locked decisions (HHEM, 0.40, floors, deterministic routing). No decision was made or reopened while writing it. The q20 query-relevance gate signal is a candidate for a future ADR if Ruby opens the deferred OOD-defense finding, but it is not authored here.
+
+### P4 revision — redline pass (canonical-artifact rename + five README fixes)
+
+Canonical-artifact rename: `git mv results/evaluation_day15.json results/evaluation.json`. The canonical run is the README's face, so the name says what it is, not when it was made. Live by-path references repointed in the same pass: the README Results-section link, and the three name references in `results/MANIFEST.md` (with a one-line note recording the prior name). A repo-wide grep confirms the only remaining `evaluation_day15.json` mentions are in dated records (`docs/plans/day15-plan.md`, the historical P1/P2/P3 narration in this session-notes file) and the MANIFEST's "renamed from" note. Those are historical and left as-is; the repo-wide day-stamp audit is deferred (ledger item 8). No ADR or `src/`/`tests/` reference exists (the harness takes the output path explicitly), consistent with the MANIFEST being the sole path-traceability anchor.
+
+Five README fixes, targeted, voice and structure preserved:
+
+1. **Routing-accuracy claim (blocker).** Recomputed from the canonical run: 32/40 single-pass cells match expected behavior (21/28 in-domain delivered, 11/12 OOD fell back). The "Routing accuracy (single pass) 80.0%" row is removed from the Results table because the label conflated correct conservative fallbacks with router errors and duplicated the deliver-rate and OOD rows above it. The Findings paragraph now defines the 32/40 precisely and lists all eight off-expectation cells: q20 T (the OOD over-deliver) plus seven in-domain declines (q01 KH, q05 both, q07 both, q14 both), framed as the gate routing correctly on groundedness below 0.40, not router errors, with q07/q14 flagged as the documented grounded-but-below-gate cases (ADR-015). Confirmed against the run before counting: I did not assert q05 "should have delivered" (gs 0.225/0.250, plausibly a correct decline); only q07/q14 are named as grounded-but-below-gate.
+2. **Dedup in the retrieval flow.** Added the dedup-before-rerank stage to the A1 Mermaid Retriever node (`FAISS top-20 then dedup then Cohere top-5`) and made it explicit in the Tech Stack rerank row (`deduplicated before rerank (the W2 fix)`). The document now matches its own ADR-002 table row, and the one shipped retrieval fix is visible in the diagram.
+3. **Footer date.** `Built Feb–May 2026` → `Feb–June 2026`, covering Day-15 work.
+4. **Duplicated distribution paragraph.** The "why deliver rate is a distribution" mechanism is now stated once (the groundedness-finding paragraph); the "What the numbers mean" restatement is compressed to the editorial point (report the spread, not a single pass) and refers back instead of re-explaining the jitter.
+5. **Variance framing.** The W3a-to-P2 +14.3pp note keeps the beside-not-over framing (different questions) but no longer flattens the gap to pure "variance"; one clause now credits the fixed system generating more groundable responses live than the frozen Day-12 set W3a re-scored.
+
+No em dashes in the README. No locked decision reopened. No PRD edit (the §7.5.3 / §2.4 contradictions stay on the deferred ledger). STOP for Ruby's redline.

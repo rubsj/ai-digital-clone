@@ -36,7 +36,7 @@ graph TB
     end
 
     subgraph DET["Deterministic Components · src/components/"]
-        RT["Retriever: FAISS top-20 then Cohere top-5"]
+        RT["Retriever: FAISS top-20 then dedup then Cohere top-5"]
         SPB["StyleProfileBuilder: mbox to 15 features"]
         SE["ScoringEngine: style / groundedness / confidence"]
         GK["Gatekeeper: deliver-or-fallback arithmetic"]
@@ -74,13 +74,12 @@ graph TB
 | OOD fallback | 91.7% (11/12) | 100% | Partial |
 | Hallucinations on OOD | 0 | 0 | Pass |
 | Groundedness gate | HHEM-2.1-Open entailment, threshold 0.40 | n/a | n/a |
-| Routing accuracy (single pass) | 80.0% (32/40) | n/a | n/a |
 
-Deliver rates are means over three passes at generation temperature 0.3, where a single pass is a noisy sample, so the operating point is a distribution and the range matters as much as the mean. Both leaders clear the 55% E2 target, the 39% E1 floor, and their honest per-leader floors (ADR-015). The full canonical run is [`results/evaluation_day15.json`](results/evaluation_day15.json).
+Deliver rates are means over three passes at generation temperature 0.3, where a single pass is a noisy sample, so the operating point is a distribution and the range matters as much as the mean. Both leaders clear the 55% E2 target, the 39% E1 floor, and their honest per-leader floors (ADR-015). The full canonical run is [`results/evaluation.json`](results/evaluation.json).
 
 E2, the ship target, is partially met. Two of its three criteria pass: the in-domain deliver rate clears 55% per leader, and zero hallucinations were produced on out-of-domain queries. The third, OOD fallback at 100%, misses by a single query (q20 as Torvalds). That query is not a hallucination, which is what makes it worth a section of its own below.
 
-A note on numbers, because the ADRs and this README cite different ones. The deliver rates here come from a fresh three-pass run of the shipped system. The ADRs quote a frozen re-score (W3a: Torvalds 64.3%, Kroah-Hartman 78.6%) that ran the corrected metric over fixed, pre-generated responses to isolate the metric's effect alone. Those answer different questions, and the gap between them (Torvalds +14.3 points) is temperature-0.3 generation variance, not a contradiction.
+A note on numbers, because the ADRs and this README cite different ones. The deliver rates here come from a fresh three-pass run of the shipped system. The ADRs quote a frozen re-score (W3a: Torvalds 64.3%, Kroah-Hartman 78.6%) that ran the corrected metric over fixed, pre-generated responses to isolate the metric's effect alone. Those answer different questions, so the gap between them (Torvalds +14.3 points) is not a contradiction: part is temperature-0.3 generation noise, and part is the fixed system generating more groundable responses live than the frozen Day-12 responses W3a re-scored.
 
 ## How groundedness got measured, and why it had to change
 
@@ -110,13 +109,13 @@ The deliver rate spread per leader, per pass, against the acceptance criteria:
 
 Kroah-Hartman carries the wider spread (±10.9 points versus Torvalds' ±7.1), driven by a 92.9% third pass. Neither leader's worst pass falls below its floor, and neither leader's best pass is what gets reported as the headline. The mean is the operating point.
 
-The routing decision itself is correct 32 of 40 times on a single pass:
+The grid below places every single-pass query-leader cell against the behavior the query set expects, deliver for in-domain and fallback for OOD. 32 of 40 cells match (21 of 28 in-domain delivered, 11 of 12 OOD fell back):
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/02-routing-correctness-grid.png" alt="Routing correctness grid, in-domain and OOD" width="750"/>
 </p>
 
-The single red cell in the OOD block is q20 as Torvalds. Every other out-of-domain query, both leaders, routes to fallback as it should.
+The eight off-expectation cells are two different things. One is q20 as Torvalds, an out-of-domain query the gate delivered; it is the only off-expectation cell in the OOD block, and the section below is about it. The other seven are in-domain responses the gate declined because their groundedness landed below 0.40 (q01 KH, q05 both leaders, q07 both, q14 both). The grid marks those red, but they are the same conservative fallbacks the deliver-rate distribution already counts, the gate routing correctly on the score rather than the router making an error. q07 and q14 are the documented grounded-but-below-gate cases, where the paraphrase-sensitive metric sends a genuinely grounded answer to fallback (ADR-015).
 
 The clones do match their leaders on measurable style. The 15-feature style profiles (punctuation frequency, vocabulary richness, capitalization ratio, plus LKML-specific markers) sit close to the source profiles for both leaders:
 
@@ -128,7 +127,7 @@ The clones do match their leaders on measurable style. The 15-feature style prof
 
 Style was never the hard part. The 15-feature extractor produces interpretable, per-dimension style scores that the CloneAgent matches well, and style is treated as quality metadata rather than a delivery veto (ADR-018). A slightly off-voice answer that is grounded and true is still worth delivering. The delivery decision rests on groundedness alone, because an ungrounded answer is a hallucination and that is the only failure the gate exists to stop.
 
-The deliver rate being a band rather than a line is a property of the system, not a measurement flaw. At temperature 0.3 the same query can land at 0.41 on one pass and 0.39 on the next, and with half the in-domain scores sitting in the 0.40-to-0.60 band, that jitter crosses the gate for a few borderline queries every run. Reporting a single pass would have hidden this. Reporting the spread is the honest version.
+The deliver rate being a band rather than a line is a property of the system, not a measurement flaw, for the reason the groundedness distribution shows above. Reporting a single pass would have hidden that jitter at the gate; the three-pass spread is the honest version.
 
 ## Architecture
 
@@ -172,7 +171,7 @@ The miss is systematic, not stochastic. q20 as Torvalds delivered on all three a
 | LLM routing | LiteLLM | Provider-agnostic. gpt-4o-mini for generation and the evaluator explanation. |
 | Embeddings | OpenAI text-embedding-3-small (1536d) | Primary retrieval embedding, cached by MD5 to avoid re-calling on the same input. |
 | Vector search | FAISS IndexFlatIP | Exact search over L2-normalized vectors, so dot product equals cosine. |
-| Reranking | Cohere rerank-english-v3.0 | Two-stage retrieval, top-20 down to top-5, on a deduplicated candidate pool. Graceful FAISS fallback if the API fails. |
+| Reranking | Cohere rerank-english-v3.0 | Two-stage retrieval: FAISS top-20, deduplicated before rerank (the W2 fix), then Cohere down to top-5. Graceful FAISS fallback if the API fails. |
 | Groundedness | HHEM-2.1-Open (vendored) | Local 110M FLAN-T5 entailment model, in-process and deterministic. Vendored to two files to run on transformers 5.x and drop remote-code loading. |
 | Style features | Custom 15-feature extractor | Interpretable per-dimension style over LKML mbox archives, not embedding-based, so each feature has human-readable meaning. |
 | CLI | Click + Rich | Five commands: learn, index, query, compare, evaluate. |
@@ -212,7 +211,7 @@ Requires Python 3.12+, `uv`, an OpenAI API key, and a Cohere API key (free tier 
 
 ---
 
-Part of a [9-project AI engineering sprint](https://github.com/rubsj/ai-portfolio). Built Feb–May 2026.
+Part of a [9-project AI engineering sprint](https://github.com/rubsj/ai-portfolio). Built Feb–June 2026.
 
 Built by **Ruby Jha** · [LinkedIn](https://linkedin.com/in/jharuby) · [GitHub](https://github.com/rubsj/ai-portfolio)
 </content>
