@@ -1,8 +1,8 @@
 # P6: Torvalds Digital Clone
 
-I built a multi-agent system that answers computer-science questions in the writing voice of Linus Torvalds or Greg Kroah-Hartman, with a deterministic gate that makes it decline rather than hallucinate when the corpus cannot support an answer. In-domain it delivers an in-voice answer 78.6% of the time as Torvalds and 81.0% as Kroah-Hartman across a three-pass run, both comfortably above the 55% ship target. On out-of-domain questions it stays silent 11 of 12 times. The twelfth is a gap I can show you the exact mechanism of, and it is the most interesting thing in this project.
+I built a multi-agent system that answers computer-science questions in the writing voice of Linus Torvalds or Greg Kroah-Hartman, with a deterministic gate that makes it decline rather than hallucinate when the corpus cannot support an answer. In-domain it delivers an in-voice answer 78.6% of the time as Torvalds and 81.0% as Kroah-Hartman across a three-pass run, both comfortably above the 55% ship target. On out-of-domain questions it stays silent 11 of 12 times. The twelfth is a gap I can show you the exact mechanism of.
 
-Part of a 9-project AI engineering portfolio. 21 ADRs, 532 tests, 9 charts.
+Part of a 9-project AI engineering portfolio. 21 ADRs, 534 tests, 9 charts.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -75,15 +75,46 @@ graph TB
 | Hallucinations on OOD | 0 | 0 | Pass |
 | Groundedness gate | HHEM-2.1-Open entailment, threshold 0.40 | n/a | n/a |
 
-Deliver rates are means over three passes at generation temperature 0.3, where a single pass is a noisy sample, so the operating point is a distribution and the range matters as much as the mean. Both leaders clear the 55% E2 target, the 39% E1 floor, and their honest per-leader floors (ADR-015). The full canonical run is [`results/evaluation.json`](results/evaluation.json).
+Deliver rates are means over three passes at generation temperature 0.3, where a single pass is a noisy sample, so the operating point is a distribution and the range matters as much as the mean. Both leaders clear the 55% E2 target, the 39% E1 floor, and their per-leader floors (ADR-015). The full canonical run is [`results/evaluation.json`](results/evaluation.json).
 
-E2, the ship target, is partially met. Two of its three criteria pass: the in-domain deliver rate clears 55% per leader, and zero hallucinations were produced on out-of-domain queries. The third, OOD fallback at 100%, misses by a single query (q20 as Torvalds). That query is not a hallucination, which is what makes it worth a section of its own below.
+The corpus is five pinned CS textbooks (Statistical Learning Theory and Applications; Introduction to Computers and Engineering Problem Solving; Numerical Methods Applied to Chemical Engineering; Principles and Practice of Assistive Technology; Data Mining), indexed as 6,713 chunks, 5,856 of them unique. Pinning each source by name and verifying it by MD5 makes the corpus reproducible; the roughly 857 duplicate chunks are a known corpus-level duplication, deferred (see Limitations).
+
+E2, the ship target, is partially met. Two of its three criteria pass: the in-domain deliver rate clears 55% per leader, and zero hallucinations were produced on out-of-domain queries. The third, OOD fallback at 100%, misses by a single query (q20 as Torvalds). That query is not a hallucination.
 
 A note on numbers, because the ADRs and this README cite different ones. The deliver rates here come from a fresh three-pass run of the shipped system. The ADRs quote a frozen re-score (W3a: Torvalds 64.3%, Kroah-Hartman 78.6%) that ran the corrected metric over fixed, pre-generated responses to isolate the metric's effect alone. Those answer different questions, so the gap between them (Torvalds +14.3 points) is not a contradiction: part is temperature-0.3 generation noise, and part is the fixed system generating more groundable responses live than the frozen Day-12 responses W3a re-scored.
 
+## How it works
+
+A query enters the Flow and is retrieved against the corpus, the clone drafts an answer grounded in the retrieved chunks and styled to the chosen leader, that draft is scored and explained, a deterministic gate reads the scores and decides deliver or decline, and either the answer ships with its citations or a fallback declines in the leader's own voice. That is the whole request lifecycle, and it is a designed flow rather than one prompt doing everything: each step writes its result into a typed state object that the next step reads (ADR-014). The diagram above names every unit; here is what each one does.
+
+Three of the steps are LLM-driven Agents in `src/agents/`, placed where judgment is the work:
+
+- **CloneAgent** generates the response in the leader's voice, grounded in the chunks the Retriever returned.
+- **EvaluatorAgent** is a hybrid: it takes the three numerical scores from the ScoringEngine and uses the LLM only to explain them and raise flags, so the numbers stay deterministic while the reasoning prose sits where an LLM belongs (ADR-011).
+- **FallbackAgent** writes a graceful, leader-appropriate decline when the gate routes to fallback, and carries a short templated failsafe so the user always gets a reply even if its own LLM call fails.
+
+Four of the steps are deterministic Components in `src/components/`, each a plain class with a `run()` method and no LLM call:
+
+- **Retriever** embeds the query, searches FAISS for the top 20 candidates, deduplicates the pool, then reranks down to the top 5 with Cohere.
+- **StyleProfileBuilder** parses a leader's LKML mbox archive and extracts 15 interpretable style features per email into one StyleProfile.
+- **ScoringEngine** computes the three quality scores, style, groundedness, and confidence, with deterministic math, including the HHEM-2.1-Open entailment score for groundedness.
+- **Gatekeeper** makes the deliver-or-fallback decision by an arithmetic threshold comparison on those scores, with no LLM on the routing path (ADR-018).
+
+The split between the two groups is the deliberate part, not an accident of where files landed. An LLM does the work only where judgment is the work: writing voiced prose, explaining a score, declining gracefully. Everything that is computation, retrieval, feature extraction, scoring, and the routing comparison itself, is a deterministic Component that returns the same output for the same input on every run. That line is drawn in code and enforced in CI by a grep check, and drawing it is the architecture the system rests on, not an incidental layout (ADR-009, ADR-014).
+
+### The style loop
+
+Style runs as a closed loop. The StyleProfileBuilder extracts a measurable 15-feature profile from the leader's own writing, the CloneAgent generates against that profile, and the ScoringEngine verifies the generated answer back against the same profile. Build the profile, generate to it, measure the result against it. Because each of the 15 features is a named, inspectable signal rather than an opaque embedding, the verification is legible: you can read which dimensions matched the leader and which drifted (ADR-003).
+
+The clones do match their leaders on measurable style. The 15-feature style profiles (punctuation frequency, vocabulary richness, capitalization ratio, plus LKML-specific markers) sit close to the source profiles for both leaders:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/01-style-radar-dual-leader.png" alt="Dual-leader style radar across 15 features" width="700"/>
+</p>
+
 ## How groundedness got measured, and why it had to change
 
-The interesting engineering in this project is not the multi-agent plumbing. It is a measurement bug that nearly got read as a quality bug.
+A measurement bug here nearly got read as a quality bug.
 
 Through Day 12 the groundedness score was cosine similarity between the generated response and the retrieved chunks. Under that metric the Torvalds clone scored persistently below the Kroah-Hartman clone and below its floor on several in-domain queries. The obvious reading was a generation deficit, that the Torvalds clone was producing less grounded answers. Before excising anything from the Torvalds output, Day 13 asked the prior question, whether the deficit belonged to the clone or to the score.
 
@@ -91,7 +122,7 @@ It belonged to the score. Cosine similarity is symmetric and rewards shared voca
 
 The fix replaced cosine with HHEM-2.1-Open (ADR-020), a 110M-parameter local entailment model that scores per-sentence factual consistency with the chunk as premise and the generated sentence as hypothesis. It runs in-process in the ScoringEngine Component, so the deterministic router keeps a number it can trust without a network call or an LLM on the routing path. The cosine-era threshold of 0.60 does not transfer because entailment scores run lower than lexical-echo scores, so the threshold was re-derived to 0.40 by a safety-asymmetric rule: maximize grounded deliver rate while still catching at least 90% of content that should fall back. The model was chosen by a pre-registered bake-off against a hand-labeled containment oracle, and it won on every axis the other candidates split despite no candidate clearing all four gates outright.
 
-The per-leader floors held under the corrected metric, which is the point of having locked them in advance. They were calibrated against the broken cosine score and could not be trusted until re-measured, and the re-measurement confirmed both leaders clear them. The floors were reframed from bias-compensation to what they honestly are, regression guardrails that confirm delivery has not dropped below the Day-8 baseline (ADR-015 W3c amendment).
+The per-leader floors held under the corrected metric, which is the point of having locked them in advance. They were calibrated against the broken cosine score and could not be trusted until re-measured, and the re-measurement confirmed both leaders clear them. The floors were reframed from bias-compensation to regression guardrails that confirm delivery has not dropped below the Day-8 baseline (ADR-015 W3c amendment).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/04-groundedness-score-distribution.png" alt="HHEM groundedness score distribution with the 0.40 gate" width="750"/>
@@ -115,19 +146,13 @@ The grid below places every single-pass query-leader cell against the behavior t
   <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/02-routing-correctness-grid.png" alt="Routing correctness grid, in-domain and OOD" width="750"/>
 </p>
 
-The eight off-expectation cells are two different things. One is q20 as Torvalds, an out-of-domain query the gate delivered; it is the only off-expectation cell in the OOD block, and the section below is about it. The other seven are in-domain responses the gate declined because their groundedness landed below 0.40 (q01 KH, q05 both leaders, q07 both, q14 both). The grid marks those red, but they are the same conservative fallbacks the deliver-rate distribution already counts, the gate routing correctly on the score rather than the router making an error. q07 and q14 are the documented grounded-but-below-gate cases, where the paraphrase-sensitive metric sends a genuinely grounded answer to fallback (ADR-015).
-
-The clones do match their leaders on measurable style. The 15-feature style profiles (punctuation frequency, vocabulary richness, capitalization ratio, plus LKML-specific markers) sit close to the source profiles for both leaders:
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/01-style-radar-dual-leader.png" alt="Dual-leader style radar across 15 features" width="700"/>
-</p>
+The eight off-expectation cells are two different things. One is q20 as Torvalds, an out-of-domain query the gate delivered; it is the only off-expectation cell in the OOD block, and the section below is about it. The other seven are in-domain responses the gate declined because their groundedness landed below 0.40 (q01 KH, q05 both leaders, q07 both, q14 both). The grid marks those red, but they are the same conservative fallbacks the deliver-rate distribution already counts, the gate routing correctly on the score. q07 and q14 are the documented grounded-but-below-gate cases, where the paraphrase-sensitive metric sends a genuinely grounded answer to fallback (ADR-015).
 
 ### What the numbers mean
 
-Style was never the hard part. The 15-feature extractor produces interpretable, per-dimension style scores that the CloneAgent matches well, and style is treated as quality metadata rather than a delivery veto (ADR-018). A slightly off-voice answer that is grounded and true is still worth delivering. The delivery decision rests on groundedness alone, because an ungrounded answer is a hallucination and that is the only failure the gate exists to stop.
+Style was never the hard part. The 15-feature extractor produces interpretable, per-dimension style scores that the CloneAgent matches well, and style is treated as quality metadata; it does not veto delivery (ADR-018). A slightly off-voice answer that is grounded and true is still worth delivering. The delivery decision rests on groundedness alone, because an ungrounded answer is a hallucination and that is the only failure the gate exists to stop.
 
-The deliver rate being a band rather than a line is a property of the system, not a measurement flaw, for the reason the groundedness distribution shows above. Reporting a single pass would have hidden that jitter at the gate; the three-pass spread is the honest version.
+That the deliver rate is a distribution is a property of the system, for the reason the groundedness distribution shows above. Reporting a single pass would have hidden that jitter at the gate; the three-pass spread shows it.
 
 ## Architecture
 
@@ -141,13 +166,22 @@ The Gatekeeper is a deterministic Component, not an Agent. It started as a Gatek
 | [ADR-018](docs/adr/ADR-018-deterministic-routing.md) | Deterministic routing; Gatekeeper reclassified Agent to Component | An LLM at an arithmetic decision point produced non-monotonic, non-reproducible routing. A pure function cannot drift; the explanation moves to the FallbackAgent. |
 | [ADR-019](docs/adr/ADR-019-groundedness-measures-lexical-echo.md) | Cosine groundedness measures lexical echo, not containment | The Torvalds deficit was the metric penalizing paraphrase, confirmed three ways. The clone was not changed. |
 | [ADR-020](docs/adr/ADR-020-replace-cosine-with-local-entailment-scorer.md) | Replace cosine with HHEM-2.1-Open, threshold 0.40 | A local, in-process, deterministic entailment score keeps the router trustworthy. Threshold re-derived because entailment scores run lower than cosine. |
-| [ADR-021](docs/adr/ADR-021-ship-known-biased-gate-compensate-at-floor.md) | Ship the gate with a known, measured paraphrase bias | The bias reproduced across three model families and is intrinsic to surface-sensitive metrics on terse prose. Documented openly, compensated at the floor. |
+| [ADR-021](docs/adr/ADR-021-ship-known-biased-gate-compensate-at-floor.md) | Ship the gate with a known, measured paraphrase bias | The bias reproduced across three model families and is intrinsic to surface-sensitive metrics on terse prose. |
 | [ADR-002](docs/adr/ADR-002-rag-config-embeddings-reranking-chunking.md) | OpenAI embeddings, Cohere rerank, dedup-before-rerank | 6 of 14 queries retrieved the same passage 2-3 times, cutting effective context. Dedup restores 5 distinct chunks before rerank. |
 | [ADR-015](docs/adr/ADR-015-post-rework-eval-acceptance-criteria.md) | E1 floor and E2 target acceptance criteria, locked before measurement | Locking the bar in advance keeps the ship decision from being reasoned backward from whatever the numbers turn out to be. |
 
+The full architecture diagram set lives in `docs/architecture/`. The hero diagram at the top of this README is A1, so the inline one is part of this set, not separate.
+
+- [A1: system architecture](docs/architecture/A1-system-architecture.md) (the hero diagram above)
+- [A2: single-query sequence](docs/architecture/A2-single-query-sequence.md)
+- [A3: dual-leader sequence](docs/architecture/A3-dual-leader-sequence.md)
+- [A4: data models](docs/architecture/A4-data-models.md)
+- [A5: data flow](docs/architecture/A5-data-flow.md)
+- [A6: agent-vs-component split](docs/architecture/A6-agent-vs-component.md)
+
 ## Limitations
 
-**q20 delivers an out-of-domain answer, and groundedness cannot catch it.** This is the OOD-fallback miss, and it is a characterized gap with a known fix, not a mystery. q20 is out of domain, but the Retriever still returns its top-5 chunks, and the Torvalds clone writes a response that those chunks happen to support well enough to score 0.422, above the 0.40 gate. The answer is genuinely grounded in the retrieved text. The problem is that the retrieved text is barely relevant to the question. Groundedness asks whether the answer is supported by the chunks, not whether the chunks are relevant to the query, so it passes q20 honestly.
+**q20 delivers an out-of-domain answer, and groundedness cannot catch it.** This is the OOD-fallback miss, and it is a characterized gap with a known fix, not a mystery. q20 is out of domain, but the Retriever still returns its top-5 chunks, and the Torvalds clone writes a response that those chunks happen to support well enough to score 0.422, above the 0.40 gate. The answer is genuinely grounded in the retrieved text. The problem is that the retrieved text is barely relevant to the question. Groundedness asks whether the answer is supported by the chunks, not whether the chunks are relevant to the query, so q20 clears the gate.
 
 The two signals separate cleanly. The chart below plots top-chunk retrieval relevance for in-domain versus out-of-domain queries on a log scale. q20's top chunk scores 0.0013 while every in-domain query's top chunk scores at least 0.32, a separation of about three orders of magnitude. Groundedness puts q20 inside the in-domain pack; retrieval relevance puts it far outside.
 
@@ -155,11 +189,11 @@ The two signals separate cleanly. The chart below plots top-chunk retrieval rele
   <img src="https://raw.githubusercontent.com/rubsj/ai-digital-clone/main/results/charts/09-retrieval-relevance-contrast.png" alt="Retrieval relevance contrast, in-domain vs OOD, log scale" width="750"/>
 </p>
 
-The miss is systematic, not stochastic. q20 as Torvalds delivered on all three attempts (groundedness 0.422, 0.473, 0.403), and q20 as Kroah-Hartman sits right at the boundary too, holding at fallback on the first pass but flipping to deliver on one recheck. The fix is a query-relevance gate signal that floors top-chunk relevance alongside groundedness, and the evidence for it is the chart above. It is deferred rather than hidden, because adding a second gate signal touches the locked routing decision and belongs to a scoped change, not a wrap-up.
+The miss is systematic, not stochastic. q20 as Torvalds delivered on all three attempts (groundedness 0.422, 0.473, 0.403), and q20 as Kroah-Hartman sits right at the boundary too, holding at fallback on the first pass but flipping to deliver on one recheck. The fix is a query-relevance gate signal that floors top-chunk relevance alongside groundedness, and the evidence for it is the chart above. It is deferred because adding a second gate signal touches the locked routing decision.
 
-**A grounded Torvalds answer can still fall back on hard paraphrased queries.** The residual paraphrase bias that HHEM inherited from the metric family is real on hard queries even though it is zero on easy ones. A Torvalds response with genuine oracle grounding of 54% to 73% can score 0.28 to 0.38 on HHEM and route to fallback (q07 is the surviving in-sample example). This is the operational cost ADR-021 accepted when it chose a local deterministic gate over a paraphrase-robust LLM judge, and it is documented as a bounded limitation rather than tuned away, because lowering the Torvalds threshold to rescue these cases would weaken the same gate that defends against OOD hallucination.
+**A grounded Torvalds answer can still fall back on hard paraphrased queries.** The residual paraphrase bias that HHEM inherited from the metric family is real on hard queries even though it is zero on easy ones. A Torvalds response with genuine oracle grounding of 54% to 73% can score 0.28 to 0.38 on HHEM and route to fallback (q07 is the surviving in-sample example). This is the operational cost ADR-021 accepted when it chose a local deterministic gate over a paraphrase-robust LLM judge: lowering the Torvalds threshold to rescue these cases would weaken the same gate that defends against OOD hallucination.
 
-**The corpus index carries baked-in duplication.** The persisted FAISS index holds 857 duplicate-content entries from build time. The Retriever deduplicates its candidate pool before reranking, which masks the problem for every live query, but the proper fix is a deduped index rebuild and re-embed (ADR-002 amendment). That is deferred and tracked as a cross-project data-quality issue.
+**The corpus index carries baked-in duplication.** The persisted FAISS index holds 857 duplicate-content entries from build time. The Retriever deduplicates its candidate pool before reranking, which masks the problem for every live query, but the proper fix is a deduped index rebuild and re-embed (ADR-002 amendment).
 
 ## Tech Stack
 
@@ -177,7 +211,7 @@ The miss is systematic, not stochastic. q20 as Torvalds delivered on all three a
 | CLI | Click + Rich | Five commands: learn, index, query, compare, evaluate. |
 | Demo | Streamlit | Interactive dual-leader querying. |
 | Charts | Matplotlib | 9 Git-tracked PNGs generated from the canonical run. |
-| Testing | pytest | 532 tests. LLM responses recorded and replayed, no live calls in CI. |
+| Testing | pytest | 534 tests. LLM responses recorded and replayed, no live calls in CI. |
 
 ## Quick Start
 
@@ -204,14 +238,14 @@ uv run cli evaluate --query-set data/eval/queries.json --output results/evaluati
 
 ```bash
 uv run streamlit run streamlit_app.py   # localhost:8501
-uv run pytest                            # 532 tests
+uv run pytest                            # 534 tests
 ```
 
 Requires Python 3.12+, `uv`, an OpenAI API key, and a Cohere API key (free tier works; the Retriever falls back to FAISS top-5 without it).
 
 ---
 
-Part of a [9-project AI engineering sprint](https://github.com/rubsj/ai-portfolio). Built Feb–June 2026.
+Part of a [9-project AI engineering portfolio](https://github.com/rubsj/ai-portfolio). Built 2026.
 
-Built by **Ruby Jha** · [LinkedIn](https://linkedin.com/in/jharuby) · [GitHub](https://github.com/rubsj/ai-portfolio)
+Built by **Ruby Jha** · [Website](https://rubyjha.dev) · [LinkedIn](https://linkedin.com/in/jharuby) · [GitHub](https://github.com/rubsj/ai-portfolio)
 </content>
